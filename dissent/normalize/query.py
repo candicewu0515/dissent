@@ -4,6 +4,7 @@ People write variants in whatever notation their field uses. All of these refer
 to the same BRAF variant and all must work:
 
     rs113488022
+    41815                     a ClinVar variation id
     BRAF V600E
     BRAF p.Val600Glu
     chr7:140753336A>T
@@ -31,6 +32,11 @@ AA3_TO_1 = {
 }
 
 _RSID = re.compile(r"^rs\d+$", re.I)
+
+# ClinVar variation identifiers, as they appear in the database's own URLs and
+# release files: `41815`, `VCV000041815`, `clinvar:41815`. A bare integer is
+# unambiguous here because no other accepted notation is one.
+_CLINVAR_ID = re.compile(r"^(?:clinvar[:\s]*|vcv0*)?(\d{1,9})$", re.I)
 
 # chr7:140753336A>T | chr7:g.140753336A>T | 7:140753336A>T
 _GCOORD_HGVS = re.compile(
@@ -85,6 +91,15 @@ def parse_variant(raw: str, assembly: Assembly = "hg38") -> VariantQuery:
     if _RSID.match(collapsed):
         return VariantQuery(
             raw=text, kind="rsid", assembly=assembly, rsid=collapsed.lower()
+        )
+
+    m = _CLINVAR_ID.match(collapsed)
+    if m:
+        return VariantQuery(
+            raw=text,
+            kind="clinvar_id",
+            assembly=assembly,
+            clinvar_id=int(m.group(1)),
         )
 
     for pattern in (_GCOORD_DELIM, _GCOORD_HGVS):

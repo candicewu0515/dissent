@@ -22,6 +22,9 @@ from dissent.sources.myvariant import three_letter_protein
         ("braf p.V600E", "gene_protein"),
         ("BRAF:p.Val600Glu", "gene_protein"),
         ("NM_004333.6:c.1799T>A", "hgvs"),
+        ("41815", "clinvar_id"),
+        ("VCV000041815", "clinvar_id"),
+        ("clinvar:17002", "clinvar_id"),
         ("ENST00000288602.11:c.1799T>A", "hgvs"),
     ],
 )
@@ -75,3 +78,24 @@ def test_protein_change_rewrites_to_clinvar_notation(one, three):
 def test_protein_rewrite_refuses_unparseable_input():
     assert three_letter_protein("garbage") is None
     assert three_letter_protein(None) is None
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [("41815", 41815), ("VCV000041815", 41815), ("clinvar:17002", 17002),
+     ("clinvar 7888", 7888)],
+)
+def test_clinvar_variation_ids_are_recognised(raw, expected):
+    """They appear in ClinVar's own URLs and release files, so people paste them."""
+    q = parse_variant(raw)
+    assert q.kind == "clinvar_id"
+    assert q.clinvar_id == expected
+
+
+def test_an_implausibly_long_number_is_not_read_as_a_clinvar_id():
+    assert parse_variant("123456789012").kind == "unknown"
+
+
+def test_an_rsid_is_not_mistaken_for_a_clinvar_id():
+    """A bare integer is a variation id; rs-prefixed is not."""
+    assert parse_variant("rs41815").kind == "rsid"

@@ -87,15 +87,24 @@ reconcile, and nothing in either database mentions the other."*
 **3. What would change this.** For every unresolved criterion and every
 conflict, the specific evidence that would settle it.
 
+**And the whole database at `/scale`.** The rates above, the genes
+disagreement concentrates in, and the sharpest form the measurement takes: the
+**3,349 variants one laboratory calls disease-causing and another calls
+harmless** — 312 of them on variants an expert panel has reviewed. Not a rate,
+a list, and every row opens its own worksheet. ABCA4 c.5882G>A carries 57
+pathogenic records, 15 likely pathogenic, and one benign.
+
 ## Try these
 
 | Variant | Why it is interesting |
 |---|---|
+| `41815` | A ClinVar variation id. 37 laboratories call it benign and one calls it pathogenic. |
 | `HFE C282Y` | Asserted pathogenic at ~7% allele frequency — above the stand-alone benign threshold. Hereditary haemochromatosis has very low penetrance, and the framework has no clean answer. |
 | `MTHFR A222V` | 49% allele frequency in one population, yet 12 of 19 predictors call it damaging. BA1 and PP3 are met at once. |
 | `BRAF V600E` | Somatic and germline assertions mixed in one record; 13 of 17 state no assertion criteria. |
 | `CFTR G542X` | Nonsense variant in a recessive gene, where gnomAD constraint is uninformative by construction. |
 | `NF1 R1947*` | PVS1 met, but the evidence falls into a gap in the published combining rules. |
+| `KCNH2 A561V` | Reaches **Likely pathogenic** from public data alone. A long QT variant where rarity, the gene's intolerance of missense change, and a calibrated predictor all line up — and 64 publications sit above a ClinVar record that states no method. |
 | `BRCA1 C61G` | Well curated and unanimous. Included so the conflict panel can be seen staying quiet. |
 
 ## Running it

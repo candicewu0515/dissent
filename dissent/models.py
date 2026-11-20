@@ -14,7 +14,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 Assembly = Literal["hg19", "hg38"]
-QueryKind = Literal["rsid", "hgvs", "gcoord", "gene_protein", "unknown"]
+QueryKind = Literal["rsid", "hgvs", "gcoord", "gene_protein", "clinvar_id", "unknown"]
 
 
 # --------------------------------------------------------------------------
@@ -49,6 +49,7 @@ class VariantQuery(BaseModel):
     alt: str | None = None
     gene: str | None = None
     protein_change: str | None = None
+    clinvar_id: int | None = None
 
     @property
     def gnomad_variant_id(self) -> str | None:

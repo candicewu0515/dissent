@@ -229,6 +229,57 @@ async function lookupGene(symbol) {
   }
 }
 
+const LABEL_CLASS = {
+  pathogenic: "p",
+  "likely pathogenic": "p",
+  "pathogenic/likely pathogenic": "p",
+  "uncertain significance": "u",
+  "likely benign": "b",
+  benign: "b",
+  "benign/likely benign": "b",
+};
+
+async function loadOpposed() {
+  const expertOnly = $("expert-only").checked;
+  const box = $("opposed");
+  clear(box);
+
+  const res = await fetch(`/api/baseline/opposed?limit=25&min_stars=${expertOnly ? 3 : 0}`);
+  if (!res.ok) {
+    box.appendChild(text("div", "error", "Could not load the list."));
+    return;
+  }
+  const data = await res.json();
+
+  $("opposed-count").textContent =
+    `${data.total.toLocaleString()} variants` +
+    (expertOnly ? " with an expert-panel review" : " in total") +
+    `, showing ${data.variants.length}`;
+
+  for (const v of data.variants) {
+    const row = document.createElement("a");
+    row.className = "opposed-row";
+    // The interpreter accepts a ClinVar variation id directly.
+    row.href = `/?q=${v.id}`;
+    row.title = `Open the full worksheet for ClinVar variation ${v.id}`;
+
+    const left = text("div", "opposed-left");
+    left.appendChild(text("span", "opposed-gene", v.gene || "—"));
+    left.appendChild(text("span", "opposed-id", `ClinVar ${v.id}`));
+    if (v.best_stars >= 3) left.appendChild(text("span", "opposed-badge", "expert panel"));
+    if (v.last) left.appendChild(text("span", "opposed-date", `last evaluated ${v.last}`));
+    row.appendChild(left);
+
+    const labels = text("div", "opposed-labels");
+    for (const [label, n] of v.labels) {
+      const cls = LABEL_CLASS[label] || "n";
+      labels.appendChild(text("span", `pill ${cls}`, `${n}× ${label}`));
+    }
+    row.appendChild(labels);
+    box.appendChild(row);
+  }
+}
+
 function initTheme() {
   const stored = (() => {
     try { return localStorage.getItem("dissent-theme"); } catch (_) { return null; }
@@ -267,7 +318,11 @@ async function load() {
 
   const hist = submittersChart(data.submitters_per_variant);
   if (hist) $("submitters-chart").appendChild(hist);
+
+  await loadOpposed();
 }
+
+$("expert-only").addEventListener("change", loadOpposed);
 
 $("gene-form").addEventListener("submit", (e) => {
   e.preventDefault();

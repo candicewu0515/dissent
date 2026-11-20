@@ -482,6 +482,9 @@ class MyVariantClient(SourceClient):
         lists every transcript's numbering. Hits from either are verified
         against the requested gene and protein change by `_best_hit`.
         """
+        if query.clinvar_id:
+            return [f"clinvar.variant_id:{query.clinvar_id}"]
+
         if query.rsid:
             return [f"dbsnp.rsid:{query.rsid}"]
 

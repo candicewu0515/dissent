@@ -32,15 +32,26 @@ BENIGN = {"benign", "likely benign", "benign/likely benign"}
 UNCERTAIN = {"uncertain significance", "uncertain risk allele"}
 PLACEHOLDER = {"not provided", "no classification provided", "-", ""}
 
-NO_CRITERIA = {
-    "no assertion criteria provided",
-    "no assertion provided",
-    "no classification provided",
-    "no classifications from unflagged records",
+# ClinVar's documented review-status scale. Recording the real rating rather
+# than a has-criteria flag matters for the opposed-variant list, which is
+# ordered by how well reviewed the conflict is: two expert-panel records
+# disagreeing is a different finding from two unsourced opinions doing so.
+REVIEW_STARS = {
+    "practice guideline": 4,
+    "reviewed by expert panel": 3,
+    "criteria provided, multiple submitters, no conflicts": 2,
+    "criteria provided, single submitter": 1,
+    "criteria provided, conflicting classifications": 1,
+    "criteria provided, conflicting interpretations": 1,
+    "no assertion criteria provided": 0,
+    "no assertion provided": 0,
+    "no classification provided": 0,
+    "no classifications from unflagged records": 0,
     # A flagged submission has been withdrawn from the aggregate by ClinVar;
     # it carries no review weight.
-    "flagged submission",
+    "flagged submission": 0,
 }
+NO_CRITERIA = {k for k, v in REVIEW_STARS.items() if v == 0}
 
 # Staleness is measured against the day the analysis runs, not a fixed date,
 # so a re-run against a newer release reports the rate correctly.
@@ -94,7 +105,10 @@ def main(path: str, out_path: str) -> None:
             review = parts[idx["ReviewStatus"]].strip().lower()
 
             sigs[vid].append(sig)
-            stars[vid].append(0 if review in NO_CRITERIA else 1)
+            # Default to 1 rather than 0 for an unrecognised label: ClinVar
+            # renames these, and scoring an unknown as "no criteria" would
+            # silently manufacture evidence-quality problems.
+            stars[vid].append(REVIEW_STARS.get(review, 1))
 
             d = parse_date(parts[idx["DateLastEvaluated"]]) if "DateLastEvaluated" in idx else None
             if d and (vid not in newest or d > newest[vid]):
@@ -124,6 +138,9 @@ def main(path: str, out_path: str) -> None:
     per_gene_discordant: Counter[str] = Counter()
     per_gene_total: Counter[str] = Counter()
     submitter_counts: Counter[int] = Counter()
+    # The variants where one laboratory says disease-causing and another says
+    # harmless. A rate is an argument; a list is a thing you can go and look at.
+    opposed: list[dict] = []
 
     for vid, labels in sigs.items():
         total += 1
@@ -147,6 +164,19 @@ def main(path: str, out_path: str) -> None:
         has_u = any(s in UNCERTAIN for s in actionable)
         if has_p and has_b:
             discordant_pb += 1
+            labels = Counter(actionable)
+            opposed.append(
+                {
+                    "id": int(vid),
+                    "gene": gene,
+                    "records": len(actionable),
+                    "labels": [[k, v] for k, v in labels.most_common()],
+                    "best_stars": max(stars[vid]) if stars.get(vid) else 0,
+                    "last": max(
+                        (d.isoformat() for d in [newest.get(vid)] if d), default=None
+                    ),
+                }
+            )
         if has_p and has_u:
             vus_vs_path += 1
 
@@ -227,6 +257,13 @@ def main(path: str, out_path: str) -> None:
         },
         "submitters_per_variant": {str(k): v for k, v in sorted(submitter_counts.items())},
         "most_discordant_genes": gene_rates[:40],
+        # Sorted so the best-reviewed and most-contested come first: a
+        # conflict between two curated records matters more than one between
+        # two unsourced opinions.
+        "opposed_variants": sorted(
+            opposed,
+            key=lambda v: (-v["best_stars"], -v["records"], v["gene"] or "zzz"),
+        ),
         "gene_min_variants_for_rate": MIN_FOR_RATE,
         "leaderboard_min_variants": LEADERBOARD_MIN,
         "gene_table": gene_table,

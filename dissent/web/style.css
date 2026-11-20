@@ -692,3 +692,52 @@ table.data { min-width: 620px; }
   .chart-card { overflow-x: auto; }
   .chart-card svg { min-width: 520px; }
 }
+
+/* ---------- opposed-variant list ---------- */
+
+.opposed-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  font-size: 15.5px;
+  color: var(--text-2);
+}
+.opposed-controls label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.opposed-controls input { width: 17px; height: 17px; accent-color: var(--accent); }
+.opposed-count { font-family: var(--mono); font-size: 14px; color: var(--text-3); }
+
+.opposed-row {
+  display: grid;
+  grid-template-columns: minmax(230px, 300px) 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--path);
+  border-radius: 0 8px 8px 0;
+  background: var(--surface);
+  margin-bottom: 9px;
+  text-decoration: none;
+  color: inherit;
+}
+.opposed-row:hover { border-color: var(--accent); border-left-color: var(--path); }
+@media (max-width: 760px) { .opposed-row { grid-template-columns: 1fr; gap: 10px; } }
+
+.opposed-left { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 11px; }
+.opposed-gene { font-family: var(--mono); font-size: 18px; font-weight: 700; }
+.opposed-id { font-family: var(--mono); font-size: 13.5px; color: var(--text-3); }
+.opposed-date { font-family: var(--mono); font-size: 13px; color: var(--text-3); }
+.opposed-badge {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 700;
+  color: var(--medium);
+  background: var(--uncertain-bg);
+  padding: 2px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.opposed-labels { display: flex; flex-wrap: wrap; gap: 6px; }

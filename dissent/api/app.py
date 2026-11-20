@@ -76,9 +76,14 @@ EXAMPLES = [
         "why": "PVS1 is met, but the evidence falls into a gap in the published combining rules.",
     },
     {
+        "query": "KCNH2 A561V",
+        "label": "KCNH2 A561V",
+        "why": "Reaches Likely pathogenic from public data alone — a long QT variant where the frequency, the gene's constraint and a calibrated predictor all line up.",
+    },
+    {
         "query": "BRCA1 C61G",
         "label": "BRCA1 C61G",
-        "why": "Well-curated and unanimous. Shown so the conflict panel can be seen staying quiet.",
+        "why": "Well curated and unanimous. Shown so the conflict panel can be seen staying quiet.",
     },
 ]
 
@@ -173,6 +178,32 @@ async def api_baseline() -> JSONResponse:
             "submitters_per_variant": histogram,
         }
     )
+
+
+@app.get("/api/baseline/opposed")
+async def api_opposed(
+    limit: int = Query(40, ge=1, le=200),
+    gene: str | None = Query(None, max_length=40),
+    min_stars: int = Query(0, ge=0, le=4),
+) -> JSONResponse:
+    """Variants one laboratory calls disease-causing and another calls harmless.
+
+    The sharpest form the measurement takes: not a rate, but a list of
+    identifiers anyone can open and check.
+    """
+    try:
+        raw = json.loads(DATA_PATH.read_text())
+    except (OSError, ValueError):
+        raise HTTPException(status_code=503, detail="Baseline data is not installed.") from None
+
+    rows = raw.get("opposed_variants", [])
+    if gene:
+        wanted = gene.strip().upper()
+        rows = [r for r in rows if (r.get("gene") or "").upper() == wanted]
+    if min_stars:
+        rows = [r for r in rows if (r.get("best_stars") or 0) >= min_stars]
+
+    return JSONResponse({"total": len(rows), "variants": rows[:limit]})
 
 
 @app.get("/api/baseline/gene")

@@ -145,3 +145,54 @@ def test_the_clinically_consequential_genes_are_worse_than_average(baseline):
         rate = baseline.gene(gene)
         assert rate is not None
         assert rate.rate_pct > overall * 2, gene
+
+
+# ==========================================================================
+# The pathogenic-versus-benign list
+# ==========================================================================
+
+
+@pytest.fixture(scope="module")
+def opposed() -> list[dict]:
+    return json.loads(DATA_PATH.read_text())["opposed_variants"]
+
+
+def test_the_opposed_count_matches_the_headline_rate(baseline, opposed):
+    assert len(opposed) == baseline.counts["pathogenic_vs_benign"]
+
+
+def test_every_opposed_variant_really_opposes(opposed):
+    """Each must carry at least one label from each side, or it does not belong."""
+    pathogenic = {"pathogenic", "likely pathogenic", "pathogenic/likely pathogenic"}
+    benign = {"benign", "likely benign", "benign/likely benign"}
+    for v in opposed:
+        labels = {label for label, _ in v["labels"]}
+        assert labels & pathogenic, v["id"]
+        assert labels & benign, v["id"]
+
+
+def test_label_counts_are_consistent_with_the_record_count(opposed):
+    for v in opposed:
+        assert sum(n for _, n in v["labels"]) == v["records"]
+
+
+def test_the_list_leads_with_the_best_reviewed_contradictions(opposed):
+    """Two expert-panel records disagreeing is a different finding from two
+    unsourced opinions doing so, so review status orders the list."""
+    stars = [v["best_stars"] for v in opposed]
+    assert stars == sorted(stars, reverse=True)
+    assert stars[0] >= 3, "some conflicts should carry an expert-panel review"
+
+
+def test_star_ratings_use_the_full_scale(opposed):
+    """A binary has-criteria flag made the ordering meaningless."""
+    assert len({v["best_stars"] for v in opposed}) > 2
+
+
+def test_identifiers_are_usable_as_input(opposed):
+    from dissent.normalize.query import parse_variant
+
+    for v in opposed[:25]:
+        q = parse_variant(str(v["id"]))
+        assert q.kind == "clinvar_id"
+        assert q.clinvar_id == v["id"]
