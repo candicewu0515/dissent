@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dissent</title>
+<meta name="description" content="A variant interpretation engine that shows you the argument, not just the answer.">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="brand">
+      <h1>Dissent</h1>
+      <span class="tag">shows you the argument, not just the answer</span>
+      <button class="theme-toggle" id="theme-toggle" type="button">Appearance</button>
+    </div>
+
+    <form class="searchbar" id="search-form" autocomplete="off">
+      <input id="q" name="q" placeholder="rs113488022  ·  BRAF V600E  ·  chr7:140753336A&gt;T"
+             aria-label="Variant to interpret" spellcheck="false">
+      <select id="assembly" aria-label="Genome assembly">
+        <option value="hg38" selected>GRCh38</option>
+        <option value="hg19">GRCh37</option>
+      </select>
+      <button type="submit" id="go">Interpret</button>
+    </form>
+
+    <div class="examples">
+      <div class="examples-label">Cases worth looking at</div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="status" class="status hidden"></div>
+  <div id="error" class="error hidden"></div>
+
+  <div id="report" class="hidden">
+
+    <section id="identity-section">
+      <div class="card identity" id="identity"></div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Draft classification, and what ClinVar says</h2>
+      <p class="section-note">
+        Two independent readings, side by side. They are expected to differ: this worksheet
+        sees only public data and cannot apply the family, functional or case-level criteria a
+        submitting laboratory had. A disagreement pointing in <em>opposite</em> directions is
+        the one worth investigating.
+      </p>
+      <div class="verdicts" id="verdicts"></div>
+      <div class="reasoning" id="reasoning"></div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Conflicts</h2>
+      <p class="section-note">
+        Where the evidence disagrees with itself, ranked by how much it should change your
+        reading. This is the part other aggregators resolve silently.
+      </p>
+      <div id="conflicts"></div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Evidence</h2>
+      <p class="section-note">
+        The measurements the criteria rest on. Population frequency is an observation in
+        people; predictor scores are model inferences. They are not equal evidence.
+      </p>
+      <div class="charts" id="charts"></div>
+    </section>
+
+    <section id="clinvar-section">
+      <h2 class="section-title">ClinVar submissions in full</h2>
+      <p class="section-note">
+        Every assertion, with its review status and the date it was last evaluated. Stars are
+        ClinVar's own scale; zero stars means the submitter stated no assertion criteria.
+      </p>
+      <div class="card" id="clinvar-table"></div>
+    </section>
+
+    <section>
+      <h2 class="section-title">ACMG/AMP worksheet</h2>
+      <p class="section-note">
+        All 28 criteria, including the ones public data cannot decide. Those are shown rather
+        than hidden, so an empty row is never mistaken for an absence of evidence. Select any
+        criterion to see the reasoning and what would settle it.
+      </p>
+      <div class="legend">
+        <span><i class="swatch sw-met"></i> met, toward pathogenic</span>
+        <span><i class="swatch sw-met-b"></i> met, toward benign</span>
+        <span><i class="swatch sw-insuf"></i> data missing</span>
+        <span><i class="swatch sw-manual"></i> needs a human</span>
+        <span><i class="swatch sw-notmet"></i> not met</span>
+      </div>
+      <div class="crit-grid" id="crit-grid"></div>
+      <div id="crit-detail"></div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Sources consulted</h2>
+      <p class="section-note">
+        Including any that failed. A report built from four of six sources is still useful, but
+        only if you know which two are missing.
+      </p>
+      <div class="srcgrid" id="sources"></div>
+    </section>
+
+    <section>
+      <div class="disclaimer" id="disclaimer"></div>
+    </section>
+
+  </div>
+
+  <div id="intro">
+    <section>
+      <h2 class="section-title">What this does</h2>
+      <p class="section-note" style="max-width:76ch">
+        Interpreting one variant means opening ClinVar, gnomAD, a predictor site, Open Targets
+        and PubMed, then reconciling them by hand. The reconciliation is where the errors
+        happen, and the tools that automate it hide that step behind a single label.
+      </p>
+      <p class="section-note" style="max-width:76ch">
+        Dissent produces a draft ACMG/AMP worksheet with every criterion sourced, and puts the
+        disagreements first: submitters who contradict each other, records with no stated
+        method, assertions a decade old, predictors that split, frequencies that contradict a
+        pathogenic claim, and germline criteria applied to somatic variants.
+      </p>
+      <p class="section-note" style="max-width:76ch">
+        Pick one of the cases above to see it work.
+      </p>
+    </section>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    Data from ClinVar, gnomAD v4, dbNSFP, Ensembl VEP, snpEff, Open Targets, dbSNP and NCBI
+    LitVar &mdash; all via public endpoints, no API keys. Draft worksheets for research use;
+    not a clinical determination.
+  </div>
+</footer>
+
+<script src="/static/charts.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>
