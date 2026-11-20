@@ -26,7 +26,13 @@ from datetime import date, datetime, timezone
 import httpx
 from pydantic import BaseModel, Field
 
-from dissent.acmg.combine import BENIGN, LIKELY_BENIGN, LIKELY_PATHOGENIC, PATHOGENIC
+from dissent.acmg.combine import (
+    BENIGN,
+    CONFLICTING,
+    LIKELY_BENIGN,
+    LIKELY_PATHOGENIC,
+    PATHOGENIC,
+)
 from dissent.acmg.thresholds import DEFAULT, Thresholds
 from dissent.cache.store import ResponseCache
 from dissent.models import UNKNOWN_REVIEW_STARS, Report, Significance
@@ -39,9 +45,19 @@ from dissent.report import interpret
 # the whole panel slower, not faster, once a source starts shedding load.
 MAX_CONCURRENCY = 4
 
-# A cap per request. The web UI sends a long panel in chunks so the reader sees
-# rows arrive; this is the ceiling on one chunk.
+# A cap per request. The web UI chunks a long panel into fives so the reader
+# sees rows arrive, so this ceiling is reached only by other callers -- the
+# CLI and anything using the API directly. Whatever it drops is counted and
+# reported rather than silently discarded.
 MAX_PANEL_SIZE = 50
+
+# Three stars is ClinVar's "reviewed by expert panel"; four is "practice
+# guideline". At or above it, a record carrying no assertion criteria is noise
+# beside one a panel has signed off, and saying so would push well-curated
+# variants into the thin-evidence tier. Below it there is nothing to outweigh
+# the gap. Named here because it decides a tier and was previously a bare
+# literal in the middle of the rule.
+EXPERT_REVIEW_STARS = 3
 
 
 # --------------------------------------------------------------------------
@@ -69,10 +85,12 @@ CONTRADICTED = Tier(
 SPLIT = Tier(
     2,
     "split",
-    "Submitters split",
-    "The submitted records disagree with each other, but not across the "
-    "clinical line -- pathogenic against uncertain, typically. The aggregate "
-    "label a report quotes picks one of them.",
+    "Records disagree",
+    "ClinVar's records for this variant classify it differently, but not "
+    "across the clinical line -- pathogenic against uncertain, typically. "
+    "The aggregate label a report quotes picks one of them. Where the records "
+    "cover different conditions, part of that spread may be different "
+    "clinical questions rather than disagreement, and the row says which.",
 )
 THIN = Tier(
     3,
@@ -123,7 +141,7 @@ EVIDENCE_NOT_PUBLIC = (
 # submitter can send -- drug response, risk factor, low penetrance, an
 # aggregate "conflicting" label that is not any one submitter's opinion -- is
 # an answer to a different question and cannot disagree with these.
-_AXIS = frozenset(
+AXIS_LABELS = frozenset(
     {
         Significance.PATHOGENIC,
         Significance.LIKELY_PATHOGENIC,
@@ -181,6 +199,10 @@ class PanelResult(BaseModel):
     rows: list[PanelRow] = Field(default_factory=list)
     tier_counts: dict[str, int] = Field(default_factory=dict)
     evidence_not_public: int = 0
+    # Entries the parser refused: over the per-request cap, or too long to
+    # be an identifier. Reported so a truncated worklist cannot be read as
+    # a complete one.
+    dropped: int = 0
     generated_at: str | None = None
     elapsed_ms: int | None = None
 
@@ -203,15 +225,61 @@ class _Facts:
     axis_records: int = 0
     off_axis_records: int = 0
     no_criteria: int = 0
+    rated_records: int = 0
+    # A ClinVar record is one aggregate per condition, so disagreement
+    # inside a condition and disagreement across conditions are different
+    # findings and the row has to say which it is.
+    axis_conditions: int = 0
+    split_within_condition: bool = False
     stale_years: float | None = None
     opposed_records: bool = False
+    off_axis_labels: list[str] = field(default_factory=list)
+    # The engine satisfied pathogenic and benign criteria at once. Carried
+    # separately because combine.py returns it as a flavour of "Uncertain
+    # significance", where _call_side cannot tell it from an ordinary VUS.
+    computed_conflicting: bool = False
+    # Whether any annotator recognised the locus, and whether the reader
+    # asked by protein change -- the two things that decide what an empty
+    # ClinVar result means.
+    annotated: bool = False
+    asked_by_protein: bool = False
 
 
-def _gather_facts(report: Report, t: Thresholds, today: date) -> _Facts:
+def _assertion_side(a) -> str:
+    """Which side of the clinical line one record sits on."""
+    if a.significance.is_pathogenic_side:
+        return "pathogenic"
+    if a.significance.is_benign_side:
+        return "benign"
+    return "uncertain"
+
+
+def _primary_label(a) -> str:
+    """The classification to print for a record.
+
+    ClinVar joins additional classifications to the primary one with a
+    semicolon, so a raw label can read "Uncertain significance; association;
+    other". The primary clause is what this row was sorted on, and it is what
+    the reader needs beside the computed call; the whole string is still on
+    the record for anyone who opens it.
+    """
+    raw = (a.significance_raw or "").strip()
+    if raw:
+        return raw.split(";")[0].strip() or raw
+    return a.significance.value
+
+
+def _gather_facts(report: Report, today: date) -> _Facts:
     f = _Facts()
-    f.computed_side = _call_side(report.classification.call if report.classification else None)
+    call = report.classification.call if report.classification else None
+    f.computed_side = _call_side(call)
+    f.computed_conflicting = call == CONFLICTING
+    f.asked_by_protein = bool(report.query.gene and report.query.protein_change)
 
-    cv = report.bundle.clinvar if report.bundle else None
+    bundle = report.bundle
+    f.annotated = bool(bundle and (bundle.clinvar or bundle.consequence))
+
+    cv = bundle.clinvar if bundle else None
     if cv is None:
         return f
 
@@ -227,41 +295,100 @@ def _gather_facts(report: Report, t: Thresholds, today: date) -> _Facts:
     # records agreed about pathogenicity and some of them were about warfarin
     # dosing. Reporting that as disagreement is the error this tool exists to
     # find, committed by this tool.
-    on_axis = [a for a in actionable if a.significance in _AXIS]
+    on_axis = [a for a in actionable if a.significance in AXIS_LABELS]
     for a in on_axis:
-        if a.significance.is_pathogenic_side:
-            f.reported_sides.add("pathogenic")
-        elif a.significance.is_benign_side:
-            f.reported_sides.add("benign")
-        else:
-            f.reported_sides.add("uncertain")
+        f.reported_sides.add(_assertion_side(a))
     f.axis_records = len(on_axis)
     f.off_axis_records = len(actionable) - len(on_axis)
     f.opposed_records = "pathogenic" in f.reported_sides and "benign" in f.reported_sides
 
-    # The label shown to the reader: the assertion with the most review stars,
-    # preferring one that is on the axis, because "drug response" as the
-    # headline next to a computed benign call reads as a contradiction and is
-    # not one. Unknown statuses are excluded so an unrecognised string cannot
-    # win the comparison at -1.
-    known = [a for a in actionable if a.stars != UNKNOWN_REVIEW_STARS]
+    by_condition: dict[str, set[str]] = {}
+    for a in on_axis:
+        condition = (a.condition or "").strip().lower() or "(unstated)"
+        by_condition.setdefault(condition, set()).add(_assertion_side(a))
+    f.axis_conditions = len(by_condition)
+    f.split_within_condition = any(len(sides) > 1 for sides in by_condition.values())
+
+    # Everything below asks "how strong is the pathogenicity claim, and when
+    # was it last looked at", so it is measured over the records that make
+    # that claim. Measuring it over all of them let an unrelated record answer
+    # for one: a three-star expert-panel record about methotrexate response
+    # donated its stars to a one-star pathogenic assertion, moving the row out
+    # of "thin evidence" entirely, and a drug-response record re-evaluated
+    # this year hid a pathogenicity claim last examined in 2005.
+    #
+    # Where nothing is on the axis there is no pathogenicity claim to rate, so
+    # the off-axis records answer for themselves rather than for a claim that
+    # was never made.
+    rated = on_axis or actionable
+
+    known = [a for a in rated if a.stars != UNKNOWN_REVIEW_STARS]
     if known:
         f.best_stars = max(a.stars for a in known)
-        preferred = [a for a in known if a.significance in _AXIS] or known
-        best = max(preferred, key=lambda a: a.stars)
-        f.reported_label = best.significance_raw or best.significance.value
+        best = max(known, key=lambda a: a.stars)
+        f.reported_label = _primary_label(best)
         f.no_criteria = sum(1 for a in known if a.stars == 0)
+        # The denominator is the set these were counted from, not every record
+        # in the payload: "1 of 3 records state no criteria" was being printed
+        # where one of the three had an unrecognised status and another was
+        # not a pathogenicity claim at all.
+        f.rated_records = len(known)
+    elif rated:
+        # Every record on the axis carries a status this build cannot read.
+        # best_stars stays None, which the rule reads as "cannot assess".
+        f.reported_label = _primary_label(rated[0])
 
-    dated = [a for a in actionable if a.last_evaluated]
+    dated = [a for a in rated if a.last_evaluated]
     if dated:
         newest = max(a.last_evaluated for a in dated)
         f.stale_years = (today - newest).days / 365.25
+
+    # What the off-axis records actually say, so the row can name them rather
+    # than assert a category. The hard-coded "(drug response, risk factor or
+    # low penetrance)" was printed over two ClinVar records that both read
+    # "Conflicting interpretations of pathogenicity".
+    f.off_axis_labels = sorted(
+        {
+            (a.significance_raw or a.significance.value).strip().lower()
+            for a in actionable
+            if a.significance not in AXIS_LABELS
+        }
+    )
 
     return f
 
 
 def _reported_text(f: _Facts) -> str:
-    return f.reported_label or "/".join(sorted(f.reported_sides))
+    """What to call the reported classification in a sentence.
+
+    Falls back to the sides when every record carries a review status this
+    build cannot read, because `reported_label` is only taken from records
+    whose status it could rate.
+    """
+    if f.reported_label:
+        return f.reported_label
+    if f.reported_sides:
+        return " and ".join(sorted(f.reported_sides))
+    return "no classification"
+
+
+def _off_axis_note(f: _Facts) -> list[str]:
+    """Name the records that were left out of the comparison.
+
+    The wording used to hard-code "(drug response, risk factor or low
+    penetrance)", which was printed over two MTHFR records that both read
+    "Conflicting interpretations of pathogenicity" -- telling the reader those
+    answer a different question when they say the opposite.
+    """
+    if not f.off_axis_records:
+        return []
+    labels = ", ".join(f.off_axis_labels[:3])
+    if len(f.off_axis_labels) > 3:
+        labels += ", ..."
+    return [
+        f"{f.off_axis_records} further record(s) are not a pathogenic/benign "
+        f"claim and are not counted here: {labels}"
+    ]
 
 
 def _triage_facts(f: _Facts, resolved: bool, t: Thresholds) -> tuple[Tier, list[str]]:
@@ -274,7 +401,8 @@ def _triage_facts(f: _Facts, resolved: bool, t: Thresholds) -> tuple[Tier, list[
     # --- Tier 1: opposite sides of the clinical line -----------------------
     if f.opposed_records:
         reasons.append(
-            f"Submitted records disagree pathogenic vs benign ({f.axis_records} records)"
+            f"ClinVar records disagree pathogenic vs benign "
+            f"({f.axis_records} records)"
         )
     crosses = f.computed_side in ("pathogenic", "benign") and (
         ("benign" in f.reported_sides and f.computed_side == "pathogenic")
@@ -282,6 +410,16 @@ def _triage_facts(f: _Facts, resolved: bool, t: Thresholds) -> tuple[Tier, list[
     )
     if crosses:
         reasons.append(f"Computed {f.computed_side}, reported {_reported_text(f)}")
+    if f.computed_conflicting:
+        # The engine satisfied pathogenic *and* benign criteria on the same
+        # variant. That is the strongest internal signal it has, and it was
+        # invisible here: combine.py returns it as a flavour of "Uncertain
+        # significance", so _call_side bucketed it with every ordinary VUS and
+        # the row could land in "No disagreement found" carrying two
+        # high-severity conflicts.
+        reasons.append(
+            "Pathogenic and benign criteria are both met on this variant"
+        )
     if reasons:
         return CONTRADICTED, reasons
 
@@ -290,20 +428,50 @@ def _triage_facts(f: _Facts, resolved: bool, t: Thresholds) -> tuple[Tier, list[
         reasons.append(
             f"{f.axis_records} records disagree: " + " vs ".join(sorted(f.reported_sides))
         )
-        if f.off_axis_records:
+        # A ClinVar record is an RCV: one aggregate per variant-and-condition,
+        # not one submitter's opinion. Two records differing may be two
+        # readings of the same question, or the same variant assessed against
+        # two different diseases -- for BRAF V600E, fifteen somatic tumour
+        # conditions beside one germline RASopathy. The conflict detectors
+        # already draw that distinction and the tier rule was ignoring it,
+        # reporting "submitters split" over records that were not in
+        # disagreement at all.
+        if f.split_within_condition:
             reasons.append(
-                f"{f.off_axis_records} further record(s) answer a different question "
-                "(drug response, risk factor or low penetrance) and are not counted here"
+                "At least one condition has records on both sides, so this is "
+                "disagreement about the same question"
             )
+        elif f.axis_conditions > 1:
+            reasons.append(
+                f"The records cover {f.axis_conditions} distinct conditions, so "
+                "part of the spread may be different clinical questions rather "
+                "than disagreement"
+            )
+        reasons.extend(_off_axis_note(f))
         return SPLIT, reasons
 
     # --- Tier 3: agreement resting on little ------------------------------
     if f.records == 0:
-        return THIN, [
-            "No ClinVar record. Resolved from the canonical transcript; if this "
-            "variant is known clinically under a different protein number, "
-            "search the c. notation instead"
-        ]
+        if not f.annotated:
+            # Coordinates parse into a chrom and a position whether or not a
+            # variant exists there, so `chr9:999999999A>T` used to arrive here
+            # as "Thin evidence" and sort above a fully curated variant. If no
+            # annotator recognised the locus either, nothing resolved.
+            return UNRESOLVED, [
+                "Parsed as coordinates, but no annotation source recognised "
+                "this position. Check the assembly and the position."
+            ]
+        reasons = ["No ClinVar record for this variant"]
+        if f.asked_by_protein:
+            # Only worth saying where it could be the cause. It was printed
+            # for coordinate queries too, which carry no protein numbering to
+            # be wrong about.
+            reasons.append(
+                "Resolved from the canonical transcript; if this variant is "
+                "known clinically under a different protein number, search "
+                "the c. notation or the rsID instead"
+            )
+        return THIN, reasons
     if f.best_stars == 0:
         reasons.append("No record states assertion criteria (0 of 4 stars)")
     elif f.best_stars == 1:
@@ -312,8 +480,10 @@ def _triage_facts(f: _Facts, resolved: bool, t: Thresholds) -> tuple[Tier, list[
         # own; `number_submitters` comes off an RCV aggregate and counts
         # submissions to a condition, which is not the same question.
         reasons.append("1 of 4 review stars (single submitter, or conflicting)")
-    if f.no_criteria and f.best_stars and f.best_stars < 3:
-        reasons.append(f"{f.no_criteria} of {f.records} records state no criteria")
+    if f.no_criteria and f.best_stars and f.best_stars < EXPERT_REVIEW_STARS:
+        reasons.append(
+            f"{f.no_criteria} of {f.rated_records} records state no criteria"
+        )
     if f.stale_years is not None and f.stale_years >= t.stale_assertion_years:
         reasons.append(f"Last evaluated {f.stale_years:.0f} years ago")
     if f.best_stars is None:
@@ -345,20 +515,32 @@ def triage(report: Report, t: Thresholds = DEFAULT, today: date | None = None) -
     network and the UI, the CLI and the CSV export cannot drift apart.
     """
     today = today or date.today()
-    return _triage_facts(_gather_facts(report, t, today), _is_resolved(report), t)
+    return _triage_facts(_gather_facts(report, today), _is_resolved(report), t)
 
 
 def evidence_not_public(f: _Facts) -> bool:
-    """Reported confidently, computed uncertain: the lab has evidence we cannot see."""
-    return f.computed_side == "uncertain" and bool(
-        f.reported_sides and f.reported_sides <= {"pathogenic", "benign"}
+    """Reported confidently, computed uncertain: the lab has evidence we cannot see.
+
+    Requires the records to agree. `reported_sides <= {"pathogenic","benign"}`
+    was also satisfied by a set holding *both*, so a contradicted row printed
+    "the submitter's evidence is not public -- expected, not a flag" directly
+    underneath "these records disagree pathogenic vs benign". Two submitters
+    on opposite sides is not one submitter holding private evidence.
+
+    Also excludes the case where the engine itself met both sides: that is a
+    conflict of its own, not deference to a laboratory.
+    """
+    if f.computed_conflicting or f.opposed_records:
+        return False
+    return f.computed_side == "uncertain" and len(f.reported_sides) == 1 and (
+        f.reported_sides <= {"pathogenic", "benign"}
     )
 
 
 def row_from_report(
     query: str, report: Report, t: Thresholds = DEFAULT, today: date | None = None
 ) -> PanelRow:
-    f = _gather_facts(report, t, today or date.today())
+    f = _gather_facts(report, today or date.today())
     tier, reasons = _triage_facts(f, _is_resolved(report), t)
     conflicts = report.conflicts or []
     resolved = tier is not UNRESOLVED
@@ -403,7 +585,14 @@ def sort_rows(rows: list[PanelRow]) -> list[PanelRow]:
             -r.high_severity,
             -r.conflicts,
             r.best_stars if r.best_stars is not None else 9,
-            r.display_name or r.query,
+            # Case-folded, because the page breaks this tie with
+            # localeCompare, which ignores case, while a raw Python string
+            # comparison puts every capital before every lower-case letter.
+            # The two disagreed whenever a query was typed in lower case, so
+            # the downloaded CSV was not in the order on screen -- in a file
+            # presented as the audit trail for what the reader just looked at.
+            (r.display_name or r.query).casefold(),
+            r.query,
         ),
     )
 
@@ -420,6 +609,12 @@ def tier_counts(rows: list[PanelRow]) -> dict[str, int]:
 # --------------------------------------------------------------------------
 
 
+# A query longer than this is not a variant identifier. The longest real one
+# here is an HGVS string with a transcript accession and a large indel, which
+# stays well inside it.
+MAX_QUERY_LENGTH = 200
+
+
 def parse_panel(text: str, limit: int = MAX_PANEL_SIZE) -> list[str]:
     """Split pasted text into queries.
 
@@ -428,21 +623,40 @@ def parse_panel(text: str, limit: int = MAX_PANEL_SIZE) -> list[str]:
     leading '#' comment, blank lines. Duplicates are dropped, keeping the
     first, because a panel exported twice is a common accident and running a
     variant twice costs the public APIs a request for nothing.
+
+    Over-long entries are dropped rather than sent on: the string reaches six
+    public APIs, and nothing a variant identifier can legitimately be is 200
+    characters.
+    """
+    return parse_panel_counted(text, limit)[0]
+
+
+def parse_panel_counted(text: str, limit: int = MAX_PANEL_SIZE) -> tuple[list[str], int]:
+    """As `parse_panel`, and also how many entries were dropped at the limit.
+
+    Truncating silently meant a 200-line file produced a 50-row worklist with
+    nothing saying so, in a tool whose whole purpose is to be read as a
+    complete account of what is known.
     """
     out: list[str] = []
     seen: set[str] = set()
+    dropped = 0
     for line in text.replace(",", "\n").splitlines():
         q = line.strip().strip('"').strip("'").strip()
         if not q or q.startswith("#"):
+            continue
+        if len(q) > MAX_QUERY_LENGTH:
+            dropped += 1
             continue
         key = q.upper()
         if key in seen:
             continue
         seen.add(key)
-        out.append(q)
         if len(out) >= limit:
-            break
-    return out
+            dropped += 1
+            continue
+        out.append(q)
+    return out, dropped
 
 
 async def interpret_panel(
@@ -465,9 +679,15 @@ async def interpret_panel(
     started = datetime.now(timezone.utc)
     sem = asyncio.Semaphore(max(1, concurrency))
 
+    def _elapsed_ms(since: datetime) -> int:
+        return int((datetime.now(timezone.utc) - since).total_seconds() * 1000)
+
     async def one(q: str) -> PanelRow:
-        t0 = datetime.now(timezone.utc)
         async with sem:
+            # Timed from here, not from the call. Measuring across the wait for
+            # a semaphore slot reported a variant that queued for three minutes
+            # as a three-minute lookup, which says nothing about the sources.
+            t0 = datetime.now(timezone.utc)
             try:
                 report = await asyncio.wait_for(
                     interpret(q, assembly=assembly, cache=cache, client=client, thresholds=thresholds),
@@ -478,19 +698,51 @@ async def interpret_panel(
                     query=q,
                     error="Sources did not respond in time",
                     reasons=["Lookup timed out"],
+                    elapsed_ms=_elapsed_ms(t0),
                 )
             except Exception as exc:  # noqa: BLE001 - one bad row must not sink the panel
                 return PanelRow(
                     query=q,
                     error=f"{type(exc).__name__}: {exc}"[:200],
                     reasons=["Lookup failed"],
+                    elapsed_ms=_elapsed_ms(t0),
                 )
-        row = row_from_report(q, report, t=thresholds, today=today)
-        row.elapsed_ms = int((datetime.now(timezone.utc) - t0).total_seconds() * 1000)
-        return row
 
-    rows = await asyncio.gather(*(one(q) for q in queries))
-    ordered = sort_rows(list(rows))
+            # Inside the try as well. This is pure computation over a finished
+            # report, but it was the one call in the coroutine that could still
+            # raise -- and because gather() defaults to propagating, a single
+            # unexpected exception here discarded every other row in the panel.
+            try:
+                row = row_from_report(q, report, t=thresholds, today=today)
+            except Exception as exc:  # noqa: BLE001
+                return PanelRow(
+                    query=q,
+                    display_name=report.display_name,
+                    gene=report.gene_symbol,
+                    error=f"Could not triage: {type(exc).__name__}: {exc}"[:200],
+                    reasons=["Interpreted, but the triage rule failed on it"],
+                    elapsed_ms=_elapsed_ms(t0),
+                )
+            row.elapsed_ms = _elapsed_ms(t0)
+            return row
+
+    # return_exceptions so that a failure the per-row handling did not
+    # anticipate -- a cancellation, an error raised between the handlers --
+    # costs that row rather than the whole panel.
+    settled = await asyncio.gather(*(one(q) for q in queries), return_exceptions=True)
+    rows: list[PanelRow] = []
+    for q, outcome in zip(queries, settled):
+        if isinstance(outcome, PanelRow):
+            rows.append(outcome)
+        else:
+            rows.append(
+                PanelRow(
+                    query=q,
+                    error=f"{type(outcome).__name__}: {outcome}"[:200],
+                    reasons=["Lookup failed"],
+                )
+            )
+    ordered = sort_rows(rows)
     return PanelResult(
         rows=ordered,
         tier_counts=tier_counts(ordered),
@@ -522,6 +774,29 @@ CSV_COLUMNS = (
 )
 
 
+# Spreadsheets treat a cell beginning with any of these as a formula, not as
+# text, and open it without asking. The cells below carry a reader's own query
+# string and text derived from public sources, so neither is trusted input.
+_FORMULA_LEAD = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_safe(value: object) -> object:
+    """Keep a cell a cell.
+
+    Excel, LibreOffice and Google Sheets all read a leading `=`, `+`, `-` or
+    `@` as the start of a formula, so a variant name or an error message could
+    execute on open -- in a file this tool hands over as the record of what a
+    reviewer looked at. Prefixing an apostrophe is the documented way to force
+    text; it is stripped by the spreadsheet on display.
+
+    Numbers are returned untouched: they are generated here, not received, and
+    quoting them would make every count a string in the sheet.
+    """
+    if not isinstance(value, str) or not value.startswith(_FORMULA_LEAD):
+        return value
+    return "'" + value
+
+
 def rows_to_csv(rows: list[PanelRow]) -> str:
     """A worklist a reviewer can open in a spreadsheet and annotate.
 
@@ -537,7 +812,8 @@ def rows_to_csv(rows: list[PanelRow]) -> str:
     for r in rows:
         tier = TIERS_BY_KEY.get(r.tier)
         w.writerow(
-            [
+            _csv_safe(cell)
+            for cell in [
                 tier.name if tier else r.tier,
                 r.query,
                 r.display_name or "",

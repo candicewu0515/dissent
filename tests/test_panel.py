@@ -13,14 +13,12 @@ import pytest
 
 from dissent.acmg.combine import (
     BENIGN,
+    CONFLICTING,
     LIKELY_BENIGN,
     LIKELY_PATHOGENIC,
     PATHOGENIC,
     UNCERTAIN,
-    classify,
 )
-from dissent.acmg.criteria import evaluate_all
-from dissent.acmg.thresholds import DEFAULT
 from dissent.models import (
     Classification,
     ClinVarAssertion,
@@ -81,7 +79,9 @@ def report_with(call: str, assertions: list[ClinVarAssertion] | None, resolved: 
     """A minimal report. Only the fields the tier rule reads are populated, so
     a test that passes cannot be passing because of something else."""
     bundle = EvidenceBundle(
-        query=VariantQuery(raw="TEST p.Ala1Val", kind="gene_protein", gene="TEST"),
+        query=VariantQuery(
+            raw="TEST p.Ala1Val", kind="gene_protein", gene="TEST", protein_change="p.Ala1Val"
+        ),
         clinvar=ClinVarEvidence(variant_id=1, gene="TEST", assertions=assertions or [])
         if assertions is not None
         else None,
@@ -108,18 +108,49 @@ def test_unresolved_when_nothing_was_found():
     assert reasons
 
 
-def test_coordinates_alone_count_as_resolved():
-    """A variant can legitimately be absent from ClinVar and still be real."""
+def test_an_annotated_coordinate_is_resolved_without_a_clinvar_record():
+    """A variant can legitimately be absent from ClinVar and still be real --
+    as long as something recognised the locus."""
     bundle = EvidenceBundle(
-        query=VariantQuery(raw="chr7:140753336A>T", kind="gcoord", chrom="7", pos=140753336)
+        query=VariantQuery(raw="chr7:140753336A>T", kind="gcoord", chrom="7", pos=140753336),
+        consequence=Consequence(most_severe="missense_variant"),
     )
     report = Report(
         query=bundle.query,
         classification=Classification(call=UNCERTAIN, reasoning="t"),
         bundle=bundle,
     )
-    tier, _ = triage(report, today=TODAY)
-    assert tier is not UNRESOLVED
+    tier, reasons = triage(report, today=TODAY)
+    assert tier is THIN
+    assert any("No ClinVar record" in r for r in reasons)
+    # The protein-numbering advice is for protein-change queries. A coordinate
+    # carries no protein numbering to be wrong about.
+    assert not any("protein number" in r for r in reasons)
+
+
+def test_a_coordinate_nothing_recognises_is_unresolved_not_thin():
+    """Coordinates parse into a chromosome and a position whether or not a
+    variant exists there. `chr9:999999999A>T` used to arrive as "Thin
+    evidence" and sort above a fully curated variant."""
+    bundle = EvidenceBundle(
+        query=VariantQuery(raw="chr9:999999999A>T", kind="gcoord", chrom="9", pos=999999999)
+    )
+    report = Report(
+        query=bundle.query,
+        classification=Classification(call=UNCERTAIN, reasoning="t"),
+        bundle=bundle,
+    )
+    tier, reasons = triage(report, today=TODAY)
+    assert tier is UNRESOLVED
+    assert any("no annotation source recognised" in r for r in reasons)
+
+
+def test_garbage_coordinates_sort_below_a_curated_variant():
+    rows = sort_rows([
+        PanelRow(query="chr9:999999999A>T", tier=UNRESOLVED.key, tier_rank=UNRESOLVED.rank),
+        PanelRow(query="CFTR G542X", tier=CONCORDANT.key, tier_rank=CONCORDANT.rank),
+    ])
+    assert rows[0].query == "CFTR G542X"
 
 
 # --------------------------------------------------------------------------
@@ -234,7 +265,7 @@ def test_a_real_split_still_counts_only_the_axis_records():
     tier, reasons = triage(report, today=TODAY)
     assert tier is SPLIT
     assert any("2 records disagree" in r for r in reasons)
-    assert any("different question" in r for r in reasons)
+    assert any("not a pathogenic/benign claim" in r for r in reasons)
 
 
 def test_the_reported_label_prefers_a_pathogenicity_claim():
@@ -277,6 +308,65 @@ def test_placeholder_labels_do_not_create_a_split():
     assert tier is not SPLIT
 
 
+def test_disagreement_inside_one_condition_is_named_as_such():
+    report = report_with(
+        UNCERTAIN,
+        [
+            assertion(Significance.PATHOGENIC, condition="Long QT syndrome"),
+            assertion(Significance.UNCERTAIN, condition="Long QT syndrome"),
+        ],
+    )
+    tier, reasons = triage(report, today=TODAY)
+    assert tier is SPLIT
+    assert any("same question" in r for r in reasons)
+    assert not any("distinct conditions" in r for r in reasons)
+
+
+def test_disagreement_across_conditions_is_qualified_rather_than_asserted():
+    """Two records about two diseases are not necessarily two opinions."""
+    report = report_with(
+        UNCERTAIN,
+        [
+            assertion(Significance.PATHOGENIC, condition="Melanoma"),
+            assertion(Significance.UNCERTAIN, condition="Cardiofaciocutaneous syndrome"),
+        ],
+    )
+    tier, reasons = triage(report, today=TODAY)
+    assert tier is SPLIT
+    assert any("distinct conditions" in r for r in reasons)
+    assert not any("same question" in r for r in reasons)
+
+
+def test_a_within_condition_split_outranks_the_across_condition_note():
+    """If any one condition has both sides, that is real disagreement and the
+    row should say so rather than explain it away."""
+    report = report_with(
+        UNCERTAIN,
+        [
+            assertion(Significance.PATHOGENIC, condition="Long QT syndrome"),
+            assertion(Significance.UNCERTAIN, condition="Long QT syndrome"),
+            assertion(Significance.PATHOGENIC, condition="Something else"),
+        ],
+    )
+    _, reasons = triage(report, today=TODAY)
+    assert any("same question" in r for r in reasons)
+
+
+def test_records_with_no_stated_condition_are_grouped_together():
+    """Two records that both omit the condition are about the same unstated
+    thing as far as anything here can tell, so they must not read as two
+    distinct conditions."""
+    report = report_with(
+        UNCERTAIN,
+        [
+            assertion(Significance.PATHOGENIC, condition=""),
+            assertion(Significance.UNCERTAIN, condition=""),
+        ],
+    )
+    _, reasons = triage(report, today=TODAY)
+    assert any("same question" in r for r in reasons)
+
+
 # --------------------------------------------------------------------------
 # Tier 3: thin evidence
 # --------------------------------------------------------------------------
@@ -286,8 +376,8 @@ def test_no_clinvar_record_is_thin_and_says_why():
     report = report_with(UNCERTAIN, [])
     tier, reasons = triage(report, today=TODAY)
     assert tier is THIN
-    # The reason has to carry the protein-numbering warning: a GENE p.Change
-    # query that resolves to a real variant with no record is most often the
+    # For a GENE p.Change query the reason has to carry the protein-numbering
+    # warning: resolving to a real variant with no record is most often the
     # legacy-numbering trap, and silence there reads as "nothing known".
     assert any("protein number" in r for r in reasons)
 
@@ -411,6 +501,181 @@ def test_flag_is_not_set_when_there_is_no_record():
 
 
 # --------------------------------------------------------------------------
+# Records that are not a pathogenicity claim must not answer for one
+# --------------------------------------------------------------------------
+
+
+def test_an_off_axis_record_does_not_lend_its_stars_to_a_pathogenic_claim():
+    """A three-star expert-panel record about drug response was donating its
+    stars to a one-star pathogenic assertion, moving the row out of thin
+    evidence entirely. The row then read "reported pathogenic, 3 of 4 stars,
+    no disagreement found" for a claim one submitter made with no
+    corroboration."""
+    alone = report_with(
+        PATHOGENIC,
+        [assertion(Significance.PATHOGENIC, stars=1, review="criteria provided, single submitter")],
+    )
+    assert triage(alone, today=TODAY)[0] is THIN
+
+    with_drug_response = report_with(
+        PATHOGENIC,
+        [
+            assertion(Significance.PATHOGENIC, stars=1, review="criteria provided, single submitter"),
+            assertion(Significance.DRUG_RESPONSE, stars=3, review="reviewed by expert panel"),
+        ],
+    )
+    tier, _ = triage(with_drug_response, today=TODAY)
+    assert tier is THIN
+    assert row_from_report("t", with_drug_response, today=TODAY).best_stars == 1
+
+
+def test_a_recent_off_axis_record_does_not_make_an_old_claim_current():
+    """"When was this last looked at" is a question about the pathogenicity
+    claim. A warfarin-dosing record re-evaluated this year was answering it
+    for an assertion last examined in 2005."""
+    old = assertion(Significance.PATHOGENIC, stars=2, evaluated=date(2005, 1, 1))
+    recent_unrelated = assertion(Significance.DRUG_RESPONSE, stars=2, evaluated=date(2026, 1, 1))
+
+    tier, reasons = triage(report_with(PATHOGENIC, [old, recent_unrelated]), today=TODAY)
+    assert tier is THIN
+    assert any("years ago" in r for r in reasons)
+
+
+def test_the_off_axis_note_names_the_records_instead_of_guessing():
+    """The wording hard-coded "(drug response, risk factor or low penetrance)"
+    and printed it over two MTHFR records that both read "Conflicting
+    interpretations of pathogenicity" -- telling the reader they answer a
+    different question when they say the opposite."""
+    report = report_with(
+        UNCERTAIN,
+        [
+            assertion(Significance.PATHOGENIC),
+            assertion(Significance.UNCERTAIN),
+            assertion(Significance.CONFLICTING),
+        ],
+    )
+    _, reasons = triage(report, today=TODAY)
+    joined = " ".join(reasons)
+    assert "conflicting" in joined.lower()
+    assert "drug response" not in joined
+
+
+def test_the_no_criteria_denominator_counts_only_the_rated_records():
+    """"1 of 3 records state no criteria" was printed where one of the three
+    had an unrecognised status and another was not a pathogenicity claim."""
+    report = report_with(
+        PATHOGENIC,
+        [
+            assertion(Significance.PATHOGENIC, stars=0, review="no assertion criteria provided"),
+            assertion(Significance.PATHOGENIC, stars=2),
+            assertion(Significance.DRUG_RESPONSE, stars=2),
+        ],
+    )
+    _, reasons = triage(report, today=TODAY)
+    assert any("1 of 2 records state no criteria" in r for r in reasons)
+
+
+def test_when_nothing_is_on_the_axis_the_records_rate_themselves():
+    """A variant whose only records are drug-response ones still has records.
+    Reporting it as having none would be worse than rating what is there."""
+    report = report_with(UNCERTAIN, [assertion(Significance.DRUG_RESPONSE, stars=2)])
+    row = row_from_report("t", report, today=TODAY)
+    assert row.records == 1
+    assert row.best_stars == 2
+    assert row.reported_call == Significance.DRUG_RESPONSE.value
+
+
+# --------------------------------------------------------------------------
+# The engine's own contradiction
+# --------------------------------------------------------------------------
+
+
+def test_the_engine_meeting_both_sides_reaches_tier_one():
+    """combine.py returns "Uncertain significance (conflicting evidence)" when
+    pathogenic and benign criteria are both satisfied -- the strongest
+    internal signal the tool has. _call_side bucketed it with every ordinary
+    VUS, so the row could land in "No disagreement found"."""
+    report = report_with(CONFLICTING, [assertion(Significance.PATHOGENIC, stars=2)])
+    tier, reasons = triage(report, today=TODAY)
+    assert tier is CONTRADICTED
+    assert any("both met" in r for r in reasons)
+
+
+def test_an_ordinary_vus_does_not_reach_tier_one():
+    """The branch above must key on the conflicting verdict, not on the word
+    'uncertain', or every VUS in ClinVar lands in tier 1."""
+    report = report_with(UNCERTAIN, [assertion(Significance.PATHOGENIC, stars=2)])
+    assert triage(report, today=TODAY)[0] is not CONTRADICTED
+
+
+def test_the_conflicting_verdict_is_not_flagged_as_private_evidence():
+    row = row_from_report(
+        "t", report_with(CONFLICTING, [assertion(Significance.PATHOGENIC, stars=2)]), today=TODAY
+    )
+    assert not row.evidence_not_public
+
+
+# --------------------------------------------------------------------------
+# The flag must not fire where the records themselves disagree
+# --------------------------------------------------------------------------
+
+
+def test_a_contradicted_row_is_not_flagged_as_private_evidence():
+    """The row printed "the submitter's evidence is not public -- expected,
+    not a flag" directly underneath "these records disagree pathogenic vs
+    benign". Two submitters on opposite sides is not one submitter holding
+    private evidence."""
+    row = row_from_report(
+        "t",
+        report_with(UNCERTAIN, [assertion(Significance.PATHOGENIC), assertion(Significance.BENIGN)]),
+        today=TODAY,
+    )
+    assert row.tier == CONTRADICTED.key
+    assert not row.evidence_not_public
+
+
+def test_a_split_row_is_not_flagged_as_private_evidence():
+    row = row_from_report(
+        "t",
+        report_with(
+            UNCERTAIN, [assertion(Significance.PATHOGENIC), assertion(Significance.UNCERTAIN)]
+        ),
+        today=TODAY,
+    )
+    assert not row.evidence_not_public
+
+
+# --------------------------------------------------------------------------
+# ClinVar's own "submitters disagree" label
+# --------------------------------------------------------------------------
+
+
+def test_a_conflicting_aggregate_is_not_read_as_an_absent_record():
+    """ClinVar's current wording fell through to OTHER, was dropped as not
+    actionable, and the variant was reported as having no ClinVar record --
+    while the record present says, literally, that submitters disagree."""
+    from dissent.models import normalize_significance
+
+    sig = normalize_significance("Conflicting classifications of pathogenicity")
+    report = report_with(UNCERTAIN, [assertion(sig, stars=1)])
+    _, reasons = triage(report, today=TODAY)
+    assert not any("No ClinVar record" in r for r in reasons)
+
+
+def test_a_contradicted_row_always_names_what_was_reported():
+    """Where every record carries an unreadable review status, reported_label
+    stays None while the sides are known, and the row printed "reported: no
+    record" beside a reason saying "reported pathogenic"."""
+    report = report_with(
+        BENIGN, [assertion(Significance.PATHOGENIC, stars=-1, review="brand new wording")]
+    )
+    row = row_from_report("t", report, today=TODAY)
+    assert row.tier == CONTRADICTED.key
+    assert row.records == 1
+    assert row.reported_call, "a row with a record must not display 'no record'"
+
+
+# --------------------------------------------------------------------------
 # Ordering
 # --------------------------------------------------------------------------
 
@@ -516,14 +781,39 @@ def test_csv_names_the_tier_in_words():
 
 
 @pytest.mark.parametrize("name", available_bundles())
-def test_every_recorded_bundle_triages_with_a_reason(name):
-    """Whatever tier a real variant lands in, it must say why. A row with an
-    empty justification is a ranking the reader cannot audit."""
-    bundle = load_bundle(name)
-    report = build_report(bundle, today=TODAY)
+def test_every_recorded_bundle_triages_with_a_substantive_reason(name):
+    """Whatever tier a real variant lands in, it must say why, in words that
+    carry information.
+
+    The earlier version asserted `row.tier in TIERS` and `row.reasons` --
+    both true by construction, so the test could not fail without a type
+    error. These assertions can: a reason has to name a number or a named
+    state, not merely exist.
+    """
+    report = build_report(load_bundle(name), today=TODAY)
     row = row_from_report(name, report, today=TODAY)
-    assert row.tier in {t.key for t in TIERS}
     assert row.reasons, f"{name} got tier {row.tier} with no reason"
+
+    joined = " ".join(row.reasons)
+    assert len(joined) > 20, f"{name}: reason too thin to audit: {joined!r}"
+    informative = any(ch.isdigit() for ch in joined) or any(
+        word in joined.lower()
+        for word in ("computed", "both met", "not recognised", "no clinvar record", "did not resolve")
+    )
+    assert informative, f"{name}: reason states nothing checkable: {joined!r}"
+
+
+@pytest.mark.parametrize("name", available_bundles())
+def test_a_recorded_bundle_never_lands_in_the_bottom_tier_with_high_severity_conflicts(name):
+    """"No disagreement found" has to mean it. A row carrying a high-severity
+    conflict is a row with something to read."""
+    report = build_report(load_bundle(name), today=TODAY)
+    row = row_from_report(name, report, today=TODAY)
+    if row.tier == CONCORDANT.key:
+        assert row.high_severity == 0, (
+            f"{name}: tier 4 while carrying {row.high_severity} high-severity "
+            f"conflicts: {row.conflict_headlines}"
+        )
 
 
 def test_hfe_c282y_is_contradicted():
@@ -535,17 +825,35 @@ def test_hfe_c282y_is_contradicted():
     assert row.computed_call == BENIGN
 
 
-def test_braf_v600e_is_not_concordant():
-    """Somatic assertions mixed into a germline record, most without criteria.
-    Whatever tier it lands in, 'nothing to see' is not an option."""
+def test_braf_v600e_is_split_and_says_the_records_cover_many_conditions():
+    """A ClinVar record is an RCV: one aggregate per variant-and-condition,
+    not one submitter. BRAF V600E has 16, almost all somatic tumour types
+    beside one germline RASopathy, and the row used to assert flatly that
+    "submitters" disagreed. The earlier test only checked it was not tier 4,
+    which passed for four of the five tiers."""
     report = build_report(load_bundle("braf_v600e"), today=TODAY)
     row = row_from_report("BRAF V600E", report, today=TODAY)
-    assert row.tier != CONCORDANT.key
+    assert row.tier == SPLIT.key
+    joined = " ".join(row.reasons)
+    assert "distinct conditions" in joined
+    assert "submitters" not in joined.lower()
 
 
-def test_tier_rank_matches_the_tier_key():
-    """The page sorts on tier_rank and groups on tier. They must not drift."""
-    for name in available_bundles():
-        report = build_report(load_bundle(name), today=TODAY)
-        r = row_from_report(name, report, today=TODAY)
-        assert TIERS[r.tier_rank - 1].key == r.tier
+def test_tier_ranks_are_unique_and_contiguous_from_one():
+    """The page sorts on tier_rank and groups on tier.
+
+    The earlier version asserted `TIERS[rank - 1].key == tier` on rows built
+    from those same Tier objects -- a tautology. What actually has to hold is
+    a property of the TIERS table itself.
+    """
+    ranks = [t.rank for t in TIERS]
+    assert ranks == sorted(ranks)
+    assert ranks == list(range(1, len(TIERS) + 1))
+    assert len({t.key for t in TIERS}) == len(TIERS)
+    assert len({t.name for t in TIERS}) == len(TIERS)
+
+
+def test_unresolved_is_the_last_tier():
+    """sort_rows puts failures at the bottom by rank alone, so a new tier
+    appended after UNRESOLVED would sort above it."""
+    assert TIERS[-1] is UNRESOLVED

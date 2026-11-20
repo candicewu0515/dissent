@@ -100,9 +100,9 @@ sources, then ordered into four tiers:
 
 | Tier | What is in it |
 |---|---|
-| **Contradicted** | Records disagree pathogenic-versus-benign, or this worksheet lands opposite theirs |
-| **Submitters split** | The records disagree with each other, but not across the clinical line |
-| **Thin evidence** | Nobody disagrees, but the agreement rests on no stated criteria, one star, or an evaluation older than five years |
+| **Contradicted** | Records disagree pathogenic-versus-benign, this worksheet lands opposite theirs, or the worksheet met pathogenic and benign criteria at once |
+| **Records disagree** | ClinVar's records classify it differently, but not across the clinical line. A ClinVar record is one aggregate per *condition*, not one submitter, so the row says whether the disagreement is inside a condition or across several |
+| **Thin evidence** | Nobody disagrees, but the agreement rests on no stated criteria, one star of four, or an evaluation older than five years |
 | **No disagreement found** | The records agree, state their criteria, and are current |
 
 ![A triaged carrier-screening panel: five tier counts, then the contradicted group](docs/images/panel.jpg)
@@ -186,7 +186,7 @@ python -m dissent --panel my_panel.txt
 python -m dissent --panel my_panel.txt --csv > worklist.csv
 ```
 
-Tests — 411 of them, none touching the network, so they run anywhere:
+Tests — 508 of them, none touching the network, so they run anywhere:
 
 ```bash
 python -m pytest
@@ -253,7 +253,7 @@ not known until the first phase answers:
 ### Decisions worth stating
 
 **Every criterion and detector is a pure function** over the evidence bundle.
-No I/O, no state. That is what lets the 411 tests run offline against recorded
+No I/O, no state. That is what lets the 508 tests run offline against recorded
 fixtures, and what lets a reviewer audit a rule by reading one function. The
 fixtures come in two layers: normalised bundles for the scoring rules, and
 verbatim API payloads for the code that produces them.

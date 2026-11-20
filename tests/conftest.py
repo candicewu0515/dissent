@@ -66,11 +66,29 @@ def _forbid_network(request, monkeypatch):
     if not request.config.getoption("--no-network"):
         return
 
+    real_socket = socket.socket
+
     def refuse(*args, **kwargs):
         raise RuntimeError(
             "This suite runs offline. Something tried to open a network "
             "connection; it should be reading a fixture instead."
         )
 
-    monkeypatch.setattr(socket, "socket", refuse)
+    def guarded_socket(family=socket.AF_INET, *args, **kwargs):
+        """Block the internet, not every socket.
+
+        Replacing the constructor outright also blocked AF_UNIX socketpairs,
+        which is how asyncio builds the self-pipe an event loop needs -- so no
+        async code could be tested offline at all, and the concurrency and
+        failure-isolation paths went untested as a result.
+
+        Blocking by address family is the stronger guarantee anyway: it names
+        what is forbidden (an IP socket) rather than what happens to be the
+        usual way of getting one.
+        """
+        if family in (socket.AF_INET, socket.AF_INET6):
+            refuse()
+        return real_socket(family, *args, **kwargs)
+
+    monkeypatch.setattr(socket, "socket", guarded_socket)
     monkeypatch.setattr(socket, "create_connection", refuse)

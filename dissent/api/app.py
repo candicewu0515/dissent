@@ -16,14 +16,18 @@ from fastapi.staticfiles import StaticFiles
 from dissent.baseline.rates import load_baseline
 from dissent.cache.store import ResponseCache
 from dissent.models import Report
+from dissent.acmg.thresholds import DEFAULT as DEFAULT_THRESHOLDS
 from dissent.panel import (
+    AXIS_LABELS,
     EVIDENCE_NOT_PUBLIC,
+    EXPERT_REVIEW_STARS,
     MAX_PANEL_SIZE,
+    MAX_QUERY_LENGTH,
     TIERS,
     PanelResult,
     PanelRow,
     interpret_panel,
-    parse_panel,
+    parse_panel_counted,
     rows_to_csv,
     sort_rows,
 )
@@ -31,6 +35,14 @@ from dissent.report import interpret
 from dissent.sources.base import USER_AGENT
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+
+# A whole-chunk ceiling, so a request cannot hold a connection for as long
+# as its per-variant timeouts multiplied together allow.
+PANEL_TIMEOUT_SECONDS = 180.0
+
+# A panel is assembled from chunks, so an export can legitimately be larger
+# than one request's worth -- but not unbounded.
+MAX_ROWS_PER_EXPORT = 2000
 
 
 def _asset_version() -> str:
@@ -323,11 +335,22 @@ async def api_panel_tiers() -> JSONResponse:
     return JSONResponse(
         {
             "max_per_request": MAX_PANEL_SIZE,
+            "max_query_length": MAX_QUERY_LENGTH,
             "evidence_not_public": EVIDENCE_NOT_PUBLIC,
             "tiers": [
                 {"rank": t.rank, "key": t.key, "name": t.name, "meaning": t.meaning}
                 for t in TIERS
             ],
+            # The page says "the rule is below so you can disagree with it",
+            # and served only the prose. These are the numbers the rule
+            # actually turns on; without them a reader can disagree with the
+            # description but not with the thing.
+            "cutoffs": {
+                "stale_after_years": DEFAULT_THRESHOLDS.stale_assertion_years,
+                "thin_at_or_below_stars": 1,
+                "no_criteria_ignored_at_or_above_stars": EXPERT_REVIEW_STARS,
+                "pathogenicity_labels": sorted(s.value for s in AXIS_LABELS),
+            },
         }
     )
 
@@ -350,12 +373,26 @@ async def api_panel(
     """
     raw = payload.get("queries")
     if isinstance(raw, str):
-        queries = parse_panel(raw)
+        text = raw
     elif isinstance(raw, list):
-        queries = parse_panel("\n".join(str(q) for q in raw))
+        # Strings only. Stringifying whatever arrived turned {"a": 1} into the
+        # query "{'a': 1}" and sent it to six public APIs.
+        if not all(isinstance(q, str) for q in raw):
+            raise HTTPException(
+                status_code=422, detail="Every entry in 'queries' must be a string."
+            )
+        text = "\n".join(raw)
     else:
-        raise HTTPException(status_code=422, detail="Send 'queries' as a list or a newline-separated string.")
+        raise HTTPException(
+            status_code=422, detail="Send 'queries' as a list or a newline-separated string."
+        )
 
+    # Bound the input before parsing it. Without this a single request could
+    # carry megabytes to be split and de-duplicated.
+    if len(text) > MAX_QUERY_LENGTH * (MAX_PANEL_SIZE + 10):
+        raise HTTPException(status_code=413, detail="That is more text than a panel can be.")
+
+    queries, dropped = parse_panel_counted(text)
     if not queries:
         raise HTTPException(status_code=422, detail="No variants found in the input.")
 
@@ -363,12 +400,31 @@ async def api_panel(
     if assembly not in ("hg19", "hg38"):
         raise HTTPException(status_code=422, detail="assembly must be hg19 or hg38.")
 
-    return await interpret_panel(
-        queries,
-        assembly=assembly,
-        cache=app.state.cache,
-        client=app.state.client,
-    )
+    try:
+        result = await asyncio.wait_for(
+            interpret_panel(
+                queries,
+                assembly=assembly,
+                cache=app.state.cache,
+                client=app.state.client,
+            ),
+            # A ceiling for the whole chunk. Per-variant timeouts alone let a
+            # full request hold a connection for ceil(n/concurrency) x 70
+            # seconds, and the page's fetch has no timeout of its own, so the
+            # progress bar would sit still rather than fail.
+            timeout=PANEL_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=504,
+            detail=(
+                "The panel did not finish in time. Public APIs are rate-limited; "
+                "send fewer variants per request."
+            ),
+        ) from None
+
+    result.dropped = dropped
+    return result
 
 
 @app.post("/api/panel/csv")
@@ -382,6 +438,13 @@ async def api_panel_csv(payload: dict = Body(...)) -> PlainTextResponse:
     raw_rows = payload.get("rows")
     if not isinstance(raw_rows, list) or not raw_rows:
         raise HTTPException(status_code=422, detail="Send 'rows' from a panel result.")
+    # The endpoint validated each row's shape but never the number of them, so
+    # a request could ask for an eight-megabyte file to be built in memory.
+    if len(raw_rows) > MAX_ROWS_PER_EXPORT:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Send at most {MAX_ROWS_PER_EXPORT} rows per export.",
+        )
     try:
         rows = [PanelRow.model_validate(r) for r in raw_rows]
     except Exception:  # noqa: BLE001

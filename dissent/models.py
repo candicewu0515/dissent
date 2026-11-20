@@ -117,26 +117,73 @@ _SIGNIFICANCE_MAP: dict[str, Significance] = {
     "benign/likely benign": Significance.BENIGN,
     "pathogenic, low penetrance": Significance.PATHOGENIC_LOW_PENETRANCE,
     "likely pathogenic, low penetrance": Significance.PATHOGENIC_LOW_PENETRANCE,
+    # ClinVar's slash form aggregates submitters who chose either label. These
+    # three are listed explicitly because the generic slash fallback below
+    # takes the first clause, which would flatten them to plain Pathogenic --
+    # and flattening low penetrance is what manufactures the
+    # frequency-versus-claim conflict this tool then reports as a finding.
+    # Keeping the qualifier is the conservative reading: at least one
+    # submitter said the penetrance is reduced.
+    "pathogenic/pathogenic, low penetrance": Significance.PATHOGENIC_LOW_PENETRANCE,
+    "pathogenic/likely pathogenic, low penetrance": Significance.PATHOGENIC_LOW_PENETRANCE,
+    "likely pathogenic/likely pathogenic, low penetrance": (
+        Significance.PATHOGENIC_LOW_PENETRANCE
+    ),
     "established risk allele": Significance.RISK_FACTOR,
     "likely risk allele": Significance.RISK_FACTOR,
     "risk factor": Significance.RISK_FACTOR,
     "association": Significance.RISK_FACTOR,
     "drug response": Significance.DRUG_RESPONSE,
+    # ClinVar relabelled this family in its 2023/24 vocabulary change. Both
+    # spellings are kept: the new one is what the API returns today, the old
+    # one still appears in archived records and in anything derived from an
+    # older release. The star table below was updated at the time and this one
+    # was not, so the current wording fell through to OTHER, was dropped as
+    # not actionable, and a variant whose only record says "submitters
+    # disagree" was reported as having no ClinVar record at all.
+    "conflicting classifications of pathogenicity": Significance.CONFLICTING,
     "conflicting interpretations of pathogenicity": Significance.CONFLICTING,
     "conflicting data from submitters": Significance.CONFLICTING,
     "not provided": Significance.NOT_PROVIDED,
     "no classification provided": Significance.NOT_PROVIDED,
+    # A placeholder ClinVar emits when every record is flagged, not a
+    # classification anyone made.
+    "no classifications from unflagged records": Significance.NOT_PROVIDED,
 }
 
 
 def normalize_significance(raw: str | None) -> Significance:
+    """Map a ClinVar significance string onto the enum.
+
+    ClinVar joins a record's primary classification to its additional ones
+    with a semicolon -- "Benign; other", "Pathogenic; risk factor" -- and the
+    primary one comes first. Splitting on the comma alone left those falling
+    through to OTHER, where `is_actionable` drops them: a pathogenic record
+    disappeared from the evidence entirely, taking with it any opposition it
+    was half of.
+
+    The full string is tried first so that comma-joined labels which are
+    classifications in their own right, such as "Pathogenic, low penetrance",
+    are not mistaken for a primary plus a qualifier.
+    """
     if not raw:
         return Significance.NOT_PROVIDED
     key = raw.strip().lower()
     if key in _SIGNIFICANCE_MAP:
         return _SIGNIFICANCE_MAP[key]
-    # Compound labels such as "Pathogenic, low penetrance".
-    head = key.split(",")[0].strip()
+
+    primary = key.split(";")[0].strip()
+    if primary in _SIGNIFICANCE_MAP:
+        return _SIGNIFICANCE_MAP[primary]
+
+    # The slash form aggregates submitters who chose either label, so the
+    # first clause is the one to keep. Tried after the exact lookups above so
+    # that the low-penetrance aggregates listed there keep their qualifier.
+    slashed = primary.split("/")[0].strip()
+    if slashed in _SIGNIFICANCE_MAP:
+        return _SIGNIFICANCE_MAP[slashed]
+
+    head = slashed.split(",")[0].strip()
     return _SIGNIFICANCE_MAP.get(head, Significance.OTHER)
 
 
@@ -169,7 +216,13 @@ def review_stars(review_status: str | None) -> int:
     weak-evidence conflict at high severity on every variant in the database.
     """
     if not review_status:
-        return 0
+        # Absent, not zero. Zero stars is ClinVar's positive statement that a
+        # submitter provided no assertion criteria; a missing field says
+        # nothing about the submitter at all. Returning 0 here turned a gap in
+        # the payload into "no record states assertion criteria", which is a
+        # claim about someone's work made from the absence of data -- the same
+        # error the unrecognised-string case below exists to avoid.
+        return UNKNOWN_REVIEW_STARS
     return _REVIEW_STARS.get(review_status.strip().lower(), UNKNOWN_REVIEW_STARS)
 
 

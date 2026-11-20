@@ -175,13 +175,28 @@ def main(argv: list[str] | None = None) -> int:
 
 def _run_panel(args) -> int:
     """Triage a file of variants into an ordered worklist."""
-    from dissent.panel import TIERS_BY_KEY, interpret_panel, parse_panel, rows_to_csv
+    from dissent.panel import TIERS_BY_KEY, interpret_panel, parse_panel_counted, rows_to_csv
 
-    raw = sys.stdin.read() if args.panel == "-" else open(args.panel, encoding="utf-8").read()
-    queries = parse_panel(raw)
+    if args.panel == "-":
+        raw = sys.stdin.read()
+    else:
+        # `open(...).read()` left the handle to the garbage collector, which is
+        # not where a file handle belongs.
+        with open(args.panel, encoding="utf-8") as fh:
+            raw = fh.read()
+
+    queries, dropped = parse_panel_counted(raw)
     if not queries:
         print(f"No variants found in {args.panel!r}.", file=sys.stderr)
         return 2
+    if dropped:
+        # Printing a 50-row worklist for a 200-line file, with nothing saying
+        # so, is the one failure mode a triage tool must not have.
+        print(
+            f"! {dropped} entries were not run: over the {len(queries)}-variant "
+            "limit for one pass, or too long to be an identifier.",
+            file=sys.stderr,
+        )
 
     result = asyncio.run(
         interpret_panel(queries, assembly=args.assembly, cache=ResponseCache())

@@ -33,8 +33,11 @@ const TIER_TONE = {
 
 let TIERS = [];
 let ENP_TEXT = "";
+let CUTOFFS = null;
 let rows = [];
 let running = false;
+let expected = 0;
+let dropped = 0;
 
 // --------------------------------------------------------------------------
 // Rendering
@@ -46,8 +49,10 @@ function tierName(key) {
 }
 
 function stars(n) {
+  // The server filters unrecognised review statuses out before taking the
+  // maximum, so an unknown rating arrives as null and the row simply has no
+  // review line. There is no negative case to render.
   if (n === null || n === undefined) return "";
-  if (n < 0) return "unknown";
   return "★".repeat(n) + "☆".repeat(Math.max(0, 4 - n));
 }
 
@@ -69,10 +74,20 @@ function renderTiles() {
   });
 
   const enp = rows.filter((r) => r.evidence_not_public).length;
-  $("enp-note").textContent = enp
-    ? `${enp} of ${rows.length} rows are reported confidently while the computed call ` +
-      `stays uncertain. ${ENP_TEXT}`
-    : "";
+  // "so far" while chunks are still landing: the fraction is of what has
+  // arrived, and stating it as if it were the whole panel misreads a partial
+  // result as a complete one.
+  const scope = running && rows.length < expected ? `${rows.length} rows so far` : `${rows.length} rows`;
+  const parts = [];
+  if (enp) {
+    parts.push(`${enp} of ${scope} are reported confidently while the computed call stays uncertain. ${ENP_TEXT}`);
+  }
+  if (dropped) {
+    parts.push(
+      `${dropped} entries were not run: over the per-request limit, or too long to be an identifier.`
+    );
+  }
+  $("enp-note").textContent = parts.join(" ");
 }
 
 function callClass(call) {
@@ -166,7 +181,14 @@ function sortRows() {
     const sa = a.best_stars === null || a.best_stars === undefined ? 9 : a.best_stars;
     const sb = b.best_stars === null || b.best_stars === undefined ? 9 : b.best_stars;
     if (sa !== sb) return sa - sb;
-    return (a.display_name || a.query).localeCompare(b.display_name || b.query);
+    // Both sides case-fold before comparing. Python sorted raw strings, which
+    // puts every capital ahead of every lower-case letter, while localeCompare
+    // ignores case -- so a query typed in lower case put the downloaded CSV in
+    // a different order from the screen.
+    const na = (a.display_name || a.query).toLowerCase();
+    const nb = (b.display_name || b.query).toLowerCase();
+    if (na !== nb) return na < nb ? -1 : 1;
+    return a.query < b.query ? -1 : a.query > b.query ? 1 : 0;
   });
 }
 
@@ -183,6 +205,23 @@ function renderTierDefs() {
   d.appendChild(text("span", "prow-tier tone-neutral", "Not a tier"));
   d.appendChild(text("p", "tier-def-text", ENP_TEXT));
   box.appendChild(d);
+
+  // The numbers the rule turns on. The page claimed the rule was here to be
+  // disagreed with while showing only the prose, which is the part that costs
+  // nothing to agree with.
+  if (CUTOFFS) {
+    const c = text("div", "tier-def");
+    c.appendChild(text("span", "prow-tier tone-neutral", "Cutoffs"));
+    const list = text("p", "tier-def-text",
+      `Stale after ${CUTOFFS.stale_after_years} years. ` +
+      `Thin at or below ${CUTOFFS.thin_at_or_below_stars} of 4 review stars. ` +
+      `Records stating no criteria are set aside once a record reaches ` +
+      `${CUTOFFS.no_criteria_ignored_at_or_above_stars} stars. ` +
+      `Counted as a pathogenicity claim: ` +
+      `${(CUTOFFS.pathogenicity_labels || []).join(", ").replace(/_/g, " ")}.`);
+    c.appendChild(list);
+    box.appendChild(c);
+  }
   $("rule").classList.remove("hidden");
 }
 
@@ -226,10 +265,12 @@ async function run() {
   running = true;
   rows = [];
   $("run").disabled = true;
+  dropped = 0;
   $("hint").textContent = "";
   $("results").classList.remove("hidden");
   clear($("rows"));
   clear($("tier-tiles"));
+  expected = queries.length;
   progress(0, queries.length);
 
   const assembly = $("assembly").value;
@@ -246,6 +287,7 @@ async function run() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       rows = rows.concat(data.rows || []);
+      dropped += data.dropped || 0;
     } catch (err) {
       // A failed chunk costs that chunk, not the panel. The rows still appear,
       // marked unresolved, so the reader can see what was not covered rather
@@ -265,9 +307,17 @@ async function run() {
       );
     }
     done += chunk.length;
-    sortRows();
-    renderTiles();
-    renderRows();
+    try {
+      sortRows();
+      renderTiles();
+      renderRows();
+    } catch (err) {
+      // Rendering sat outside the try, so a throw here left the button
+      // disabled, `running` true and no message on screen -- the page looked
+      // like it was still working and could not be asked to try again.
+      $("hint").textContent = `Could not render the results: ${err.message || err}`;
+      break;
+    }
     progress(done, queries.length);
   }
 
@@ -324,6 +374,7 @@ async function loadMeta() {
     const data = await res.json();
     TIERS = data.tiers || [];
     ENP_TEXT = data.evidence_not_public || "";
+    CUTOFFS = data.cutoffs || null;
     renderTierDefs();
     $("hint").textContent = `Up to ${data.max_per_request} variants per request.`;
   } catch (_) {

@@ -101,11 +101,59 @@ def test_preferred_name_is_recovered_for_display():
         ("Benign", Significance.BENIGN),
         ("Likely benign", Significance.LIKELY_BENIGN),
         ("Conflicting interpretations of pathogenicity", Significance.CONFLICTING),
+        # ClinVar's current wording after the 2023/24 relabelling. The star
+        # table was updated for it and this one was not, so it fell through to
+        # OTHER and was dropped as not actionable -- a variant whose only
+        # record says "submitters disagree" was reported as having no ClinVar
+        # record at all.
+        ("Conflicting classifications of pathogenicity", Significance.CONFLICTING),
         ("not provided", Significance.NOT_PROVIDED),
     ],
 )
 def test_significance_vocabulary(raw_label, expected):
     assert normalize_significance(raw_label) is expected
+
+
+@pytest.mark.parametrize(
+    "raw_label,expected",
+    [
+        ("Benign; other", Significance.BENIGN),
+        ("Pathogenic; risk factor", Significance.PATHOGENIC),
+        ("Pathogenic; drug response", Significance.PATHOGENIC),
+        ("Likely pathogenic; other", Significance.LIKELY_PATHOGENIC),
+        ("Benign/Likely benign; other", Significance.BENIGN),
+        ("Uncertain significance; risk factor", Significance.UNCERTAIN),
+    ],
+)
+def test_a_compound_label_keeps_its_primary_classification(raw_label, expected):
+    """ClinVar joins the primary classification to its additional ones with a
+    semicolon, primary first. Splitting on the comma alone left these falling
+    through to OTHER, where is_actionable drops them -- so a pathogenic record
+    vanished from the evidence, taking with it any opposition it was half of.
+    """
+    sig = normalize_significance(raw_label)
+    assert sig is expected
+    assert sig.is_actionable
+
+
+def test_a_semicolon_label_does_not_break_the_comma_ones():
+    """"Pathogenic, low penetrance" is a classification in its own right, not
+    a primary plus a qualifier, so the whole string has to be tried first."""
+    assert (
+        normalize_significance("Pathogenic, low penetrance")
+        is Significance.PATHOGENIC_LOW_PENETRANCE
+    )
+    assert (
+        normalize_significance("Likely pathogenic, low penetrance")
+        is Significance.PATHOGENIC_LOW_PENETRANCE
+    )
+
+
+def test_a_label_nobody_recognises_is_still_other():
+    """The fallbacks must not become a way to guess."""
+    assert normalize_significance("banana; mango") is Significance.OTHER
+    assert normalize_significance("") is Significance.NOT_PROVIDED
+    assert normalize_significance(None) is Significance.NOT_PROVIDED
 
 
 def test_low_penetrance_is_not_flattened_into_pathogenic():
@@ -128,7 +176,17 @@ def test_low_penetrance_is_not_flattened_into_pathogenic():
         ("criteria provided, multiple submitters, no conflicts", 2),
         ("criteria provided, single submitter", 1),
         ("no assertion criteria provided", 0),
-        (None, 0),
+        # Absent and empty are unknown, not zero. Zero is ClinVar stating that
+        # a submitter gave no assertion criteria; a missing field says nothing
+        # about the submitter, and reading it as zero turns a gap in the
+        # payload into a claim about someone's work.
+        (None, UNKNOWN_REVIEW_STARS),
+        ("", UNKNOWN_REVIEW_STARS),
+        ("   ", UNKNOWN_REVIEW_STARS),
+        ("a status ClinVar has not used before", UNKNOWN_REVIEW_STARS),
+        # The 2023/24 relabelling. Both spellings rate the same.
+        ("criteria provided, conflicting classifications", 1),
+        ("criteria provided, conflicting interpretations", 1),
     ],
 )
 def test_review_status_star_ratings(status, stars):
