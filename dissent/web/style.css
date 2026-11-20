@@ -408,6 +408,7 @@ h2.section-title {
 .sw-met { background: var(--path); }
 .sw-met-b { background: var(--benign); }
 .sw-notmet { background: var(--surface-2); }
+.sw-na { background: transparent; border-style: dashed; }
 .sw-insuf { background: var(--uncertain); }
 .sw-manual { background: var(--border-strong); }
 
@@ -435,8 +436,13 @@ h2.section-title {
 .crit.insufficient { background: var(--uncertain-bg); border-color: var(--uncertain); }
 .crit.insufficient .code { color: var(--uncertain); }
 .crit.manual { background: var(--surface-2); }
-.crit.manual .code, .crit.not_met .code { color: var(--text-3); }
+.crit.manual .code,
+.crit.not_met .code,
+.crit.not_applicable .code { color: var(--text-3); }
 .crit.not_met { opacity: 0.72; }
+/* Not applicable is drawn fainter still, and dashed: it is not a finding
+   about this variant at all. */
+.crit.not_applicable { opacity: 0.5; border-style: dashed; }
 
 .crit-detail {
   margin-top: 16px;

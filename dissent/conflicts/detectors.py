@@ -726,14 +726,12 @@ def internal_contradiction(
     # clearly dominating is worth noting but not alarming.
     severity = "high" if min(path_weight, benign_weight) >= 4 else "medium"
 
-    stronger = "benign" if benign_weight > path_weight else "pathogenic"
-    margin = (
-        "the benign evidence is stronger"
-        if benign_weight > path_weight
-        else "the pathogenic evidence is stronger"
-        if path_weight > benign_weight
-        else "neither side is stronger"
-    )
+    if benign_weight > path_weight:
+        margin = "the benign evidence is stronger"
+    elif path_weight > benign_weight:
+        margin = "the pathogenic evidence is stronger"
+    else:
+        margin = "neither side outweighs the other"
 
     return Conflict(
         kind="internal_contradiction",
@@ -741,7 +739,7 @@ def internal_contradiction(
         headline=f"Pathogenic and benign criteria are both met ({path_codes} vs {benign_codes})",
         detail=(
             f"Met toward pathogenic: {path_codes}. Met toward benign: {benign_codes}. "
-            f"By ACMG strength weighting {margin} ({stronger} side). "
+            f"By ACMG strength weighting, {margin}. "
             "Where a frequency criterion opposes a computational one, the frequency "
             "observation is a direct measurement in people and the predictor output is "
             "a model inference, so they do not deserve equal credence despite both "

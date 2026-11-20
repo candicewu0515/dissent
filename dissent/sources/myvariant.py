@@ -354,8 +354,25 @@ _POP_LABELS = {
 
 
 def extract_frequencies(doc: dict[str, Any]) -> list[PopulationFrequency]:
+    """Frequencies embedded in the MyVariant document.
+
+    This is the fallback for when the live gnomAD query fails, and it is a
+    weaker source than it looks: the embedded copy is gnomAD v2, and its
+    per-population fields carry a frequency with no denominator. Without an
+    allele number there is no way to tell 20% of five alleles from 20% of
+    fifty thousand.
+
+    So no popmax is derived here. Taking an unguarded maximum over those
+    fields let a handful of alleles in `af_oth` drive a BA1 decision -- a
+    false-benign path, and the worst direction to be wrong in. The global
+    frequency, which does carry an allele number, is used instead, and the
+    per-population figures are kept for display only.
+    """
     out: list[PopulationFrequency] = []
-    for key, label in (("gnomad_exome", "gnomAD exomes"), ("gnomad_genome", "gnomAD genomes")):
+    for key, label in (
+        ("gnomad_exome", "gnomAD v2 exomes (via MyVariant)"),
+        ("gnomad_genome", "gnomAD v2 genomes (via MyVariant)"),
+    ):
         node = doc.get(key)
         if not isinstance(node, dict):
             continue
@@ -366,10 +383,6 @@ def extract_frequencies(doc: dict[str, Any]) -> list[PopulationFrequency]:
             if value is not None:
                 per_pop[pop_label] = value
 
-        popmax_label, popmax_af = None, None
-        if per_pop:
-            popmax_label, popmax_af = max(per_pop.items(), key=lambda kv: kv[1])
-
         out.append(
             PopulationFrequency(
                 source=label,
@@ -377,8 +390,9 @@ def extract_frequencies(doc: dict[str, Any]) -> list[PopulationFrequency]:
                 ac=to_int(dig(node, "ac", "ac")),
                 an=to_int(dig(node, "an", "an")),
                 homozygote_count=to_int(dig(node, "hom", "hom")),
-                popmax_af=popmax_af,
-                popmax_population=popmax_label,
+                # Deliberately unset: see the docstring.
+                popmax_af=None,
+                popmax_population=None,
                 per_population=per_pop,
             )
         )

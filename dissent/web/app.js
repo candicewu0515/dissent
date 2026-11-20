@@ -11,9 +11,10 @@ const THRESHOLDS = { ba1: 0.05, bs1: 0.01, pm2: 0.0001 };
 
 const STATUS_LABEL = {
   met: "met",
-  not_met: "not met",
+  not_met: "argues against",
+  not_applicable: "not applicable",
   insufficient: "data missing",
-  manual: "needs a human",
+  manual: "needs a person",
 };
 
 const SIG_CLASS = {
@@ -431,6 +432,7 @@ function renderDisclaimer(report) {
   clear(box);
   const manual = report.criteria.filter((c) => c.status === "manual").map((c) => c.code);
   const missing = report.criteria.filter((c) => c.status === "insufficient").map((c) => c.code);
+  const na = report.criteria.filter((c) => c.status === "not_applicable").length;
 
   box.appendChild(text("strong", null, "This is a draft worksheet, not a clinical determination. "));
   box.appendChild(document.createTextNode(
@@ -440,6 +442,11 @@ function renderDisclaimer(report) {
   if (missing.length) {
     box.appendChild(document.createTextNode(
       `A further ${missing.length} lacked the data needed (${missing.join(", ")}). `
+    ));
+  }
+  if (na) {
+    box.appendChild(document.createTextNode(
+      `${na} do not apply to a variant of this kind, which is not the same as arguing against it. `
     ));
   }
   box.appendChild(document.createTextNode(

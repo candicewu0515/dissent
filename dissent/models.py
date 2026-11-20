@@ -289,21 +289,34 @@ class Consequence(BaseModel):
     terms: list[str] = Field(default_factory=list)
 
     @property
+    def effective_terms(self) -> set[str]:
+        """Consequence terms for the transcript that was actually chosen.
+
+        `terms` is transcript-scoped. `most_severe` is VEP's record-level
+        value, computed across every transcript at the position *and every
+        gene* there, so falling back to it can report a neighbouring gene's
+        consequence as this variant's. It is used only when the chosen
+        transcript carried no terms of its own.
+        """
+        if self.terms:
+            return set(self.terms)
+        return {self.most_severe} if self.most_severe else set()
+
+    @property
     def is_lof(self) -> bool:
-        return bool(LOF_CONSEQUENCES & set(self.terms or ([self.most_severe] if self.most_severe else [])))
+        return bool(LOF_CONSEQUENCES & self.effective_terms)
 
     @property
     def is_missense(self) -> bool:
-        return "missense_variant" in (self.terms or []) or self.most_severe == "missense_variant"
+        return "missense_variant" in self.effective_terms
 
     @property
     def is_synonymous(self) -> bool:
-        return "synonymous_variant" in (self.terms or []) or self.most_severe == "synonymous_variant"
+        return "synonymous_variant" in self.effective_terms
 
     @property
     def is_inframe_indel(self) -> bool:
-        t = set(self.terms or [])
-        return bool(t & {"inframe_insertion", "inframe_deletion"})
+        return bool(self.effective_terms & {"inframe_insertion", "inframe_deletion"})
 
 
 # --------------------------------------------------------------------------
@@ -402,7 +415,12 @@ class Strength(str, Enum):
     STAND_ALONE = "stand_alone"
 
 
-CriterionStatus = Literal["met", "not_met", "insufficient", "manual"]
+# "not_met" asserts that the evidence argues against a criterion.
+# "not_applicable" says the criterion does not apply to this kind of variant at
+# all -- REVEL is calibrated for missense, so PP3 against a nonsense variant is
+# not a negative finding, it is the wrong question. Collapsing the two polluted
+# the met/not-met partition the contradiction detector reads.
+CriterionStatus = Literal["met", "not_met", "not_applicable", "insufficient", "manual"]
 Direction = Literal["pathogenic", "benign"]
 
 

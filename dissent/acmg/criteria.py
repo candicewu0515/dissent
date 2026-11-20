@@ -44,13 +44,24 @@ def _fmt_af(af: float | None) -> str:
 
 
 def _gnomad_provenance(bundle: EvidenceBundle) -> list[Provenance]:
+    """Link to the gnomAD record, naming the build the figures came from.
+
+    The frequency may have come from the live v4 API or from the v2 copy
+    embedded in the MyVariant document. Labelling both "v4" put the wrong
+    database build on a claim, in a tool whose rule is that every claim carries
+    its provenance. An hg19 query links to no gnomAD record at all, since the
+    browser is GRCh38.
+    """
     vid = bundle.query.gnomad_variant_id
-    if not vid:
+    if not vid or bundle.query.assembly != "hg38":
         return []
+
+    used_v4 = any("v4" in f.source for f in bundle.frequencies)
+    label = f"gnomAD {'v4' if used_v4 else 'browser'} variant {vid}"
     return [
         Provenance(
             source="gnomAD",
-            label=f"gnomAD v4 variant {vid}",
+            label=label,
             url=f"https://gnomad.broadinstitute.org/variant/{vid}?dataset=gnomad_r4",
         )
     ]
@@ -120,13 +131,14 @@ def pvs1(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
 
     if not cons.is_lof:
         return CriterionResult(
-            code="PVS1", name=name, direction="pathogenic", status="not_met",
+            code="PVS1", name=name, direction="pathogenic", status="not_applicable",
             strength=Strength.VERY_STRONG,
             rationale=(
                 f"Consequence is {cons.most_severe or 'unclear'}, which is not a "
                 "null variant (nonsense, frameshift, canonical splice +/-1,2, or "
                 "start loss)."
             ),
+            what_would_change="A loss-of-function consequence on the transcript of interest.",
         )
 
     # The criterion requires that loss of function be a *known mechanism of
@@ -368,18 +380,32 @@ def pm4(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
             what_would_change="A transcript-level consequence call.",
         )
 
+    # Read `terms` *and* `most_severe`, as the Consequence helpers do: an
+    # annotation can arrive with one populated and the other empty.
     terms = set(cons.terms or [])
+    if cons.most_severe:
+        terms.add(cons.most_severe)
     length_changing = bool(terms & {"inframe_insertion", "inframe_deletion", "stop_lost"})
+
     if length_changing:
         return CriterionResult(
             code="PM4", name=name, direction="pathogenic", status="met",
             strength=Strength.MODERATE,
-            rationale=f"Consequence {cons.most_severe} alters protein length.",
+            rationale=(
+                f"Consequence {cons.most_severe} alters protein length. The criterion "
+                "also requires the change to fall outside a repeat region, which is "
+                "not checked here -- BP3 covers the repeat case and is left to a human."
+            ),
+            what_would_change=(
+                "Repeat annotation for the affected region: an in-frame indel inside a "
+                "repeat of no known function argues benign under BP3 instead."
+            ),
         )
     return CriterionResult(
-        code="PM4", name=name, direction="pathogenic", status="not_met",
+        code="PM4", name=name, direction="pathogenic", status="not_applicable",
         strength=Strength.MODERATE,
         rationale=f"Consequence {cons.most_severe} does not change protein length.",
+        what_would_change="An in-frame indel or stop-loss consequence.",
     )
 
 
@@ -420,12 +446,13 @@ def pp2(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
 
     if cons is None or not cons.is_missense:
         return CriterionResult(
-            code="PP2", name=name, direction="pathogenic", status="not_met",
+            code="PP2", name=name, direction="pathogenic", status="not_applicable",
             strength=Strength.SUPPORTING,
             rationale=(
                 f"Consequence is {cons.most_severe if cons else 'unresolved'}; "
                 "PP2 applies only to missense variants."
             ),
+            what_would_change="A missense consequence on the transcript of interest.",
         )
     if constraint is None or constraint.mis_z is None:
         return CriterionResult(
@@ -489,11 +516,13 @@ def pp3(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
 
     if cons is not None and not cons.is_missense:
         return CriterionResult(
-            code="PP3", name=name, direction="pathogenic", status="not_met",
+            code="PP3", name=name, direction="pathogenic", status="not_applicable",
             strength=Strength.SUPPORTING,
             rationale=(
-                f"The calibrated predictor used here (REVEL) applies to missense "
-                f"variants; this variant is {cons.most_severe}."
+                f"REVEL, the calibrated predictor used here, applies to missense "
+                f"variants; this variant is {cons.most_severe}. Not applicable rather "
+                "than unmet: no evidence argues against the criterion, it simply does "
+                "not address this kind of variant."
             ),
             what_would_change="A predictor calibrated for this consequence class, "
             "such as SpliceAI for splice-region variants.",
@@ -566,7 +595,7 @@ def pp5(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
         )
     return CriterionResult(
         code="PP5", name="Reputable source reports pathogenic (retired)",
-        direction="pathogenic", status="not_met", strength=Strength.SUPPORTING,
+        direction="pathogenic", status="not_applicable", strength=Strength.SUPPORTING,
         rationale=(
             f"Retired by ClinGen SVI and deliberately not applied: using another "
             f"lab's conclusion as evidence double-counts the evidence they used. "
@@ -793,9 +822,12 @@ def bp4(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
 
     if cons is not None and not cons.is_missense:
         return CriterionResult(
-            code="BP4", name=name, direction="benign", status="not_met",
+            code="BP4", name=name, direction="benign", status="not_applicable",
             strength=Strength.SUPPORTING,
-            rationale=f"REVEL applies to missense variants; this is {cons.most_severe}.",
+            rationale=(
+                f"REVEL applies to missense variants; this is {cons.most_severe}."
+            ),
+            what_would_change="A predictor calibrated for this consequence class.",
         )
     if revel is None:
         return CriterionResult(
@@ -850,7 +882,7 @@ def bp6(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
         )
     return CriterionResult(
         code="BP6", name="Reputable source reports benign (retired)", direction="benign",
-        status="not_met", strength=Strength.SUPPORTING,
+        status="not_applicable", strength=Strength.SUPPORTING,
         rationale=(
             f"Retired by ClinGen SVI and deliberately not applied. {detail} "
             "Shown for context only."
@@ -871,9 +903,10 @@ def bp7(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
         )
     if not cons.is_synonymous:
         return CriterionResult(
-            code="BP7", name=name, direction="benign", status="not_met",
+            code="BP7", name=name, direction="benign", status="not_applicable",
             strength=Strength.SUPPORTING,
             rationale=f"BP7 applies to synonymous variants; this is {cons.most_severe}.",
+            what_would_change="A synonymous consequence on the transcript of interest.",
         )
 
     splice = bundle.splice_ai_max

@@ -121,9 +121,10 @@ def test_pvs1_names_the_rest_of_the_decision_tree_it_did_not_run():
     assert "nonsense-mediated decay" in pvs1.what_would_change
 
 
-def test_pvs1_not_met_for_missense():
+def test_pvs1_is_not_applicable_to_a_missense_variant():
+    """Not a negative finding: PVS1 simply does not address missense."""
     pvs1 = by_code(evaluate_all(load_bundle("brca1_c61g")))["PVS1"]
-    assert pvs1.status == "not_met"
+    assert pvs1.status == "not_applicable"
 
 
 # ---- frequency criteria ---------------------------------------------------
@@ -309,11 +310,31 @@ def test_pp3_and_bp4_are_never_both_met_across_the_whole_range(revel):
     assert not (results["PP3"].status == "met" and results["BP4"].status == "met")
 
 
-def test_pp3_not_applied_to_a_nonsense_variant():
-    """REVEL is calibrated for missense; applying it elsewhere is unjustified."""
+def test_pp3_is_not_applicable_to_a_nonsense_variant():
+    """REVEL is calibrated for missense; applying it elsewhere is unjustified.
+
+    Reported as not applicable rather than unmet: no evidence argues against
+    the criterion, it addresses a different kind of variant. Collapsing the two
+    polluted the met/not-met partition the contradiction detector reads.
+    """
     pp3 = by_code(evaluate_all(load_bundle("cftr_g542x")))["PP3"]
-    assert pp3.status == "not_met"
+    assert pp3.status == "not_applicable"
     assert "missense" in pp3.rationale.lower()
+
+
+@pytest.mark.parametrize("name", available_bundles())
+def test_not_applicable_is_never_used_where_data_is_merely_missing(name):
+    """The two must stay distinct: one is a wrong question, the other a gap."""
+    for r in evaluate_all(load_bundle(name)):
+        if r.status == "not_applicable":
+            assert "no " not in r.rationale.lower()[:20], r.code
+
+
+def test_retired_criteria_are_not_applicable_rather_than_unmet():
+    """Reporting them as unmet asserted evidence against them."""
+    results = by_code(evaluate_all(load_bundle("brca1_c61g")))
+    for code in ("PP5", "BP6"):
+        assert results[code].status == "not_applicable"
 
 
 # ---- retired criteria -----------------------------------------------------

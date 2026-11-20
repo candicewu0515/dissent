@@ -58,6 +58,18 @@ _POPS = {
     "remaining": "Remaining",
 }
 
+# Groups gnomAD excludes from its own grpmax, and which must therefore be
+# excluded from the frequency a BA1 or BS1 decision rests on. Finnish and
+# Ashkenazi Jewish populations carry founder effects that inflate the frequency
+# of specific pathogenic variants -- which is precisely the situation where a
+# naive maximum declares a founder variant benign. "Remaining" is not a
+# population at all but a heterogeneous bucket, and Middle Eastern is too
+# small in v4 to anchor a threshold.
+#
+# They are still shown: a reader interpreting a variant in one of these
+# populations needs the number. It simply does not drive the criteria.
+_EXCLUDED_FROM_POPMAX = {"asj", "fin", "mid", "remaining"}
+
 
 def _frequency_from(node: dict[str, Any] | None, label: str) -> PopulationFrequency | None:
     if not isinstance(node, dict):
@@ -67,6 +79,7 @@ def _frequency_from(node: dict[str, Any] | None, label: str) -> PopulationFreque
         return None
 
     per_pop: dict[str, float] = {}
+    popmax_candidates: dict[str, float] = {}
     for pop in node.get("populations") or []:
         if not isinstance(pop, dict):
             continue
@@ -77,11 +90,14 @@ def _frequency_from(node: dict[str, Any] | None, label: str) -> PopulationFreque
         # Small denominators give wild frequency estimates. gnomAD's own
         # guidance for BA1/BS1 is to ignore populations below ~2000 alleles.
         if pop_an and pop_an >= 2000 and pop_ac is not None:
-            per_pop[_POPS[pid]] = pop_ac / pop_an
+            frequency = pop_ac / pop_an
+            per_pop[_POPS[pid]] = frequency
+            if pid not in _EXCLUDED_FROM_POPMAX:
+                popmax_candidates[_POPS[pid]] = frequency
 
     popmax_label, popmax_af = (None, None)
-    if per_pop:
-        popmax_label, popmax_af = max(per_pop.items(), key=lambda kv: kv[1])
+    if popmax_candidates:
+        popmax_label, popmax_af = max(popmax_candidates.items(), key=lambda kv: kv[1])
 
     return PopulationFrequency(
         source=label,

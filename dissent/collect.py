@@ -46,17 +46,27 @@ def _spliceai_max(doc: dict[str, Any]) -> float | None:
     convention for interpretation is to use the maximum.
     """
     node = doc.get("spliceai")
-    if not isinstance(node, dict):
+    if node is None:
         return None
-    # MyVariant nests these under `masked`/`unmasked` in some builds.
+
+    # MyVariant returns a list when several genes overlap the position, and a
+    # bare object otherwise. Requiring a dict silently produced "no SpliceAI
+    # score was available" for exactly the overlapping-gene cases, leaving BP7
+    # unresolved on a wrong premise.
+    entries = node if isinstance(node, list) else [node]
+
     candidates: list[float] = []
-    for container in (node, node.get("masked"), node.get("unmasked")):
-        if not isinstance(container, dict):
+    for entry in entries:
+        if not isinstance(entry, dict):
             continue
-        for key in ("ds_ag", "ds_al", "ds_dg", "ds_dl"):
-            value = to_float(container.get(key))
-            if value is not None:
-                candidates.append(value)
+        # Some builds nest the deltas under `masked` / `unmasked`.
+        for container in (entry, entry.get("masked"), entry.get("unmasked")):
+            if not isinstance(container, dict):
+                continue
+            for key in ("ds_ag", "ds_al", "ds_dg", "ds_dl"):
+                value = to_float(container.get(key))
+                if value is not None:
+                    candidates.append(value)
     return max(candidates) if candidates else None
 
 
@@ -106,11 +116,13 @@ def _resolve_coordinates(
                 pass
 
     if resolved.pos is None:
-        for key in ("hg38", "hg19"):
-            node = doc.get(key)
-            if isinstance(node, dict) and node.get("start"):
-                resolved.pos = node["start"]
-                break
+        # Take a position only from the block matching the declared assembly.
+        # Falling through from hg38 to hg19 produced an hg19 coordinate still
+        # labelled hg38, which was then queried against GRCh38-only gnomAD and
+        # written into a mislabelled `hgvs_g`.
+        node = doc.get("hg38" if resolved.assembly == "hg38" else "hg19")
+        if isinstance(node, dict) and node.get("start"):
+            resolved.pos = node["start"]
 
     if not resolved.hgvs_g and resolved.chrom and resolved.pos and resolved.ref and resolved.alt:
         resolved.hgvs_g = (

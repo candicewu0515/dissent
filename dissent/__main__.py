@@ -15,7 +15,13 @@ from dissent.cache.store import ResponseCache
 from dissent.report import interpret
 
 _SEVERITY_MARK = {"high": "!!", "medium": "! ", "low": "  "}
-_STATUS_MARK = {"met": "[MET]", "not_met": "[ - ]", "insufficient": "[ ? ]", "manual": "[MAN]"}
+_STATUS_MARK = {
+    "met": "[MET]",
+    "not_met": "[ - ]",
+    "not_applicable": "[ / ]",
+    "insufficient": "[ ? ]",
+    "manual": "[MAN]",
+}
 
 
 def _resolved(report) -> bool:

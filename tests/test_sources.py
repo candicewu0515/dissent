@@ -229,14 +229,53 @@ def test_frequency_extraction_survives_every_recorded_payload(name):
             assert 0.0 <= value <= 1.0
 
 
-def test_popmax_is_the_highest_population_not_the_global_mean():
+def test_the_myvariant_fallback_derives_no_popmax():
+    """Its per-population fields carry a frequency with no denominator.
+
+    An unguarded maximum over them let a handful of alleles in `af_oth` drive
+    a BA1 decision, which is the false-benign direction.
+    """
     frequencies = extract_frequencies(raw("myvariant_hfe"))
     assert frequencies
-    with_pop = [f for f in frequencies if f.popmax_af is not None]
-    assert with_pop
-    for f in with_pop:
-        assert f.popmax_af == max(f.per_population.values())
-        assert f.popmax_af >= (f.af or 0)
+    for f in frequencies:
+        assert f.popmax_af is None
+        assert f.popmax_population is None
+        # The figures are still carried, for display.
+        assert f.per_population
+        # And the global frequency, which does have an allele number, remains.
+        assert f.an
+
+
+def test_the_myvariant_fallback_names_the_build_it_actually_is():
+    """It is gnomAD v2, not v4; the provenance must not claim otherwise."""
+    for f in extract_frequencies(raw("myvariant_hfe")):
+        assert "v2" in f.source and "MyVariant" in f.source
+
+
+def test_popmax_from_the_live_api_excludes_bottlenecked_populations():
+    """gnomAD excludes these from its own grpmax, and so must this.
+
+    Founder effects inflate specific pathogenic variants in exactly these
+    groups, which is the situation where a naive maximum declares a founder
+    variant benign.
+    """
+    node = {
+        "ac": 100, "an": 200000, "af": 0.0005, "homozygote_count": 0,
+        "populations": [
+            {"id": "nfe", "ac": 200, "an": 100000},   # 0.2%
+            {"id": "fin", "ac": 4000, "an": 20000},   # 20%, founder effect
+            {"id": "asj", "ac": 3000, "an": 10000},   # 30%, founder effect
+            {"id": "remaining", "ac": 900, "an": 3000},
+        ],
+    }
+    freq = _frequency_from(node, "test")
+    assert freq is not None
+    # Reported, because a reader interpreting a Finnish patient needs it.
+    assert freq.per_population["Finnish"] == pytest.approx(0.2)
+    assert freq.per_population["Ashkenazi Jewish"] == pytest.approx(0.3)
+    # But not driving the criteria.
+    assert freq.popmax_population == "Non-Finnish European"
+    assert freq.popmax_af == pytest.approx(0.002)
 
 
 def test_gnomad_api_frequencies_ignore_underpowered_populations():
