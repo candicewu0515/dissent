@@ -114,6 +114,18 @@ cache at a writable volume it owns, and the app reads `PORT` from the
 environment. If the platform gives it a read-only filesystem anyway, the cache
 turns itself off and the server keeps serving; `/api/health` reports it.
 
+### One platform quirk, found by testing
+
+Deployxa's edge returns **403 to requests whose User-Agent is
+`Python-urllib/…`**, the Python standard library's default. Everything else
+gets through: curl, `requests`, browsers, a custom agent string, even no
+User-Agent header at all. It is a bot filter on their side, not a fault in the
+app — the same request succeeds locally.
+
+It does not affect the submission, and no judge will hit it. It is recorded
+here only so that a script that suddenly 403s is not mistaken for the site
+being down.
+
 ### After it is live
 
 Check these four by hand, because a build that succeeds is not the same as an
@@ -198,7 +210,7 @@ zero.
 Nothing below needs you.
 
 - A clean git history, no secrets, nothing uncommitted
-- 521 tests, passing with the network severed at the socket layer; CI runs them
+- 532 tests, passing with the network severed at the socket layer; CI runs them
   on Python 3.11, 3.12 and 3.13
 - Verified from a fresh `git clone` into an empty directory: install, tests,
   CLI, panel CLI, and the web server all work with no configuration

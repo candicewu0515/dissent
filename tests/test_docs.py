@@ -239,3 +239,62 @@ def test_the_predictor_split_in_the_narration_matches_the_fixture():
     assert f"{spoken[total]} prediction tools" in SUBMISSION, (
         f"the narration should say {spoken[total]!r} prediction tools"
     )
+
+
+def test_the_well_curated_demo_variant_really_has_no_severe_conflicts():
+    """BRCA1 C61G is the shot that says the tool does not cry wolf.
+
+    The README, the examples list and the video narration all described its
+    conflict panel as "quiet". It is not quiet -- it raises two conflicts --
+    and narrating silence over two visible cards would have been false on
+    camera. What is true, and is the better point, is that neither is
+    high-severity. This test holds the claim to that.
+    """
+    from datetime import date
+
+    from dissent.report import build_report
+    from tests.conftest import load_bundle
+
+    report = build_report(load_bundle("brca1_c61g"), today=date(2026, 11, 20))
+    severe = [c for c in report.conflicts if c.severity == "high"]
+    assert not severe, (
+        "BRCA1 C61G now raises a high-severity conflict, so it can no longer "
+        f"illustrate the severity ranking: {[c.headline for c in severe]}"
+    )
+    assert report.conflicts, (
+        "it raises some conflicts; if that stops being true the copy should go "
+        "back to saying the panel is silent"
+    )
+
+    for name, text in (("README.md", README), ("docs/02-submission.md", SUBMISSION)):
+        assert "staying quiet" not in text and "panel quiet" not in text, (
+            f"{name} claims the panel is quiet on a variant that raises "
+            f"{len(report.conflicts)} conflicts"
+        )
+
+
+def test_the_source_count_in_the_copy_matches_the_clients_that_run():
+    """The copy said "six sources" everywhere. The engine queries five
+    endpoints, and the README footer names eight databases behind them, so six
+    was wrong in both directions."""
+    import re
+    from pathlib import Path
+
+    from dissent import collect
+
+    src = Path(collect.__file__).read_text()
+    clients = set(re.findall(r"= (\w+Client)\(client=client", src))
+    assert len(clients) == 5, f"client count changed: {sorted(clients)}"
+
+    web = ROOT / "dissent" / "web"
+    texts = {
+        "README.md": README,
+        "docs/02-submission.md": SUBMISSION,
+        "index.html": (web / "index.html").read_text(),
+        "panel.html": (web / "panel.html").read_text(),
+        "app.js": (web / "app.js").read_text(),
+        "panel.js": (web / "panel.js").read_text(),
+    }
+    for name, text in texts.items():
+        for wrong in ("six sources", "six public APIs", "six databases", "six endpoints"):
+            assert wrong not in text, f"{name} still claims {wrong!r}; there are 5 endpoints"

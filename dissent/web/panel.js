@@ -18,7 +18,7 @@ function clear(node) {
   while (node.firstChild) node.removeChild(node.firstChild);
 }
 
-/* How many variants go in one request. Each fans out to six public APIs, so a
+/* How many variants go in one request. Each fans out to five public APIs, so a
    whole panel in one call would sit silent for a minute; a chunk lands every
    few seconds and the table fills in front of the reader. */
 const CHUNK = 5;

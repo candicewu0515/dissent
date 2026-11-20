@@ -508,7 +508,7 @@ async function interpret(query) {
   $("go").disabled = true;
   showError(null);
   $("report").classList.add("hidden");
-  showStatus(`Querying six sources for ${query}…`);
+  showStatus(`Querying five sources for ${query}…`);
 
   try {
     const res = await fetch(

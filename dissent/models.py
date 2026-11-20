@@ -506,6 +506,11 @@ class Conflict(BaseModel):
     # rather than asserted. Without it the reader has no way to tell whether a
     # finding is routine or remarkable.
     baseline: str | None = None
+    # Which measured rate answers *this* finding's question. Set by a detector
+    # whose variants need different rates -- "some records state no criteria"
+    # and "no record states any" are different populations and were being
+    # given the same figure. Left unset, the detector's kind decides.
+    baseline_key: str | None = None
 
 
 class Report(BaseModel):

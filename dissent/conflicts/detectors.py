@@ -195,6 +195,13 @@ def weak_evidence_base(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> Confl
         kind="weak_evidence_base",
         severity=severity,  # type: ignore[arg-type]
         headline=headline,
+        # "No record states criteria" and "some do not" are different
+        # populations -- 3.22% of ClinVar against 7.94% -- and both findings
+        # were being given the first figure. The detector knows which case it
+        # is in, so it names the rate rather than letting the kind guess.
+        baseline_key=(
+            "every_record_lacks_criteria" if best_stars == 0 else "some_record_lacks_criteria"
+        ),
         detail=(
             f"{len(no_criteria)} of {total} records are 'no assertion criteria "
             f"provided' (0 review stars); the best available is {best_stars} of 4. "
@@ -762,7 +769,15 @@ _BASELINE_FOR = {
     "record_discordance": "any_label_disagreement_among_multi_submitter",
     "weak_evidence_base": "every_record_lacks_criteria",
     "stale_assertion": "stale_5y",
-    "frequency_versus_claim": "pathogenic_vs_benign",
+    # frequency_versus_claim deliberately has none. The obvious candidate,
+    # pathogenic_vs_benign, counts variants whose *submitters* contradict each
+    # other; this detector fires when the submitters agree on pathogenic and
+    # the population frequency is what disagrees. HFE C282Y is the case in
+    # point: every record calls it pathogenic, so it is not in that 0.07% at
+    # all, and the card was quoting the rate anyway. Putting a measurement of
+    # one thing beside a finding about another is the error this project
+    # exists to report.
+    "frequency_versus_claim": None,
     "internal_contradiction": None,
 }
 
@@ -772,6 +787,9 @@ _BASELINE_PHRASING = {
     ),
     "every_record_lacks_criteria": (
         "{rate}% of variants have no record stating assertion criteria"
+    ),
+    "some_record_lacks_criteria": (
+        "{rate}% of variants have at least one record stating no assertion criteria"
     ),
     "stale_5y": "{rate}% of variants have not been re-evaluated in five years",
     "pathogenic_vs_benign": (
@@ -795,7 +813,7 @@ def _attach_baselines(conflicts: list[Conflict], gene_symbol: str | None) -> Non
     gene_rank = baseline.gene_rank(gene_symbol)
 
     for conflict in conflicts:
-        key = _BASELINE_FOR.get(conflict.kind)
+        key = conflict.baseline_key or _BASELINE_FOR.get(conflict.kind)
         if not key:
             continue
         rate = baseline.rates_pct.get(key)

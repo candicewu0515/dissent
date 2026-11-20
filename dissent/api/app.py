@@ -106,7 +106,7 @@ EXAMPLES = [
     {
         "query": "BRCA1 C61G",
         "label": "BRCA1 C61G",
-        "why": "Well curated and unanimous. Shown so the conflict panel can be seen staying quiet.",
+        "why": "Well curated and unanimous. Shown so the severity ranking can be seen working: nothing high-severity fires, and the two notes it does raise are the expected one and a staleness count.",
     },
 ]
 
@@ -376,7 +376,7 @@ async def api_panel(
         text = raw
     elif isinstance(raw, list):
         # Strings only. Stringifying whatever arrived turned {"a": 1} into the
-        # query "{'a': 1}" and sent it to six public APIs.
+        # query "{'a': 1}" and sent it to five public APIs.
         if not all(isinstance(q, str) for q in raw):
             raise HTTPException(
                 status_code=422, detail="Every entry in 'queries' must be a string."

@@ -298,3 +298,53 @@ def test_well_curated_variant_has_a_quiet_panel(brca1):
     found = conflicts_for("brca1_c61g")
     high = [c for c in found if c.severity == "high"]
     assert not high, f"unexpected high-severity conflicts: {[c.kind for c in high]}"
+
+
+# ---- base rates must measure the thing they sit beside ---------------------
+
+
+def test_a_frequency_claim_conflict_carries_no_borrowed_base_rate():
+    """It used to quote the pathogenic-versus-benign rate, which counts
+    variants whose *submitters* contradict each other.
+
+    HFE C282Y is the case in point: every ClinVar record calls it pathogenic,
+    so it is not in that 0.07% at all, and the card quoted the figure anyway.
+    Putting a measurement of one thing beside a finding about another is the
+    error this project exists to report, and no rate for this finding has been
+    measured, so the card carries none.
+    """
+    for c in conflicts_for("hfe_c282y"):
+        if c.kind == "frequency_versus_claim":
+            assert c.baseline is None
+            break
+    else:
+        raise AssertionError("HFE C282Y should raise a frequency-versus-claim conflict")
+
+
+def test_the_weak_evidence_rate_matches_which_finding_fired():
+    """"No record states criteria" is 3.22% of ClinVar; "at least one record
+    does not" is 7.94%. Both findings were being given the first figure."""
+    for c in conflicts_for("braf_v600e"):
+        if c.kind == "weak_evidence_base":
+            assert "at least one record" in (c.baseline or ""), c.baseline
+            assert "7.94" in (c.baseline or ""), c.baseline
+            break
+    else:
+        raise AssertionError("BRAF V600E should raise a weak-evidence conflict")
+
+
+@pytest.mark.parametrize("name", available_bundles())
+def test_no_conflict_quotes_a_rate_about_a_different_population(name):
+    """A base rate is only context if it measures the finding it sits under.
+
+    Checked structurally: a card that names a rate must have asked for it,
+    either through its kind or through its own baseline_key.
+    """
+    from dissent.conflicts.detectors import _BASELINE_FOR
+
+    for c in conflicts_for(name):
+        if c.baseline is None:
+            continue
+        assert c.baseline_key or _BASELINE_FOR.get(c.kind), (
+            f"{name}: {c.kind} shows a base rate with no key saying which rate it is"
+        )

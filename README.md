@@ -136,7 +136,7 @@ pathogenic records, 15 likely pathogenic, and one benign.
 | `CFTR G542X` | Nonsense variant in a recessive gene, where gnomAD constraint is uninformative by construction. |
 | `NF1 R1947*` | PVS1 met, but the evidence falls into a gap in the published combining rules. |
 | `KCNH2 A561V` | Reaches **Likely pathogenic** from public data alone. A long QT variant where rarity, the gene's intolerance of missense change, and a calibrated predictor all line up — and 64 publications sit above a ClinVar record that states no method. |
-| `BRCA1 C61G` | Well curated and unanimous. Included so the conflict panel can be seen staying quiet. |
+| `BRCA1 C61G` | Well curated and unanimous. Included so the severity ranking can be seen working: **nothing high-severity fires**. The two notes it does raise are the expected one — public data cannot reach pathogenic where a laboratory did — and a staleness count. |
 
 And two panels, at `/panel`:
 
@@ -183,7 +183,7 @@ python -m dissent --panel my_panel.txt
 python -m dissent --panel my_panel.txt --csv > worklist.csv
 ```
 
-Tests — 521 of them, none touching the network, so they run anywhere:
+Tests — 532 of them, none touching the network, so they run anywhere:
 
 ```bash
 python -m pytest
@@ -260,7 +260,7 @@ not known until the first phase answers:
 ### Decisions worth stating
 
 **Every criterion and detector is a pure function** over the evidence bundle.
-No I/O, no state. That is what lets the 521 tests run offline against recorded
+No I/O, no state. That is what lets the 532 tests run offline against recorded
 fixtures, and what lets a reviewer audit a rule by reading one function. The
 fixtures come in two layers: normalised bundles for the scoring rules, and
 verbatim API payloads for the code that produces them.
