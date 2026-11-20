@@ -1,0 +1,113 @@
+"""SQLite-backed HTTP response cache.
+
+Two reasons this exists rather than being an optimisation:
+
+1. NCBI rate-limits unkeyed clients to ~3 requests/second. A cold interpretation
+   touches several NCBI endpoints; without a cache, repeated use trips the limit.
+2. A live demo must not depend on network conditions. Pre-warming the cache for
+   the demo variants makes the recording deterministic.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import sqlite3
+import time
+from pathlib import Path
+from typing import Any
+
+DEFAULT_TTL_SECONDS = 60 * 60 * 24 * 7  # one week; these sources change slowly
+
+
+class ResponseCache:
+    def __init__(self, path: str | Path = ".cache/dissent.sqlite", ttl: int = DEFAULT_TTL_SECONDS):
+        self.path = Path(path)
+        self.ttl = ttl
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._init_db()
+
+    def _connect(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(self.path, timeout=10)
+        conn.execute("PRAGMA journal_mode=WAL")
+        return conn
+
+    def _init_db(self) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS responses (
+                    key        TEXT PRIMARY KEY,
+                    source     TEXT NOT NULL,
+                    payload    TEXT NOT NULL,
+                    stored_at  REAL NOT NULL
+                )
+                """
+            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_source ON responses(source)")
+
+    @staticmethod
+    def make_key(source: str, request: Any) -> str:
+        blob = json.dumps(request, sort_keys=True, default=str)
+        digest = hashlib.sha256(blob.encode()).hexdigest()[:32]
+        return f"{source}:{digest}"
+
+    def get(self, key: str) -> Any | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT payload, stored_at FROM responses WHERE key = ?", (key,)
+            ).fetchone()
+        if row is None:
+            return None
+        payload, stored_at = row
+        if time.time() - stored_at > self.ttl:
+            return None
+        try:
+            return json.loads(payload)
+        except json.JSONDecodeError:
+            return None
+
+    def set(self, key: str, source: str, value: Any) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO responses (key, source, payload, stored_at) "
+                "VALUES (?, ?, ?, ?)",
+                (key, source, json.dumps(value), time.time()),
+            )
+
+    def clear(self, source: str | None = None) -> int:
+        with self._connect() as conn:
+            if source:
+                cur = conn.execute("DELETE FROM responses WHERE source = ?", (source,))
+            else:
+                cur = conn.execute("DELETE FROM responses")
+            return cur.rowcount
+
+    def stats(self) -> dict[str, int]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT source, COUNT(*) FROM responses GROUP BY source"
+            ).fetchall()
+        return {src: n for src, n in rows}
+
+
+class NullCache(ResponseCache):
+    """Used in tests so no sqlite file is created."""
+
+    def __init__(self) -> None:  # noqa: D107
+        self.ttl = 0
+
+    def _init_db(self) -> None:
+        return None
+
+    def get(self, key: str) -> Any | None:
+        return None
+
+    def set(self, key: str, source: str, value: Any) -> None:
+        return None
+
+    def clear(self, source: str | None = None) -> int:
+        return 0
+
+    def stats(self) -> dict[str, int]:
+        return {}
