@@ -63,7 +63,7 @@ Four things — the first three for any variant, the fourth for a whole panel:
 
 **1. A draft ACMG/AMP worksheet.** All 28 criteria, each with a status, the
 strength applied, a one-sentence rationale, and a link to the record it rests
-on. 12 are computed from public data; the other 16 say what evidence would
+on. 11 are computed from public data; the other 17 say what evidence would
 settle them. Nothing is omitted — a criterion that cannot be assessed is shown
 as such, so an absent row is never mistaken for absence of evidence.
 
@@ -186,7 +186,7 @@ python -m dissent --panel my_panel.txt
 python -m dissent --panel my_panel.txt --csv > worklist.csv
 ```
 
-Tests — 389 of them, none touching the network, so they run anywhere:
+Tests — 411 of them, none touching the network, so they run anywhere:
 
 ```bash
 python -m pytest
@@ -246,7 +246,7 @@ not known until the first phase answers:
 ### Decisions worth stating
 
 **Every criterion and detector is a pure function** over the evidence bundle.
-No I/O, no state. That is what lets the 389 tests run offline against recorded
+No I/O, no state. That is what lets the 411 tests run offline against recorded
 fixtures, and what lets a reviewer audit a rule by reading one function. The
 fixtures come in two layers: normalised bundles for the scoring rules, and
 verbatim API payloads for the code that produces them.

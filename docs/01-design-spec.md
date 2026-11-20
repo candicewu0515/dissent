@@ -109,15 +109,51 @@ tests/
 ## 5. Scope
 
 **In scope**
-- Single-variant interpretation, the three panels, ~16 computable ACMG criteria,
-  all 7 conflict detectors, provenance links, SQLite cache, offline test suite.
+- Single-variant interpretation, the three panels, 11 computable ACMG criteria
+  of 28, 12 conflict detectors, provenance links, SQLite cache, offline test
+  suite.
+- *(added 2026-11-20)* Panel triage: a list of variants interpreted and sorted
+  into four tiers. See the amendment below.
 
 **Out of scope (stated so it is not ambiguous)**
-- Batch/VCF upload. Attractive but it dilutes the demo; the story is one variant
-  interpreted deeply.
+- VCF parsing. A VCF carries coordinates this engine already accepts, but also
+  genotypes, filters and sample columns that imply a per-sample analysis this
+  is not. The panel takes a list of variants, not a sequencing output.
 - User accounts, saved sessions.
 - Returning a final clinical classification as if authoritative. Dissent returns
   a *draft worksheet*. The UI says so.
+
+### Amendment, 2026-11-20 — batch was out of scope, and that was wrong
+
+The original line read: *"Batch/VCF upload. Attractive but it dilutes the demo;
+the story is one variant interpreted deeply."*
+
+That reasoning was about the demo, not about the user. One variant interpreted
+deeply saves a reader fifteen minutes of tab-switching; a panel changes which
+variants get read at all, which is the larger claim and the one worth making.
+The demo does not suffer — a panel filling in tiers on camera shows the engine
+doing something a reader cannot do by hand, which a single lookup does not.
+
+What was genuinely learned by building it is recorded here because it changed
+the design twice:
+
+- The second tier was originally *"the computed call differs from the reported
+  one"*. On a thirty-variant test panel it captured twenty-one rows. That count
+  is correct, and it makes the tier useless: a laboratory classifies from
+  segregation, functional assays and internal case series, none of which is in
+  a public API, so the difference is the expected output of a public-data tool
+  rather than a finding. It became a flag labelled "expected", and the tier was
+  replaced with one that measures disagreement *inside* ClinVar.
+- The split test counted every ClinVar record as a claim about pathogenicity,
+  which reported MTHFR A222V as *"8 records disagree: benign vs uncertain"*
+  when several of those records were about warfarin dosing. Only the five
+  labels on the pathogenic/benign axis count; drug response, risk factor and
+  low penetrance answer a different question and are named and excluded.
+
+Design rule carried forward: **no score.** A single number invites trust in a
+precision that is not present. Four named tiers, each row carrying the reasons
+that put it in one, can be argued with — and the tier is computed from
+structured fields only, never from the wording of a conflict message.
 
 ## 6. Risks
 
@@ -127,7 +163,8 @@ tests/
 | Assembly confusion (hg19 vs hg38) | assembly is explicit in every internal model; never inferred |
 | Multi-transcript arrays mis-collapsed | normalization layer is separately unit-tested against recorded fixtures |
 | Looks like medical advice | prominent non-diagnostic notice; "draft worksheet" wording throughout |
-| Judge cannot run it | zero API keys, single command to start, pinned deps |
+| Judge cannot run it | zero API keys, single command to start, pinned deps; a Dockerfile verified to run under `--read-only` |
+| Deployment has no writable disk | the cache disables itself rather than failing a request, and `/api/health` reports that it did |
 
 ## 7. Honesty commitments (rules require disclosure)
 

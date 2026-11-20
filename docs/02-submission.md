@@ -97,7 +97,7 @@ can clone the repository and run it without signing up for a single service.
 
 The architecture point that matters: every criterion and every detector is a
 **pure function** over an evidence bundle. No I/O, no state. That is what makes
-each rule auditable by reading one function, and what lets 389 tests run with
+each rule auditable by reading one function, and what lets 411 tests run with
 the socket constructor replaced — CI enforces that the suite never touches the
 network, rather than a README asserting it.
 
@@ -227,7 +227,7 @@ will watch muted.
 | 2:06–2:30 | `/panel`. Click the carrier-screening panel, hit Triage. **Let the tiles fill on camera** — rows land every few seconds. Settle on the Contradicted group, three rows, then scroll once past Thin evidence. | "One variant saves you fifteen minutes. A panel changes what you read at all. Ten variants, same six sources, sorted by what a person still has to decide. Three are contradicted outright. One doesn't resolve — and the error tells you why." |
 | 2:30–2:40 | `/scale`. The gene leaderboard. Pause on BRCA2, TP53, BRCA1. | "Across the whole database: the genes where laboratories disagree most are the ones where being wrong costs the most." |
 | 2:40–2:46 | Fast cut: BRCA1 C61G, conflict panel quiet. | "When the evidence agrees, it says so. A tool that cries wolf teaches you to ignore it." |
-| 2:46–2:54 | Split screen: `python -m dissent --panel panel.txt` printing the same worklist, then `pytest` → **389 passed**. | "Same engine in the terminal. Six public APIs, no keys. Three hundred and eighty-nine tests, none touching the network." |
+| 2:46–2:54 | Split screen: `python -m dissent --panel panel.txt` printing the same worklist, then `pytest` → **411 passed**. | "Same engine in the terminal. Six public APIs, no keys. Four hundred and eleven tests, none touching the network." |
 | 2:54–3:00 | Static end card: live URL (large), repository, track. "Built with Claude — disclosed per the rules." | "Dissent. The disagreement is the finding." |
 
 **The panel shot is the one to get right.** It is the only moment that shows
