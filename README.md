@@ -186,7 +186,7 @@ python -m dissent --panel my_panel.txt
 python -m dissent --panel my_panel.txt --csv > worklist.csv
 ```
 
-Tests — 508 of them, none touching the network, so they run anywhere:
+Tests — 515 of them, none touching the network, so they run anywhere:
 
 ```bash
 python -m pytest
@@ -205,6 +205,16 @@ exits non-zero if any demo query would fail:
 ```bash
 python analysis/warm_cache.py
 ```
+
+### Accessibility
+
+Every text colour meets WCAG AA contrast (4.5:1, or 3:1 for large text) on
+both themes, measured in the browser against each element's resolved
+background rather than assumed from the tokens — which is how four failures
+were found, including a source link that fell back to the browser's default
+blue at **1.64:1** on the dark surface, on exactly the links that let a reader
+check a claim. Keyboard focus draws an explicit ring rather than relying on
+what a browser happens to do, and each page opens with a skip link.
 
 ### Deploying it
 
@@ -253,7 +263,7 @@ not known until the first phase answers:
 ### Decisions worth stating
 
 **Every criterion and detector is a pure function** over the evidence bundle.
-No I/O, no state. That is what lets the 508 tests run offline against recorded
+No I/O, no state. That is what lets the 515 tests run offline against recorded
 fixtures, and what lets a reviewer audit a rule by reading one function. The
 fixtures come in two layers: normalised bundles for the scoring rules, and
 verbatim API payloads for the code that produces them.

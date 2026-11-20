@@ -12,22 +12,35 @@
   --border-strong: #c3bcb1;
   --text: #1c1a17;
   --text-2: #55504a;
-  --text-3: #837c72;
+  /* 4.5:1 against every background it is used on, which #837c72 was not:
+     it measured 3.95 on the page background and 3.69 on the tinted panels,
+     and this token carries the 14px labels -- the smallest type on the page
+     and the text most in need of the contrast. */
+  --text-3: #726b61;
 
   --path: #a8321e;
   --path-bg: #fbeeea;
   --benign: #1f6a4d;
   --benign-bg: #e9f4ef;
-  --uncertain: #8a6d1f;
+  /* 4.39:1 behind the classification pills, just under the 4.5 small text
+     needs. These pills carry the record counts a reader checks line by line. */
+  --uncertain: #806419;
   --uncertain-bg: #faf2dd;
   --neutral: #4a5a7a;
   --neutral-bg: #eef1f7;
 
   --high: #a8321e;
-  --medium: #a8731e;
+  /* Darkened from #a8731e, which measured 3.66:1 behind the warn badges and
+     3.92 on the page -- under the 4.5:1 small text needs. This token also
+     draws the review-star glyphs, which are content rather than decoration. */
+  --medium: #8a5e18;
   --low: #5d6b7a;
 
   --accent: #2b4a7e;
+  /* Text on top of --accent. Buttons hardcoded #fff, which is right over
+     the dark blue here and unreadable over the light blue the dark theme
+     uses -- the primary button measured 2.19:1 in dark mode. */
+  --on-accent: #ffffff;
 
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
@@ -46,7 +59,7 @@
     --border-strong: #514e40;
     --text: #f0ece2;
     --text-2: #c0bab0;
-    --text-3: #918b80;
+    --text-3: #9b958a;
 
     --path: #f0917c;
     --path-bg: #33201b;
@@ -61,6 +74,7 @@
     --medium: #e0b069;
     --low: #a0aab8;
     --accent: #9db0d4;
+    --on-accent: #16150f;
   }
 }
 
@@ -72,7 +86,7 @@
   --border-strong: #514e40;
   --text: #f0ece2;
   --text-2: #c0bab0;
-  --text-3: #918b80;
+  --text-3: #9b958a;
   --path: #f0917c;
   --path-bg: #33201b;
   --benign: #7fc7a6;
@@ -85,6 +99,7 @@
   --medium: #e0b069;
   --low: #a0aab8;
   --accent: #9db0d4;
+  --on-accent: #16150f;
 }
 
 * { box-sizing: border-box; }
@@ -173,7 +188,7 @@ header.masthead {
   border: none;
   border-radius: var(--radius);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   cursor: pointer;
   font-family: inherit;
 }
@@ -389,7 +404,11 @@ h2.section-title {
   border-radius: 0 7px 7px 0;
 }
 .conflict .srcs { margin-top: 11px; font-size: 14.5px; }
-.conflict .srcs a { color: var(--accent); margin-right: 14px; }
+/* Every source link, not only the ones inside a conflict card. The criterion
+   details had no rule, so they fell back to the user agent's default link
+   blue -- 1.64:1 on the dark surface, which is unreadable, on exactly the
+   links that let a reader check a claim. */
+.srcs a { color: var(--accent); margin-right: 14px; }
 
 .quiet-panel {
   padding: 20px 22px;
@@ -780,7 +799,7 @@ table.data { min-width: 620px; }
   border: none;
   border-radius: var(--radius);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   cursor: pointer;
   font-family: inherit;
 }
@@ -896,4 +915,57 @@ a.prow-link:hover { border-bottom-color: var(--accent); }
 @media (max-width: 620px) {
   .prow-tier { margin-left: 0; }
   .tier-def { flex-direction: column; gap: 7px; }
+}
+
+/* ---------- keyboard focus ----------
+   Two inputs removed the default outline and signalled focus with a border
+   colour alone, which is a colour-only cue and disappears for anyone who
+   cannot pick the difference out. Everything else relied on whatever the
+   browser happens to draw.
+
+   One explicit ring instead, on :focus-visible so it appears for keyboard
+   users without putting a box around every mouse click. The offset keeps it
+   clear of the element's own border, and the two-colour construction means it
+   stays visible on both the page background and the tinted panels. */
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.searchbar input:focus-visible,
+#queries:focus-visible,
+.searchbar select:focus-visible,
+.panel-actions select:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.searchbar button:focus-visible,
+.panel-actions button:focus-visible {
+  /* The button is already the accent colour, so an accent ring on it would
+     not read. A gap in the page colour separates the two. */
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* A skip link, for anyone tabbing into a page whose first stop would
+   otherwise be the masthead on every single navigation. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--surface);
+  color: var(--text);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 12px 18px;
+  font-size: 16px;
+  z-index: 100;
+}
+.skip-link:focus {
+  left: 16px;
+  top: 16px;
 }

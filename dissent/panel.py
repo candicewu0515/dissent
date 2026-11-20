@@ -59,6 +59,36 @@ MAX_PANEL_SIZE = 50
 # literal in the middle of the rule.
 EXPERT_REVIEW_STARS = 3
 
+# Conflict kinds the tier rule already accounts for through its own facts, so
+# finding one is not new information. Everything else a detector can raise is
+# a fact the tier facts do not encode -- a high-severity one of those must
+# therefore be able to lift a row out of the bottom tier, or "No disagreement
+# found" is a name the rule cannot keep.
+#
+# Matched on `kind`, which is a fixed slug on the Conflict model, never on the
+# headline: the rule must not depend on wording written for a human.
+TIER_ACCOUNTS_FOR = frozenset(
+    {
+        "record_discordance",
+        "computed_versus_reported",
+        "weak_evidence_base",
+        "stale_assertion",
+        "unrecognised_review_status",
+    }
+)
+
+# Short, checkable names for the rest. A reason has to say what was found, and
+# a slug in a worklist is not that.
+CONFLICT_LABELS = {
+    "annotator_disagreement": "two annotators disagree about the molecular consequence",
+    "internal_contradiction": "pathogenic and benign criteria are both met",
+    "frequency_versus_claim": "the population frequency contradicts the reported claim",
+    "somatic_germline_misuse": "a somatic variant is being read against germline criteria",
+    "predictor_split": "the prediction tools are split",
+    "ambiguous_input": "the identifier covers more than one allele",
+    "unreviewed_literature": "substantial literature sits above weak curation",
+}
+
 
 # --------------------------------------------------------------------------
 # Tiers
@@ -233,6 +263,10 @@ class _Facts:
     split_within_condition: bool = False
     stale_years: float | None = None
     opposed_records: bool = False
+    # High-severity findings the tier facts do not otherwise encode, by
+    # `kind`. Carried so the bottom tier cannot claim there is nothing to
+    # read while a detector is saying there is.
+    unaccounted_high: list[str] = field(default_factory=list)
     off_axis_labels: list[str] = field(default_factory=list)
     # The engine satisfied pathogenic and benign criteria at once. Carried
     # separately because combine.py returns it as a flavour of "Uncertain
@@ -271,6 +305,13 @@ def _primary_label(a) -> str:
 
 def _gather_facts(report: Report, today: date) -> _Facts:
     f = _Facts()
+    f.unaccounted_high = sorted(
+        {
+            c.kind
+            for c in (report.conflicts or [])
+            if c.severity == "high" and c.kind not in TIER_ACCOUNTS_FOR
+        }
+    )
     call = report.classification.call if report.classification else None
     f.computed_side = _call_side(call)
     f.computed_conflicting = call == CONFLICTING
@@ -391,6 +432,20 @@ def _off_axis_note(f: _Facts) -> list[str]:
     ]
 
 
+def _unaccounted_note(f: _Facts) -> list[str]:
+    """Name a high-severity finding the tier facts did not already cover.
+
+    Without this the rule read only ClinVar's labels, so a variant where
+    snpEff and Ensembl VEP disagree about the molecular consequence -- which
+    means the worksheet may be classifying the wrong change -- could sit in
+    "No disagreement found" with nothing to say about it.
+    """
+    if not f.unaccounted_high:
+        return []
+    named = [CONFLICT_LABELS.get(kind, kind.replace("_", " ")) for kind in f.unaccounted_high]
+    return [f"Also flagged: {'; '.join(named)}"]
+
+
 def _triage_facts(f: _Facts, resolved: bool, t: Thresholds) -> tuple[Tier, list[str]]:
     """The rule itself, over nothing but the facts above."""
     if not resolved:
@@ -495,6 +550,7 @@ def _triage_facts(f: _Facts, resolved: bool, t: Thresholds) -> tuple[Tier, list[
             f"Review status not recognised on any of {f.records} record(s); "
             "cannot tell how well reviewed this is"
         ]
+    reasons.extend(_unaccounted_note(f))
     if reasons:
         return THIN, reasons
 

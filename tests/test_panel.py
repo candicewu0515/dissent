@@ -21,6 +21,7 @@ from dissent.acmg.combine import (
 )
 from dissent.models import (
     Classification,
+    Conflict,
     ClinVarAssertion,
     ClinVarEvidence,
     Consequence,
@@ -470,6 +471,93 @@ def test_one_unrecognised_record_does_not_hide_a_good_one():
     )
     tier, _ = triage(report, today=TODAY)
     assert tier is CONCORDANT
+
+
+# --------------------------------------------------------------------------
+# "No disagreement found" has to mean it
+# --------------------------------------------------------------------------
+
+
+def conflict(kind: str, severity: str = "high") -> Conflict:
+    return Conflict(kind=kind, severity=severity, headline=f"{kind} headline", detail="d")
+
+
+def test_a_high_severity_finding_the_rule_cannot_see_lifts_the_row():
+    """The tier facts read ClinVar's labels and nothing else, so a variant
+    where snpEff and Ensembl VEP disagree about the molecular consequence --
+    meaning the worksheet may be classifying the wrong change -- could sit in
+    the bottom tier with nothing said about it."""
+    report = report_with(PATHOGENIC, [assertion(Significance.PATHOGENIC, stars=3)])
+    assert triage(report, today=TODAY)[0] is CONCORDANT
+
+    report.conflicts = [conflict("annotator_disagreement")]
+    tier, reasons = triage(report, today=TODAY)
+    assert tier is THIN
+    assert any("molecular consequence" in r for r in reasons)
+
+
+def test_a_finding_the_rule_already_accounts_for_does_not_lift_the_row():
+    """Otherwise every variant with more than one record lands in tier 3,
+    because the detectors restate what the tier already measured."""
+    report = report_with(PATHOGENIC, [assertion(Significance.PATHOGENIC, stars=3)])
+    report.conflicts = [conflict("record_discordance"), conflict("computed_versus_reported")]
+    assert triage(report, today=TODAY)[0] is CONCORDANT
+
+
+def test_a_medium_severity_finding_does_not_lift_the_row():
+    """Medium findings are worth reading and not worth reordering a worklist
+    for; otherwise the ranking tracks the detectors rather than the evidence."""
+    report = report_with(PATHOGENIC, [assertion(Significance.PATHOGENIC, stars=3)])
+    report.conflicts = [conflict("predictor_split", severity="medium")]
+    assert triage(report, today=TODAY)[0] is CONCORDANT
+
+
+def test_the_rule_reads_the_kind_not_the_headline():
+    """A rule keyed on prose would change meaning when someone rewords a
+    message. The headline here says the opposite of the kind."""
+    report = report_with(PATHOGENIC, [assertion(Significance.PATHOGENIC, stars=3)])
+    c = conflict("internal_contradiction")
+    c.headline = "everything is fine"
+    report.conflicts = [c]
+    tier, reasons = triage(report, today=TODAY)
+    assert tier is THIN
+    assert any("both met" in r for r in reasons)
+    assert not any("everything is fine" in r for r in reasons)
+
+
+def test_an_unknown_conflict_kind_is_still_named_readably():
+    """A detector added later must not print a bare slug into a worklist."""
+    report = report_with(PATHOGENIC, [assertion(Significance.PATHOGENIC, stars=3)])
+    report.conflicts = [conflict("some_new_detector")]
+    _, reasons = triage(report, today=TODAY)
+    assert any("some new detector" in r for r in reasons)
+
+
+def test_every_labelled_conflict_kind_is_one_the_detectors_can_raise():
+    """A label for a kind nothing emits is dead text that looks like coverage."""
+    import re
+    from pathlib import Path
+
+    from dissent.conflicts import detectors as module
+    from dissent.panel import CONFLICT_LABELS, TIER_ACCOUNTS_FOR
+
+    emitted = set(re.findall(r'kind="([a-z_]+)"', Path(module.__file__).read_text()))
+    assert set(CONFLICT_LABELS) <= emitted
+    assert TIER_ACCOUNTS_FOR <= emitted
+
+
+def test_every_detector_kind_is_either_accounted_for_or_labelled():
+    """A kind in neither set would reach a worklist as a slug, and nobody
+    would have decided whether it should affect the order."""
+    import re
+    from pathlib import Path
+
+    from dissent.conflicts import detectors as module
+    from dissent.panel import CONFLICT_LABELS, TIER_ACCOUNTS_FOR
+
+    emitted = set(re.findall(r'kind="([a-z_]+)"', Path(module.__file__).read_text()))
+    uncovered = emitted - set(CONFLICT_LABELS) - TIER_ACCOUNTS_FOR
+    assert not uncovered, f"detector kinds nobody classified: {sorted(uncovered)}"
 
 
 # --------------------------------------------------------------------------
