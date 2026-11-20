@@ -22,7 +22,8 @@ errors happen, and existing tools hide it:
 - Many ClinVar records carry `no assertion criteria provided` — no better than an
   opinion — displayed with the same visual weight as expert-panel reviews.
 - Records go **stale**. Observed in testing: a BRAF V600E record last evaluated
-  2014-09-04, twelve years old, still presented as current.
+  2009-05-29, seventeen years old, sitting under a 2025 record and presented
+  with the same weight.
 - Computational predictors **split**, and tools typically show only the 2-3 that
   agree with the headline.
 - **Somatic variants get germline ACMG criteria applied to them**, which is a
@@ -73,7 +74,20 @@ relatives would allow PP1").
 | Ensembl VEP | `rest.ensembl.org/vep/human` | consequence, transcript, protein position, canonical flag |
 | Open Targets | `api.platform.opentargets.org/api/v4/graphql` | gene function, disease associations |
 | NCBI LitVar2 | `ncbi.nlm.nih.gov/research/litvar2-api` | variant → PMID links |
-| NCBI E-utilities | `eutils.ncbi.nlm.nih.gov` | PubMed abstracts |
+| ~~NCBI E-utilities~~ | ~~`eutils.ncbi.nlm.nih.gov`~~ | *planned, never built — see below* |
+
+**Not built: NCBI E-utilities.** The plan was to pull PubMed abstracts so the
+literature panel could show what a paper says rather than only that it exists.
+Nothing in the engine calls it. The row is struck through rather than deleted
+because a design document that quietly matches whatever got built is no longer
+a record of anything, and because the submission materials listed E-utilities
+as a data source on the strength of this table — a disclosure naming a service
+the project never contacts.
+
+So the count is **eight databases through five endpoints**: ClinVar, dbNSFP,
+dbSNP, snpEff and gnomAD's exome frequencies all arrive inside the MyVariant
+document, and gnomAD, Ensembl VEP, Open Targets and LitVar2 are queried
+directly.
 
 No API key is required for any source. This is deliberate: a judge must be able
 to clone the repo and run it without signing up for anything.

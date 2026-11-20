@@ -107,7 +107,7 @@ can clone the repository and run it without signing up for a single service.
 
 The architecture point that matters: every criterion and every detector is a
 **pure function** over an evidence bundle. No I/O, no state. That is what makes
-each rule auditable by reading one function, and what lets 532 tests run with
+each rule auditable by reading one function, and what lets 536 tests run with
 the socket constructor replaced — CI enforces that the suite never touches the
 network, rather than a README asserting it.
 
@@ -192,11 +192,13 @@ currently leave to a human but have the machinery to look up.
 Per the GenHacks rules, open-source libraries, APIs and AI tools must be listed
 in the project description.
 
-**Built with:** Python 3.13, FastAPI, Uvicorn, httpx, Pydantic, pytest, respx.
-No front-end framework; charts are hand-written SVG.
+**Built with:** Python 3.13, FastAPI, Uvicorn, httpx, Pydantic, pytest,
+pytest-asyncio. No front-end framework; the charts are hand-written SVG and
+there is no charting library.
 
 **Data sources, all public and keyless:** ClinVar, gnomAD v4, dbNSFP, dbSNP,
-Ensembl VEP, snpEff, Open Targets, NCBI LitVar2, NCBI E-utilities.
+snpEff (these five through MyVariant.info), Ensembl VEP, Open Targets and
+NCBI LitVar2 — eight databases reached through five endpoints.
 
 **AI assistance:** built with Claude (Anthropic).
 
@@ -283,7 +285,7 @@ will watch muted.
 | 2:06–2:30 | `/panel`. Click the carrier-screening panel, hit Triage. **Let the tiles fill on camera** — rows land every few seconds. Settle on the Contradicted group, three rows, then scroll once past Thin evidence. | "One variant saves you fifteen minutes. A panel changes what you read at all. Ten variants, same sources, sorted by what a person still has to decide. Three are contradicted outright. One doesn't resolve — and the error tells you why." |
 | 2:30–2:40 | `/scale`. The gene leaderboard. Pause at the top — GCK and HNF4A, then BRCA2 and TP53. | "Across the whole database: the genes where laboratories disagree most are diabetes genes and cancer genes — the ones where being wrong costs the most." |
 | 2:40–2:46 | Fast cut: BRCA1 C61G. Two conflict cards, both low-key — point at the severity labels, not at an empty panel. | "When the evidence holds together, nothing serious fires. Two notes, neither a contradiction. A tool that cries wolf on every variant teaches you to ignore it." |
-| 2:46–2:54 | Split screen: `python -m dissent --panel panel.txt` printing the same worklist, then `pytest` → **532 passed**. | "Same engine in the terminal. Six public APIs, no keys. 532 tests, none touching the network." |
+| 2:46–2:54 | Split screen: `python -m dissent --panel panel.txt` printing the same worklist, then `pytest` → **536 passed**. | "Same engine in the terminal. Six public APIs, no keys. 536 tests, none touching the network." |
 | 2:54–3:00 | Static end card: live URL (large), repository, track. "Built with Claude — disclosed per the rules." | "Dissent. The disagreement is the finding." |
 
 **Before you hit record**, run this once. It fetches everything the demo

@@ -298,3 +298,104 @@ def test_the_source_count_in_the_copy_matches_the_clients_that_run():
     for name, text in texts.items():
         for wrong in ("six sources", "six public APIs", "six databases", "six endpoints"):
             assert wrong not in text, f"{name} still claims {wrong!r}; there are 5 endpoints"
+
+
+SPEC = (ROOT / "docs" / "01-design-spec.md").read_text()
+
+
+def test_the_braf_dates_quoted_in_the_docs_are_in_the_evidence():
+    """The design spec quoted a BRAF record "last evaluated 2014-09-04, twelve
+    years old". No such record is in the recorded evidence -- the oldest is
+    2009-05-29, and the README had that one right. A date is the easiest kind
+    of claim for a reader to check and the easiest to get wrong."""
+    from tests.conftest import load_bundle
+
+    bundle = load_bundle("braf_v600e")
+    dated = sorted(a.last_evaluated for a in bundle.clinvar.assertions if a.last_evaluated)
+    oldest, newest = dated[0], dated[-1]
+
+    for name, text in (("README.md", README), ("docs/01-design-spec.md", SPEC)):
+        if "BRAF" not in text:
+            continue
+        assert "2014-09-04" not in text, f"{name} still quotes a date not in the evidence"
+        if str(oldest.year) in text or str(oldest) in text:
+            continue
+        # If neither form of the real date appears, nothing is asserted. Only
+        # a wrong date is a failure.
+
+    assert str(oldest.year) in SPEC, "the spec should name the oldest record's year"
+    assert str(newest.year) in README or str(newest.year) in SPEC
+
+
+def test_the_counts_quoted_from_the_baseline_match_the_data_file():
+    """144,092 / 697,310 / 3,349 / 15,326 are measurements, and a measurement
+    in prose is only as good as the file it came from."""
+    from dissent.baseline.rates import load_baseline
+
+    baseline = load_baseline()
+    if baseline is None:
+        pytest.skip("baseline data is not installed")
+
+    checks = {
+        "every_record_lacks_criteria": baseline.counts.get("every_record_lacks_criteria"),
+        "stale_5y": baseline.counts.get("stale_5y"),
+        "pathogenic_vs_benign": baseline.counts.get("pathogenic_vs_benign"),
+    }
+    for key, value in checks.items():
+        if value is None:
+            continue
+        rendered = f"{value:,}"
+        assert rendered in README or rendered in SUBMISSION, (
+            f"no document quotes the measured {key} ({rendered}); if the figure "
+            "changed, the prose needs updating"
+        )
+
+    genes = f"{len(baseline.gene_table):,}"
+    assert genes in README or genes in SUBMISSION, f"gene count {genes} is not quoted anywhere"
+
+
+def test_the_disclosed_dependencies_are_the_declared_ones():
+    """The rules require listing the libraries used. The disclosure named
+    respx, which was declared in pyproject and imported by nothing, and omitted
+    pytest-asyncio, which every async test depends on. Listing a tool the
+    project does not use is as wrong as omitting one it does."""
+    import re
+    import tomllib
+
+    data = tomllib.loads((ROOT / "pyproject.toml").read_text())
+    declared = {
+        re.split(r"[><=\[]", d)[0].strip()
+        for d in data["project"]["dependencies"]
+        + data["project"]["optional-dependencies"]["dev"]
+    }
+
+    for package in declared:
+        assert package.lower() in SUBMISSION.lower(), (
+            f"{package} is a declared dependency and is not in the disclosure"
+        )
+
+    # And nothing is declared that no source file imports.
+    src = "\n".join(
+        p.read_text()
+        for p in list((ROOT / "dissent").rglob("*.py")) + list((ROOT / "tests").rglob("*.py"))
+    )
+    for package in declared:
+        module = package.replace("-", "_")
+        if module in ("uvicorn", "pytest_asyncio"):
+            continue  # used through the CLI and a pytest plugin, not an import
+        assert module in src, f"{package} is declared but imported nowhere"
+
+
+def test_no_document_claims_a_service_the_engine_never_calls():
+    """E-utilities was in the design spec's source table, and from there in the
+    README and the submission disclosure. Nothing in the engine calls it."""
+    from pathlib import Path
+
+    sources = "\n".join(p.read_text() for p in (ROOT / "dissent" / "sources").glob("*.py"))
+    if "eutils" in sources:
+        return  # it got built after all
+
+    for name, text in (("README.md", README), ("docs/02-submission.md", SUBMISSION)):
+        assert "E-utilities" not in text, (
+            f"{name} discloses NCBI E-utilities, which the engine never contacts"
+        )

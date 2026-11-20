@@ -183,7 +183,7 @@ python -m dissent --panel my_panel.txt
 python -m dissent --panel my_panel.txt --csv > worklist.csv
 ```
 
-Tests — 532 of them, none touching the network, so they run anywhere:
+Tests — 536 of them, none touching the network, so they run anywhere:
 
 ```bash
 python -m pytest
@@ -260,7 +260,7 @@ not known until the first phase answers:
 ### Decisions worth stating
 
 **Every criterion and detector is a pure function** over the evidence bundle.
-No I/O, no state. That is what lets the 532 tests run offline against recorded
+No I/O, no state. That is what lets the 536 tests run offline against recorded
 fixtures, and what lets a reviewer audit a rule by reading one function. The
 fixtures come in two layers: normalised bundles for the scoring rules, and
 verbatim API payloads for the code that produces them.
@@ -283,10 +283,12 @@ genotype criterion's name — anything above 1% has homozygotes, so BS1 and BS2
 fired together and two Strong criteria reached a terminal "Benign" from one row
 of data.
 
-**Frequency, cohort and allele number travel together.** Reading the frequency
-from the highest-popmax record and the allele-number guard from the
-largest-cohort record let an 8% estimate from 50 alleles satisfy stand-alone
-BA1 while the rationale credited an 800,000-allele cohort.
+**Frequency, cohort and allele number travel together.** The frequency was
+read from whichever record had the highest popmax and the allele-number guard
+from whichever had the largest cohort, so a high frequency measured in a tiny
+cohort could clear the guard on another record's sample size — and the
+rationale would then cite the large cohort beside the small cohort's number.
+The two now come from one record or neither does.
 
 **PP5 and BP6 are reported but never applied.** ClinGen retired them: using
 another laboratory's conclusion as evidence double-counts the evidence they
@@ -364,7 +366,7 @@ Python 3.13, FastAPI, httpx, Pydantic, pytest. No front-end framework and no
 build step. Charts are hand-written SVG.
 
 Data: ClinVar, gnomAD v4, dbNSFP, dbSNP, Ensembl VEP, snpEff, Open Targets,
-NCBI LitVar2, NCBI E-utilities. All public, none requiring a key.
+NCBI LitVar2. All public, none requiring a key.
 
 Developed with AI assistance (Claude), as the GenHacks rules permit and require
 to be disclosed. Project begun 19 November 2026, after the submission window
