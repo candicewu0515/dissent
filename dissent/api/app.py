@@ -9,13 +9,24 @@ import json
 from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import Body, FastAPI, HTTPException, Query
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from dissent.baseline.rates import load_baseline
 from dissent.cache.store import ResponseCache
 from dissent.models import Report
+from dissent.panel import (
+    EVIDENCE_NOT_PUBLIC,
+    MAX_PANEL_SIZE,
+    TIERS,
+    PanelResult,
+    PanelRow,
+    interpret_panel,
+    parse_panel,
+    rows_to_csv,
+    sort_rows,
+)
 from dissent.report import interpret
 from dissent.sources.base import USER_AGENT
 
@@ -88,6 +99,59 @@ EXAMPLES = [
 ]
 
 
+# Two panels a reader would recognise, each a real gene set rather than a
+# selection of variants chosen to look good. Every variant below was checked
+# against the live sources; the tiers they land in are whatever the data says,
+# including the ones that do not resolve, which are left in on purpose.
+PANEL_EXAMPLES = [
+    {
+        "name": "Cardiomyopathy and arrhythmia",
+        "note": (
+            "Fourteen variants from the genes on a standard inherited cardiac "
+            "panel. Three sit on opposite sides of the clinical line from each "
+            "other; most of the rest are reported confidently on one star."
+        ),
+        "queries": [
+            "MYH7 R403Q",
+            "MYBPC3 R502W",
+            "TNNT2 R92Q",
+            "TNNI3 R145W",
+            "MYL2 R58Q",
+            "KCNQ1 A341V",
+            "KCNH2 A561V",
+            "SCN5A E1784K",
+            "RYR2 R176Q",
+            "CASQ2 D307H",
+            "LMNA R482W",
+            "DSP R1267Q",
+            "PKP2 R735X",
+            "TTN R8604X",
+        ],
+    },
+    {
+        "name": "Carrier screening",
+        "note": (
+            "Recessive-disease variants of the kind a reproductive carrier "
+            "screen reports. Includes HBB E6V, which does not resolve: the "
+            "clinical name uses legacy protein numbering and HGVS calls the "
+            "same variant p.Glu7Val. Left in because that failure is the point."
+        ),
+        "queries": [
+            "CFTR G542X",
+            "HFE C282Y",
+            "GJB2 V37I",
+            "G6PD V68M",
+            "ATP7B H1069Q",
+            "PAH R408W",
+            "GALT Q188R",
+            "BTD D444H",
+            "MTHFR A222V",
+            "HBB E6V",
+        ],
+    },
+]
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # One shared connection pool and cache for the process. Opening a client
@@ -140,7 +204,12 @@ async def api_interpret(
             detail=(
                 f"Could not resolve '{q}'. Try an rsID (rs113488022), genomic "
                 "coordinates (chr7:140753336A>T), or GENE p.Change (BRAF V600E). "
-                "Indels in protein notation such as CFTR F508del are not yet parsed."
+                "Indels in protein notation such as CFTR F508del are not yet parsed. "
+                "If the protein change came from clinical literature, many genes are "
+                "still written in legacy numbering that omits the signal peptide while "
+                "HGVS counts from the initiator methionine — Factor V Leiden is R506Q "
+                "in the literature and p.Arg534Gln in HGVS. The two do not resolve to "
+                "each other, so search the rsID or the c. notation."
             ),
         )
     return report
@@ -236,6 +305,99 @@ async def api_baseline_gene(symbol: str = Query(..., min_length=1, max_length=40
             ),
         }
     )
+
+
+# --------------------------------------------------------------------------
+# Panel triage
+# --------------------------------------------------------------------------
+
+
+@app.get("/api/panel/tiers")
+async def api_panel_tiers() -> JSONResponse:
+    """The triage rule, served so the UI states it rather than restating it.
+
+    A ranking the reader cannot audit is worse than no ranking, so the
+    definitions live in one place and both the page and the docs read them
+    from here.
+    """
+    return JSONResponse(
+        {
+            "max_per_request": MAX_PANEL_SIZE,
+            "evidence_not_public": EVIDENCE_NOT_PUBLIC,
+            "tiers": [
+                {"rank": t.rank, "key": t.key, "name": t.name, "meaning": t.meaning}
+                for t in TIERS
+            ],
+        }
+    )
+
+
+@app.get("/api/panel/examples")
+async def api_panel_examples() -> JSONResponse:
+    return JSONResponse(PANEL_EXAMPLES)
+
+
+@app.post("/api/panel", response_model=PanelResult)
+async def api_panel(
+    payload: dict = Body(...),
+) -> PanelResult:
+    """Interpret a chunk of a panel.
+
+    The web UI sends a long list in chunks and renders rows as they land, so
+    this returns a chunk's worth rather than streaming: a reader watching 40
+    variants resolve wants to see the first ones, and a failed chunk should
+    cost one chunk rather than the whole panel.
+    """
+    raw = payload.get("queries")
+    if isinstance(raw, str):
+        queries = parse_panel(raw)
+    elif isinstance(raw, list):
+        queries = parse_panel("\n".join(str(q) for q in raw))
+    else:
+        raise HTTPException(status_code=422, detail="Send 'queries' as a list or a newline-separated string.")
+
+    if not queries:
+        raise HTTPException(status_code=422, detail="No variants found in the input.")
+
+    assembly = payload.get("assembly", "hg38")
+    if assembly not in ("hg19", "hg38"):
+        raise HTTPException(status_code=422, detail="assembly must be hg19 or hg38.")
+
+    return await interpret_panel(
+        queries,
+        assembly=assembly,
+        cache=app.state.cache,
+        client=app.state.client,
+    )
+
+
+@app.post("/api/panel/csv")
+async def api_panel_csv(payload: dict = Body(...)) -> PlainTextResponse:
+    """Turn finished rows into a spreadsheet.
+
+    Takes rows the client already has rather than re-running the panel: a
+    download should not cost the public APIs a second pass over the same
+    variants, and the file then matches exactly what the reader is looking at.
+    """
+    raw_rows = payload.get("rows")
+    if not isinstance(raw_rows, list) or not raw_rows:
+        raise HTTPException(status_code=422, detail="Send 'rows' from a panel result.")
+    try:
+        rows = [PanelRow.model_validate(r) for r in raw_rows]
+    except Exception:  # noqa: BLE001
+        raise HTTPException(status_code=422, detail="Rows did not match the panel schema.") from None
+
+    body = rows_to_csv(sort_rows(rows))
+    return PlainTextResponse(
+        body,
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="dissent-panel.csv"'},
+    )
+
+
+@app.get("/panel")
+async def panel_page() -> HTMLResponse:
+    return _page("panel.html")
 
 
 @app.get("/scale")

@@ -53,7 +53,7 @@ None of them treats *disagreement* as the primary output.
 python -m dissent "HFE C282Y"
 ```
 
-Three things, for any variant:
+Four things — the first three for any variant, the fourth for a whole panel:
 
 **1. A draft ACMG/AMP worksheet.** All 28 criteria, each with a status, the
 strength applied, a one-sentence rationale, and a link to the record it rests
@@ -87,6 +87,32 @@ reconcile, and nothing in either database mentions the other."*
 **3. What would change this.** For every unresolved criterion and every
 conflict, the specific evidence that would settle it.
 
+**4. A whole panel at once, at `/panel`.** A single lookup saves a reader
+fifteen minutes of tab-switching; a panel changes which variants get read at
+all. Paste a gene panel and every variant is interpreted against the same six
+sources, then ordered into four tiers:
+
+| Tier | What is in it |
+|---|---|
+| **Contradicted** | Records disagree pathogenic-versus-benign, or this worksheet lands opposite theirs |
+| **Submitters split** | The records disagree with each other, but not across the clinical line |
+| **Thin evidence** | Nobody disagrees, but the agreement rests on no stated criteria, one star, or an evaluation older than five years |
+| **No disagreement found** | The records agree, state their criteria, and are current |
+
+There is no score. A single number invites trust in a precision that is not
+there; four named tiers, each row carrying the reasons that put it in one, can
+be argued with. The tier is computed from structured fields only — ClinVar's
+own labels, their review status and dates, and the computed call — never from
+the wording of a conflict message. Export is CSV, so the worklist can be
+annotated in a spreadsheet.
+
+One thing deliberately **not** a tier: "computed uncertain, reported
+pathogenic". It was one in the first version and swallowed 21 of 30 rows in a
+test panel. That is the correct number and it makes the tier useless — a
+laboratory classifies from segregation, functional assays and internal case
+series, none of which is in a public API. It is a flag on the row and a count
+in the summary, labelled as expected.
+
 **And the whole database at `/scale`.** The rates above, the genes
 disagreement concentrates in, and the sharpest form the measurement takes: the
 **3,349 variants one laboratory calls disease-causing and another calls
@@ -106,6 +132,13 @@ pathogenic records, 15 likely pathogenic, and one benign.
 | `NF1 R1947*` | PVS1 met, but the evidence falls into a gap in the published combining rules. |
 | `KCNH2 A561V` | Reaches **Likely pathogenic** from public data alone. A long QT variant where rarity, the gene's intolerance of missense change, and a calibrated predictor all line up — and 64 publications sit above a ClinVar record that states no method. |
 | `BRCA1 C61G` | Well curated and unanimous. Included so the conflict panel can be seen staying quiet. |
+
+And two panels, at `/panel`:
+
+| Panel | What it shows |
+|---|---|
+| Cardiomyopathy and arrhythmia (14) | Variants from a standard inherited cardiac panel. Most are reported confidently on one or two stars. |
+| Carrier screening (10) | Three contradicted outright, including GJB2 V37I at three stars. One, `HBB E6V`, does not resolve — the clinical name uses legacy protein numbering and HGVS calls the same variant `p.Glu7Val`. Left in because that failure is the point. |
 
 ## Running it
 
@@ -135,7 +168,17 @@ JSON, for piping into something else:
 python -m dissent "rs1800562" --json
 ```
 
-Tests — 308 of them, none touching the network, so they run anywhere:
+A whole panel, as an ordered worklist or as a spreadsheet:
+
+```bash
+python -m dissent --panel my_panel.txt
+```
+
+```bash
+python -m dissent --panel my_panel.txt --csv > worklist.csv
+```
+
+Tests — 389 of them, none touching the network, so they run anywhere:
 
 ```bash
 python -m pytest
@@ -176,7 +219,7 @@ not known until the first phase answers:
 ### Decisions worth stating
 
 **Every criterion and detector is a pure function** over the evidence bundle.
-No I/O, no state. That is what lets the 308 tests run offline against recorded
+No I/O, no state. That is what lets the 389 tests run offline against recorded
 fixtures, and what lets a reviewer audit a rule by reading one function. The
 fixtures come in two layers: normalised bundles for the scoring rules, and
 verbatim API payloads for the code that produces them.
@@ -245,6 +288,17 @@ them:
   under the AMP/ASCO/CAP tier system.
 - Protein-notation **indels are not parsed** (`CFTR F508del` fails; its
   coordinates or rsID work).
+- **Legacy protein numbering does not resolve, and cannot be guessed.** Much
+  of the clinical literature numbers residues from the mature protein, while
+  HGVS counts from the initiator methionine. Factor V Leiden is `R506Q` in
+  print and `p.Arg534Gln` in HGVS; sickle haemoglobin is `E6V` and
+  `p.Glu7Val`; the PiZ allele is `E342K` and `p.Glu366Lys`. The offset is the
+  signal peptide and differs per gene, and no public endpoint here exposes a
+  mapping between the two — a search by amino-acid position in dbNSFP returns
+  the residue at the HGVS position, which is a different residue. So these
+  inputs fail rather than resolving to a plausible wrong variant, and the
+  error names the trap. Use the rsID or the c. notation. One of them,
+  `HBB E6V`, is left in the demo carrier panel on purpose.
 - PS1 and PM5 are marked for human review rather than computed, though the
   machinery to look them up exists.
 - PVS1 runs the first branch of the Abou Tayoun 2018 decision tree only.
@@ -259,6 +313,9 @@ them:
   should not receive BA1 despite high frequency; it is not checked.
 - SpliceAI is absent for many variants in the hg38 index, which leaves BP7
   unresolved more often than it should be.
+- **Panel triage ranks disagreement, not clinical importance.** It says
+  nothing about which variant matters most to a patient — that is a question
+  about the phenotype in front of you, and no database answers it.
 
 ## Built with
 

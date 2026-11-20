@@ -27,7 +27,8 @@ matters most. Dissent keeps the disagreement and puts it first.
 ## What it does
 
 Give it a genetic variant — `rs1800562`, `HFE C282Y`, `chr6:26092913G>A` — and
-it produces three things in about three seconds.
+it produces three things in about three seconds. Give it a whole gene
+panel and it orders the lot.
 
 **A draft worksheet.** Clinical geneticists classify variants against 28 formal
 criteria. Dissent evaluates all 28, with every judgement sourced and linked, and
@@ -47,6 +48,21 @@ vocabulary. For HFE C282Y: *"7 laboratories call this variant disease-causing.
 It is carried by about 1 in 8 people of Non-Finnish European descent. Those two
 facts are hard to reconcile, and nothing in either database mentions the
 other."*
+
+**A triaged worklist.** Paste a gene panel at `/panel` and every variant is
+interpreted against the same six sources, then sorted into four tiers:
+contradicted, submitters split, thin evidence, no disagreement found. There is
+no score — a single number invites trust in a precision that is not there, and
+every row carries the reasons that put it in its tier, computed from ClinVar's
+own structured fields rather than from the wording of a message. Export is CSV,
+so the worklist can be annotated.
+
+One thing is deliberately not a tier. "This tool says uncertain, the laboratory
+says pathogenic" was one in the first version, and it captured 21 of 30 rows in
+a test panel. That number is correct and it makes the tier useless: a
+laboratory classifies from family segregation, functional assays and internal
+case series, none of which is in a public API. So it is a flag on the row and a
+count in the summary, labelled as expected rather than as a finding.
 
 There is also a database-wide view at `/scale`: which genes disagreement
 concentrates in, and where any of 15,326 genes places against the rest.
@@ -81,7 +97,7 @@ can clone the repository and run it without signing up for a single service.
 
 The architecture point that matters: every criterion and every detector is a
 **pure function** over an evidence bundle. No I/O, no state. That is what makes
-each rule auditable by reading one function, and what lets 308 tests run with
+each rule auditable by reading one function, and what lets 389 tests run with
 the socket constructor replaced — CI enforces that the suite never touches the
 network, rather than a README asserting it.
 
@@ -118,6 +134,32 @@ context and never scored.
 And an unrecognised ClinVar review-status label scored zero stars, so a single
 vocabulary change would have turned every well-curated record in the database
 into a high-severity evidence warning.
+
+**A ranking that captured everything.** The panel's second tier was
+originally "the computed call differs from the reported one". On a thirty-variant
+test panel it took twenty-one rows. A tier that holds seventy per cent of the
+work is not a priority list, it is the work. The fix was not to tune a weight
+but to notice the difference was not evidence of anything: it is what a tool
+built on public data should produce where a laboratory has private evidence.
+The tier was replaced with one that measures disagreement *inside* ClinVar, and
+the old signal became a flag labelled "expected".
+
+**A detector that committed the error it looks for.** The same tier counted
+every ClinVar record as a pathogenicity claim, so MTHFR A222V was reported as
+"8 records disagree: benign vs uncertain" — when several of those records were
+about warfarin dosing, which is not an answer to the same question. Reporting
+non-disagreement as disagreement is precisely the failure this project was
+built to catch.
+
+**One class of input that cannot be rescued.** Much of the clinical literature
+numbers protein residues from the mature protein; HGVS counts from the
+initiator methionine. Factor V Leiden is R506Q in print and p.Arg534Gln in
+HGVS. The offset is the signal peptide, it differs per gene, and no public
+endpoint here exposes a mapping — searching dbNSFP by amino-acid position
+returns the residue that sits at the HGVS position, which is a different
+residue entirely. Guessing an offset would produce a confident answer about the
+wrong variant. So these inputs fail, the error explains why, and one of them is
+left in the demo panel on purpose.
 
 ## What we learned
 
@@ -181,14 +223,22 @@ will watch muted.
 | 0:38–1:08 | Type `HFE C282Y`, hit Interpret. **Hold six full seconds** on the plain summary and the two verdict cards — green *Benign*, red *pathogenic*, and the line between them. Do not scroll. | "One query, six databases. Our worksheet says benign. The laboratories say pathogenic. It doesn't pick a winner — it shows both readings and why they differ." |
 | 1:08–1:32 | Scroll to Conflicts. Hold on the first card and its measured base rate. | "Four conflicts, ranked. The top one: seven laboratories call it disease-causing, but it is above the frequency threshold where the guidelines say a variant is benign on its own. That combination occurs in less than one variant in a thousand." |
 | 1:32–1:50 | The population chart, bars crossing the dashed 5% line. Cut to the 14-damaging / 5-benign split bar. | "The measurement behind it. And nineteen prediction tools — fourteen say damaging, five say benign. Most tools show you the fourteen." |
-| 1:50–2:12 | The worksheet grid, each cell in plain English. Click a "needs a person" cell to open its detail. | "All twenty-eight criteria, in words — including the seventeen a computer can't decide. Those aren't hidden. Each one says what evidence would settle it." |
-| 2:12–2:26 | `/scale`. The gene leaderboard. Pause on BRCA2, TP53, BRCA1. | "And across the whole database: the genes where laboratories disagree most are the ones where being wrong costs the most." |
-| 2:26–2:34 | Fast cut: BRCA1 C61G, conflict panel quiet. | "When the evidence agrees, it says so. A tool that cries wolf on every variant teaches you to ignore it." |
-| 2:34–2:52 | Split screen: `python -m dissent "BRAF V600E"` printing, then `pytest` → **308 passed**. | "Same engine in the terminal and as JSON. Six public APIs, no keys, no account. Three hundred and eight tests, none of which touch the network." |
-| 2:52–3:00 | Static end card: live URL (large), repository, track. "Built with Claude — disclosed per the rules." | "Dissent. The disagreement is the finding." |
+| 1:50–2:06 | The worksheet grid, each cell in plain English. Click one "needs a person" cell to open its detail. | "All twenty-eight criteria, in words — including the seventeen a computer can't decide. Those aren't hidden. Each says what evidence would settle it." |
+| 2:06–2:30 | `/panel`. Click the carrier-screening panel, hit Triage. **Let the tiles fill on camera** — rows land every few seconds. Settle on the Contradicted group, three rows, then scroll once past Thin evidence. | "One variant saves you fifteen minutes. A panel changes what you read at all. Ten variants, same six sources, sorted by what a person still has to decide. Three are contradicted outright. One doesn't resolve — and the error tells you why." |
+| 2:30–2:40 | `/scale`. The gene leaderboard. Pause on BRCA2, TP53, BRCA1. | "Across the whole database: the genes where laboratories disagree most are the ones where being wrong costs the most." |
+| 2:40–2:46 | Fast cut: BRCA1 C61G, conflict panel quiet. | "When the evidence agrees, it says so. A tool that cries wolf teaches you to ignore it." |
+| 2:46–2:54 | Split screen: `python -m dissent --panel panel.txt` printing the same worklist, then `pytest` → **389 passed**. | "Same engine in the terminal. Six public APIs, no keys. Three hundred and eighty-nine tests, none touching the network." |
+| 2:54–3:00 | Static end card: live URL (large), repository, track. "Built with Claude — disclosed per the rules." | "Dissent. The disagreement is the finding." |
 
-**If it runs long:** cut the BRCA1 shot to 6 seconds, or drop the terminal half
-of the last demo shot. Going over 3:00 risks the submission.
+**The panel shot is the one to get right.** It is the only moment that shows
+the tool doing something a reader cannot do by hand, and the tiles filling in
+real time is the proof it is live rather than a mock-up. Record it with a warm
+cache so rows land quickly, but do not cut the waiting entirely — a progress
+bar that visibly moves reads as real.
+
+**If it runs long:** cut the BRCA1 shot to 4 seconds, or drop the terminal half
+of the last demo shot. Protect the panel shot. Going over 3:00 risks the
+submission.
 
 **Avoid:** explaining what ACMG stands for (no seconds for it, nobody needs
 it); narrating the architecture over the demo (put it on the project page);

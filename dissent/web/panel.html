@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dissent — panel triage</title>
+<meta name="description" content="Interpret a gene panel and order it by what needs a human to read it.">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="brand">
+      <h1><a href="/" class="plain-link">Dissent</a></h1>
+      <span class="tag">panel triage</span>
+      <button class="theme-toggle" id="theme-toggle" type="button">Appearance</button>
+    </div>
+    <p class="scale-lede">
+      One lookup saves a reader fifteen minutes of tab-switching. A panel changes which
+      variants get read at all. Paste a list and every one is interpreted against the
+      same six sources, then ordered by what a person still has to decide.
+    </p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <form id="panel-form" autocomplete="off">
+      <label class="field-label" for="queries">
+        Variants &mdash; one per line, or comma-separated
+      </label>
+      <textarea id="queries" rows="7" spellcheck="false"
+        placeholder="MYH7 R403Q&#10;rs113488022&#10;chr7:140753336A&gt;T&#10;41815"></textarea>
+      <div class="panel-actions">
+        <button type="submit" id="run">Triage panel</button>
+        <select id="assembly" aria-label="Genome assembly">
+          <option value="hg38" selected>GRCh38</option>
+          <option value="hg19">GRCh37</option>
+        </select>
+        <span class="panel-hint" id="hint"></span>
+      </div>
+    </form>
+
+    <div class="examples">
+      <p class="examples-label">Or load a panel</p>
+      <div class="chips" id="panel-chips"></div>
+      <p class="section-note" id="panel-note"></p>
+    </div>
+  </section>
+
+  <section id="progress-wrap" class="hidden">
+    <div class="progress-row">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <span class="progress-text" id="progress-text"></span>
+    </div>
+  </section>
+
+  <section id="results" class="hidden">
+    <div class="tiles" id="tier-tiles"></div>
+    <p class="section-note" id="enp-note"></p>
+
+    <div class="panel-toolbar">
+      <button type="button" class="chip" id="download">Download as CSV</button>
+      <span class="panel-hint" id="order-note">
+        Ordered by tier, then by how much there is to read inside it.
+      </span>
+    </div>
+
+    <div id="rows"></div>
+  </section>
+
+  <section id="rule" class="hidden">
+    <h2 class="section-title">How the order is decided</h2>
+    <p class="section-note">
+      No score. A single number would invite you to trust a precision that is not here.
+      Each tier is computed from structured fields only &mdash; ClinVar's own labels,
+      their review status and dates, and this tool's computed call &mdash; never from the
+      wording of a conflict message. The rule is below so you can disagree with it.
+    </p>
+    <div id="tier-defs"></div>
+  </section>
+
+  <section>
+    <div class="disclaimer">
+      <strong>What this is not.</strong>
+      It is not a clinical priority list. It says nothing about which variant matters
+      most to a patient, which is a question about the phenotype in front of you and
+      cannot be answered from a database. It ranks one thing: how much the public record
+      disagrees with itself, and therefore how much of it a person still has to read.
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a href="/">&larr; Single variant</a>
+    &nbsp;&nbsp;·&nbsp;&nbsp;
+    <a href="/scale">The whole database &rarr;</a>
+  </div>
+</footer>
+
+<script src="/static/panel.js"></script>
+</body>
+</html>
