@@ -35,6 +35,10 @@ from dissent.normalize.consequence import from_snpeff, transcript_from_preferred
 from dissent.sources.opentargets import OpenTargetsClient
 
 
+# How many PMIDs to keep. The report shows a count and a handful of links.
+PMID_LIMIT = 200
+
+
 def _spliceai_max(doc: dict[str, Any]) -> float | None:
     """Highest SpliceAI delta score across the four acceptor/donor predictions.
 
@@ -320,6 +324,8 @@ async def collect_evidence(
             # dbSNP ships its own citation list, which costs no extra request
             # because it arrives inside the MyVariant document.
             pmids = _dbsnp_citations(doc)
+        literature_total = len(pmids)
+        pmids = pmids[:PMID_LIMIT]
 
         return EvidenceBundle(
             query=resolved,
@@ -331,6 +337,7 @@ async def collect_evidence(
             consequence=consequence,
             consequence_vep=vep_consequence,
             literature_pmids=pmids,
+            literature_total=literature_total,
             gene_description=gene_description,
             alternative_alleles=[str(x) for x in (doc.get("_siblings") or [])],
             splice_ai_max=_spliceai_max(doc),

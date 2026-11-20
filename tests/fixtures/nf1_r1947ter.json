@@ -1,0 +1,298 @@
+{
+ "alternative_alleles": [],
+ "cadd_phred": null,
+ "clinvar": {
+  "allele_id": 15382,
+  "assertions": [
+   {
+    "accession": "RCV000000371",
+    "condition": "Neurofibromatosis, type 1 (NF1)",
+    "last_evaluated": "2024-11-11",
+    "number_submitters": 11,
+    "origin": "germline",
+    "review_status": "criteria provided, multiple submitters, no conflicts",
+    "significance": "pathogenic",
+    "significance_raw": "Pathogenic",
+    "stars": 2
+   },
+   {
+    "accession": "RCV000418287",
+    "condition": "not provided",
+    "last_evaluated": "2022-05-27",
+    "number_submitters": 4,
+    "origin": "germline",
+    "review_status": "criteria provided, multiple submitters, no conflicts",
+    "significance": "pathogenic",
+    "significance_raw": "Pathogenic",
+    "stars": 2
+   },
+   {
+    "accession": "RCV000492774",
+    "condition": "Hereditary cancer-predisposing syndrome",
+    "last_evaluated": "2014-11-04",
+    "number_submitters": 1,
+    "origin": "germline",
+    "review_status": "criteria provided, single submitter",
+    "significance": "pathogenic",
+    "significance_raw": "Pathogenic",
+    "stars": 1
+   },
+   {
+    "accession": "RCV000762995",
+    "condition": "Neurofibromatosis, familial spinal (FSNF)",
+    "last_evaluated": "2018-10-31",
+    "number_submitters": 1,
+    "origin": "unknown",
+    "review_status": "criteria provided, single submitter",
+    "significance": "pathogenic",
+    "significance_raw": "Pathogenic",
+    "stars": 1
+   },
+   {
+    "accession": "RCV001009602",
+    "condition": "Neurofibromatosis, type 1 (NF1)",
+    "last_evaluated": "2018-11-10",
+    "number_submitters": 1,
+    "origin": "de novo",
+    "review_status": "criteria provided, single submitter",
+    "significance": "pathogenic",
+    "significance_raw": "Pathogenic",
+    "stars": 1
+   },
+   {
+    "accession": "RCV003460398",
+    "condition": "Juvenile myelomonocytic leukemia (JMML)",
+    "last_evaluated": "2021-09-03",
+    "number_submitters": 1,
+    "origin": "unknown",
+    "review_status": "criteria provided, single submitter",
+    "significance": "pathogenic",
+    "significance_raw": "Pathogenic",
+    "stars": 1
+   },
+   {
+    "accession": "RCV004547450",
+    "condition": "NF1-related disorder",
+    "last_evaluated": "2022-09-28",
+    "number_submitters": 1,
+    "origin": "germline",
+    "review_status": "criteria provided, single submitter",
+    "significance": "pathogenic",
+    "significance_raw": "Pathogenic",
+    "stars": 1
+   },
+   {
+    "accession": "RCV004558221",
+    "condition": "Hereditary cancer-predisposing syndrome",
+    "last_evaluated": "2021-10-14",
+    "number_submitters": 1,
+    "origin": "germline",
+    "review_status": "criteria provided, single submitter",
+    "significance": "pathogenic",
+    "significance_raw": "Pathogenic",
+    "stars": 1
+   },
+   {
+    "accession": "RCV004562178",
+    "condition": "Neurofibromatosis-Noonan syndrome (NFNS)",
+    "last_evaluated": "2023-10-23",
+    "number_submitters": 1,
+    "origin": "germline",
+    "review_status": "no assertion criteria provided",
+    "significance": "pathogenic",
+    "significance_raw": "Pathogenic",
+    "stars": 0
+   }
+  ],
+  "gene": "NF1",
+  "preferred_name": "NM_001042492.3(NF1):c.5902C>T (p.Arg1968Ter)",
+  "rsid": "rs137854552",
+  "variant_id": 343
+ },
+ "consequence": {
+  "amino_acids": null,
+  "biotype": "protein_coding",
+  "canonical": true,
+  "gene_symbol": "NF1",
+  "hgvs_c": "c.5902C>T",
+  "hgvs_p": "p.Arg1968*",
+  "most_severe": "stop_gained",
+  "protein_position": 1968,
+  "terms": [
+   "stop_gained"
+  ],
+  "transcript_id": "NM_001042492.2"
+ },
+ "consequence_vep": null,
+ "constraint": {
+  "gene_id": "ENSG00000196712",
+  "gene_symbol": "NF1",
+  "lof_z": 9.576174638460834,
+  "mis_z": 9.307297662614111,
+  "oe_lof": 0.374542218527421,
+  "oe_lof_upper": 0.43530675368531674,
+  "oe_mis": 0.626580174832682,
+  "pli": 0.9999949920108552
+ },
+ "frequencies": [
+  {
+   "ac": 3,
+   "af": 2.0524468587300827e-06,
+   "an": 1461670,
+   "homozygote_count": 0,
+   "per_population": {
+    "Admixed American": 0.0,
+    "African/African-American": 0.0,
+    "Ashkenazi Jewish": 0.0,
+    "East Asian": 0.0,
+    "Finnish": 0.0,
+    "Middle Eastern": 0.0,
+    "Non-Finnish European": 1.7987843815149721e-06,
+    "Remaining": 0.0,
+    "South Asian": 1.159366522132307e-05
+   },
+   "popmax_af": 1.159366522132307e-05,
+   "popmax_population": "South Asian",
+   "source": "gnomAD v4 exomes"
+  }
+ ],
+ "gene_description": "Stimulates the GTPase activity of Ras. NF1 shows greater affinity for Ras GAP, but lower specific activity. May be a regulator of Ras activity. {ECO:0000269|PubMed:2121371, ECO:0000269|PubMed:8417346}.",
+ "gene_symbol": "NF1",
+ "literature_pmids": [
+  38804352,
+  27397505,
+  31768066,
+  38225666,
+  42524928,
+  35688842,
+  10336779,
+  33669386,
+  18407053,
+  33978635,
+  28569743,
+  8845843,
+  12112660,
+  27107091,
+  11015700,
+  7649559,
+  16117786,
+  40034205,
+  34080803,
+  38511139,
+  36566697,
+  34327338,
+  32783018,
+  37520682,
+  20186797,
+  36694575,
+  32431664,
+  31925297,
+  41807027,
+  34427956,
+  36865205,
+  33665079,
+  24932921,
+  30302402,
+  29178821,
+  26740943,
+  26147798,
+  31990487,
+  29338072,
+  26167768,
+  31823832,
+  31543384,
+  29899868,
+  36980952,
+  29263839,
+  41527138,
+  16479075,
+  31766501,
+  31533797,
+  27322474,
+  40133996,
+  22913777,
+  30675060,
+  30290804,
+  36009591,
+  28924536,
+  36008825,
+  26757882
+ ],
+ "literature_total": 58,
+ "predictors": [
+  {
+   "call": "damaging",
+   "call_from_threshold": false,
+   "name": "MutationTaster",
+   "rankscore": 0.81001,
+   "score": 1.0
+  },
+  {
+   "call": "damaging",
+   "call_from_threshold": true,
+   "name": "VEST4",
+   "rankscore": 0.99863,
+   "score": 0.993
+  },
+  {
+   "call": "damaging",
+   "call_from_threshold": true,
+   "name": "BayesDel",
+   "rankscore": 0.9786,
+   "score": 0.607496
+  }
+ ],
+ "query": {
+  "alt": "T",
+  "assembly": "hg38",
+  "chrom": "17",
+  "gene": "NF1",
+  "hgvs_c": null,
+  "hgvs_g": "chr17:g.31334927C>T",
+  "kind": "gene_protein",
+  "pos": 31334927,
+  "protein_change": "p.R1947*",
+  "raw": "NF1 R1947*",
+  "ref": "C",
+  "rsid": "rs137854552",
+  "transcript": null
+ },
+ "sources": [
+  {
+   "cached": false,
+   "detail": null,
+   "elapsed_ms": null,
+   "ok": true,
+   "source": "myvariant"
+  },
+  {
+   "cached": false,
+   "detail": null,
+   "elapsed_ms": null,
+   "ok": true,
+   "source": "gnomad"
+  },
+  {
+   "cached": false,
+   "detail": "timeout after 25.0s (budget 26s exhausted)",
+   "elapsed_ms": null,
+   "ok": false,
+   "source": "ensembl_vep"
+  },
+  {
+   "cached": false,
+   "detail": null,
+   "elapsed_ms": null,
+   "ok": true,
+   "source": "opentargets"
+  },
+  {
+   "cached": false,
+   "detail": null,
+   "elapsed_ms": null,
+   "ok": true,
+   "source": "litvar"
+  }
+ ],
+ "splice_ai_max": null
+}

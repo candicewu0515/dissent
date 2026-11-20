@@ -296,7 +296,11 @@ class EvidenceBundle(BaseModel):
     # Independent VEP call, kept separate so the two can be compared rather
     # than one silently overwriting the other.
     consequence_vep: Consequence | None = None
+    # Capped for payload size; `literature_total` keeps the true count, which
+    # the unreviewed-literature detector needs. BRAF V600E has over 32,000
+    # linked publications and storing them all bloated a fixture to 400 KB.
     literature_pmids: list[int] = Field(default_factory=list)
+    literature_total: int = 0
     gene_description: str | None = None
     splice_ai_max: float | None = None
     cadd_phred: float | None = None

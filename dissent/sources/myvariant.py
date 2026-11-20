@@ -223,6 +223,32 @@ def extract_predictors(doc: dict[str, Any]) -> list[PredictorResult]:
     return results
 
 
+_ID_LOCUS = re.compile(r"^(chr[0-9XYMT]+):g\.(\d+)", re.I)
+
+
+def _locus(variant_id: Any) -> tuple[str, str] | None:
+    """`chr7:g.140753336A>T` -> `('CHR7', '140753336')`."""
+    match = _ID_LOCUS.match(str(variant_id or ""))
+    if not match:
+        return None
+    return (match.group(1).upper(), match.group(2))
+
+
+def _same_position_siblings(best: dict[str, Any], hits: list[dict[str, Any]]) -> list[str]:
+    """Other ALT alleles reported at the same locus as the chosen hit."""
+    anchor = _locus(best.get("_id"))
+    if anchor is None:
+        return []
+    out: list[str] = []
+    for hit in hits:
+        hit_id = hit.get("_id")
+        if not hit_id or hit_id == best.get("_id"):
+            continue
+        if _locus(hit_id) == anchor:
+            out.append(str(hit_id))
+    return out
+
+
 def _hit_genes(hit: dict[str, Any]) -> set[str]:
     """Every gene symbol a MyVariant document mentions, upper-cased."""
     genes: set[str] = set()
@@ -409,10 +435,11 @@ class MyVariantClient(SourceClient):
                 cached=status.cached,
             )
         # Record siblings so the report can warn that the input was ambiguous.
+        # Only alleles at the *same genomic position* count: a phrase search for
+        # `p.Val600Glu` also matches that residue change in unrelated genes, and
+        # those are different variants, not alternative alleles of this one.
         best = dict(best)
-        best["_siblings"] = [
-            str(h.get("_id")) for h in hits if h.get("_id") and h.get("_id") != best.get("_id")
-        ]
+        best["_siblings"] = _same_position_siblings(best, hits)
         return best, status
 
     @staticmethod
