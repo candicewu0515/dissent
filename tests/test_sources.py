@@ -18,6 +18,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.conftest import load_bundle as conftest_load_bundle
+
 from dissent.collect import _dbsnp_citations, _dedupe_statuses, _resolve_coordinates
 from dissent.models import (
     UNKNOWN_REVIEW_STARS,
@@ -516,3 +518,42 @@ def test_shape_helpers():
     assert to_float(["not a number"]) is None
     assert to_float_all([0.1, "x", 0.2]) == [0.1, 0.2]
     assert to_int([7.9]) == 7
+
+
+# ==========================================================================
+# Degrading when a source does not answer
+# ==========================================================================
+
+
+def test_a_report_is_complete_without_the_second_annotator():
+    """Ensembl VEP is capped at 8s and fails outright on a fifth of lookups,
+    so running without it is an expected path rather than an edge case.
+
+    It supplies a second opinion on the molecular consequence, not the
+    worksheet: snpEff provides the consequence through MyVariant. If losing
+    VEP ever changed the classification or the criteria, the cap would be
+    trading correctness for speed, which is not the trade being made.
+    """
+    from dissent.acmg.combine import classify
+    from dissent.acmg.criteria import evaluate_all
+
+    bundle = conftest_load_bundle("hfe_c282y")
+
+    with_vep = classify(evaluate_all(bundle))
+    assert bundle.consequence is not None, "fixture should carry a consequence"
+
+    bundle.consequence_vep = None
+    without_vep = classify(evaluate_all(bundle))
+
+    assert without_vep.call == with_vep.call
+    assert without_vep.met_codes == with_vep.met_codes
+
+
+def test_losing_the_second_annotator_silences_the_comparison_rather_than_faking_it():
+    """With one annotator there is nothing to compare, so the detector must
+    stay quiet instead of reporting agreement."""
+    from dissent.conflicts.detectors import annotator_disagreement
+
+    bundle = conftest_load_bundle("braf_v600e")
+    bundle.consequence_vep = None
+    assert annotator_disagreement(bundle) is None

@@ -27,8 +27,12 @@ matters most. Dissent keeps the disagreement and puts it first.
 ## What it does
 
 Give it a genetic variant — `rs1800562`, `HFE C282Y`, `chr6:26092913G>A` — and
-it produces three things in about three seconds. Give it a whole gene
-panel and it orders the lot.
+it produces four things. Give it a whole gene panel and it orders the lot.
+
+Timing, measured rather than claimed: a lookup already in the cache returns in
+**under a tenth of a second**; a cold one takes **about ten seconds**, almost
+all of it waiting on Ensembl VEP, which is capped so that a slow answer costs
+the second opinion on the molecular consequence rather than the page.
 
 **A draft worksheet.** Clinical geneticists classify variants against 28 formal
 criteria. Dissent evaluates all 28, with every judgement sourced and linked, and
@@ -44,7 +48,7 @@ one, prediction tools splitting, a frequency that contradicts a disease claim,
 and criteria for inherited disease being applied to a tumour variant.
 
 **A plain sentence.** Every report opens with one line that needs no
-vocabulary. For HFE C282Y: *"7 laboratories call this variant disease-causing.
+vocabulary. For HFE C282Y: *"8 laboratories call this variant disease-causing.
 It is carried by about 1 in 8 people of Non-Finnish European descent. Those two
 facts are hard to reconcile, and nothing in either database mentions the
 other."*
@@ -97,7 +101,7 @@ can clone the repository and run it without signing up for a single service.
 
 The architecture point that matters: every criterion and every detector is a
 **pure function** over an evidence bundle. No I/O, no state. That is what makes
-each rule auditable by reading one function, and what lets 515 tests run with
+each rule auditable by reading one function, and what lets 519 tests run with
 the socket constructor replaced — CI enforces that the suite never touches the
 network, rather than a README asserting it.
 
@@ -195,10 +199,56 @@ Ensembl VEP, snpEff, Open Targets, NCBI LitVar2, NCBI E-utilities.
 
 ---
 
+## Track
+
+**Healthcare & Environmental.**
+
+The four tracks, in the organisers' own words (read from the live rules page on
+20 November 2026):
+
+| Track | Official description |
+|---|---|
+| **Healthcare & Environmental** | "Your project improves people's health or wellbeing, or helps the environment." |
+| Robotics & IoT | "Your project uses hardware." |
+| AI, Agentic Systems, Cybersecurity, and Dev Tools | "Your project integrates AI, makes software more secure, or helps developers build." |
+| Open | "Your project doesn't fit the other tracks." |
+
+Checked against the project rather than against what sounds impressive:
+
+- It **integrates no AI.** Not a single model call. The closest thing is reading
+  the published scores of pre-trained missense predictors out of dbNSFP, which
+  is reading a database column.
+- It **secures no software.**
+- It **does not help developers build.** It helps a clinical scientist read
+  evidence.
+- It **does improve people's health or wellbeing**: variant interpretation is
+  what sits between a sequencing result and a clinical decision.
+
+Three further reasons this is not a close call:
+
+1. Judging happens *inside* a track first — "Judges score each project within
+   its track, then judge top projects overall for the top 3 winners." The wrong
+   track means being compared with projects that genuinely belong there.
+2. Each track has its own prize (CAD $50 + Adaption Lab credits), so the wrong
+   track forfeits a prize this project can realistically compete for.
+3. "Organizers may move a project to a track that fits it better." Submitting
+   to AI/Dev Tools would likely be corrected anyway, and the correction is
+   evidence the entrant did not read the project the way a judge does.
+
+It is a dropdown at submission time and can be changed.
+
+## Eligibility, worth checking before you spend the time
+
+The rules say GenHacks is "open to students age 13 and older, at any level of
+school" and that "Companies and other professional organizations can't
+participate." If you are entering as a student this is fine. If your position
+is staff or research-employee rather than student, confirm with the organisers
+(projectdextera@gmail.com) before submitting rather than after.
+
 ## Submission checklist
 
 - [ ] Project page filled in on Devpost, including the disclosures above
-- [ ] Track selected
+- [ ] Track set to **Healthcare & Environmental** (see above)
 - [ ] Demo video, **3:00 maximum**, on YouTube or Vimeo, **embedding enabled**
 - [ ] Public repository link, with a real author identity on the commits
 - [ ] All team members added on Devpost
@@ -227,7 +277,7 @@ will watch muted.
 | 2:06–2:30 | `/panel`. Click the carrier-screening panel, hit Triage. **Let the tiles fill on camera** — rows land every few seconds. Settle on the Contradicted group, three rows, then scroll once past Thin evidence. | "One variant saves you fifteen minutes. A panel changes what you read at all. Ten variants, same six sources, sorted by what a person still has to decide. Three are contradicted outright. One doesn't resolve — and the error tells you why." |
 | 2:30–2:40 | `/scale`. The gene leaderboard. Pause on BRCA2, TP53, BRCA1. | "Across the whole database: the genes where laboratories disagree most are the ones where being wrong costs the most." |
 | 2:40–2:46 | Fast cut: BRCA1 C61G, conflict panel quiet. | "When the evidence agrees, it says so. A tool that cries wolf teaches you to ignore it." |
-| 2:46–2:54 | Split screen: `python -m dissent --panel panel.txt` printing the same worklist, then `pytest` → **515 passed**. | "Same engine in the terminal. Six public APIs, no keys. 515 tests, none touching the network." |
+| 2:46–2:54 | Split screen: `python -m dissent --panel panel.txt` printing the same worklist, then `pytest` → **519 passed**. | "Same engine in the terminal. Six public APIs, no keys. 519 tests, none touching the network." |
 | 2:54–3:00 | Static end card: live URL (large), repository, track. "Built with Claude — disclosed per the rules." | "Dissent. The disagreement is the finding." |
 
 **Before you hit record**, run this once. It fetches everything the demo

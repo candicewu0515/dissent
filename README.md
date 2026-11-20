@@ -86,7 +86,7 @@ measured base rate so a finding can be placed rather than merely stated:
 | Unreviewed literature | Substantial literature, weak curation |
 
 Each report also opens with one sentence that needs no vocabulary. For
-HFE C282Y: *"7 laboratories call this variant disease-causing. It is carried by
+HFE C282Y: *"8 laboratories call this variant disease-causing. It is carried by
 about 1 in 8 people of Non-Finnish European descent. Those two facts are hard to
 reconcile, and nothing in either database mentions the other."*
 
@@ -186,7 +186,7 @@ python -m dissent --panel my_panel.txt
 python -m dissent --panel my_panel.txt --csv > worklist.csv
 ```
 
-Tests — 515 of them, none touching the network, so they run anywhere:
+Tests — 519 of them, none touching the network, so they run anywhere:
 
 ```bash
 python -m pytest
@@ -263,7 +263,7 @@ not known until the first phase answers:
 ### Decisions worth stating
 
 **Every criterion and detector is a pure function** over the evidence bundle.
-No I/O, no state. That is what lets the 515 tests run offline against recorded
+No I/O, no state. That is what lets the 519 tests run offline against recorded
 fixtures, and what lets a reviewer audit a rule by reading one function. The
 fixtures come in two layers: normalised bundles for the scoring rules, and
 verbatim API payloads for the code that produces them.

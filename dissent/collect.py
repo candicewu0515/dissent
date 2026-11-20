@@ -188,12 +188,28 @@ async def collect_evidence(
         # single attempt: its frequencies are also carried inside the MyVariant
         # document, which `_merge_frequencies` falls back to.
         myvariant = MyVariantClient(client=client, cache=cache, timeout=12.0, budget=26.0)
-        # VEP latency is erratic (3-60s measured), so it gets one long
-        # attempt and is never the only source of the consequence.
-        ensembl = EnsemblClient(client=client, cache=cache, timeout=25.0, budget=26.0)
+        # Ensembl VEP is the slowest source by an order of magnitude and the
+        # least reliable. Sampled over ten variants: median 4.1s, but 18s and
+        # 28s in the tail and two that never answered inside 30s. At the old
+        # 25s timeout one of those tail cases held the whole page, which took
+        # a cold lookup to a median of 25s.
+        #
+        # 8s rather than something longer, because raising the cap does not
+        # buy availability: measured over the same eight variants, 8s and 12s
+        # both left VEP unavailable on five of them, so the slow ones are
+        # failing rather than being slow, and the extra four seconds are spent
+        # waiting for an answer that does not arrive. No room to retry for the
+        # same reason. Cold median with this cap: 9.7s.
+        #
+        # Losing it costs the second opinion on the molecular consequence, not
+        # the worksheet -- snpEff supplies the consequence through MyVariant,
+        # so the classification, the criteria and the other detectors are
+        # unchanged, the annotator-disagreement check simply has nothing to
+        # compare, and the source panel says VEP did not answer.
+        ensembl = EnsemblClient(client=client, cache=cache, timeout=8.0, budget=9.0)
         gnomad = GnomadClient(client=client, cache=cache, timeout=10.0, budget=11.0)
         opentargets = OpenTargetsClient(client=client, cache=cache, timeout=10.0, budget=21.0)
-        litvar = LitVarClient(client=client, cache=cache, timeout=8.0, budget=9.0)
+        litvar = LitVarClient(client=client, cache=cache, timeout=12.0, budget=13.0)
 
         # ---- phase 1 -----------------------------------------------------
         # VEP is queried by region+allele, never by rsID, whenever coordinates

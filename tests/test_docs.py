@@ -142,3 +142,48 @@ def test_the_quoted_test_count_matches_the_suite(pytestconfig):
     assert quoted == {collected}, (
         f"README says {sorted(quoted)}, the suite collects {collected}"
     )
+
+
+# --------------------------------------------------------------------------
+# Output quoted in the documentation
+# --------------------------------------------------------------------------
+
+SUBMISSION = (ROOT / "docs" / "02-submission.md").read_text()
+
+
+def test_the_quoted_hfe_sentence_is_the_one_the_code_produces():
+    """Both the README and the submission page quote this sentence as an
+    example of the output. It is generated, so it drifts: recovering two
+    ClinVar records that the significance mapping had been dropping changed
+    "7 laboratories" to "8", and nothing would have caught it.
+
+    Asserts the opening clause rather than the whole sentence, so rewording
+    the population figure is not a test failure while the generated count
+    going stale is.
+    """
+    from datetime import date
+
+    from dissent.report import build_report
+    from tests.conftest import load_bundle
+
+    summary = build_report(load_bundle("hfe_c282y"), today=date(2026, 11, 20)).summary
+    assert summary, "the HFE report should open with a plain sentence"
+    clause = summary.split(".")[0].strip() + "."
+
+    for name, text in (("README.md", README), ("docs/02-submission.md", SUBMISSION)):
+        assert clause in text, (
+            f"{name} quotes a different opening clause than the code produces.\n"
+            f"  code: {clause!r}"
+        )
+
+
+def test_the_documentation_does_not_promise_a_speed_the_cap_rules_out():
+    """Ensembl VEP is capped at 8 seconds, so a cold lookup cannot be the
+    "about three seconds" the submission page used to claim. An overclaim in
+    a document a judge reads is worse than a slow tool."""
+    import re
+
+    for name, text in (("README.md", README), ("docs/02-submission.md", SUBMISSION)):
+        assert not re.search(r"in about (one|two|three) seconds", text), (
+            f"{name} still claims a cold lookup time the VEP cap rules out"
+        )
