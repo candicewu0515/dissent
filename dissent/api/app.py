@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import asynccontextmanager
+import hashlib
 import json
 from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from dissent.baseline.rates import load_baseline
@@ -19,6 +20,31 @@ from dissent.report import interpret
 from dissent.sources.base import USER_AGENT
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+
+
+def _asset_version() -> str:
+    """A short digest of the static assets, appended to their URLs.
+
+    Without it a browser keeps serving the stylesheet it already has: a CSS
+    change looked like it had not applied at all, which is an easy hour to
+    lose and would be worse after a deploy than in development.
+    """
+    digest = hashlib.sha256()
+    for path in sorted(WEB_DIR.glob("*")):
+        if path.suffix in (".css", ".js"):
+            digest.update(path.read_bytes())
+    return digest.hexdigest()[:10]
+
+
+ASSET_VERSION = _asset_version()
+
+
+def _page(name: str) -> HTMLResponse:
+    """Serve a page with its asset links versioned."""
+    html = (WEB_DIR / name).read_text()
+    html = html.replace('.css"', f'.css?v={ASSET_VERSION}"')
+    html = html.replace('.js"', f'.js?v={ASSET_VERSION}"')
+    return HTMLResponse(html)
 DATA_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "clinvar_baseline.json"
 
 # Curated demo variants. Each was chosen because it exercises a different
@@ -182,18 +208,22 @@ async def api_baseline_gene(symbol: str = Query(..., min_length=1, max_length=40
 
 
 @app.get("/scale")
-async def scale() -> FileResponse:
-    return FileResponse(WEB_DIR / "scale.html")
+async def scale() -> HTMLResponse:
+    return _page("scale.html")
 
 
 @app.get("/api/health")
 async def health() -> dict:
-    return {"status": "ok", "cache": app.state.cache.stats()}
+    return {
+        "status": "ok",
+        "assets": ASSET_VERSION,
+        "cache": app.state.cache.stats(),
+    }
 
 
 @app.get("/")
-async def index() -> FileResponse:
-    return FileResponse(WEB_DIR / "index.html")
+async def index() -> HTMLResponse:
+    return _page("index.html")
 
 
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")

@@ -643,3 +643,52 @@ footer.foot a { color: var(--accent); }
   border-bottom: 2px solid transparent;
 }
 .hero-link:hover { border-bottom-color: var(--accent); }
+
+/* ---------- narrow screens ---------- */
+
+/* Variant identifiers are long unbroken monospace strings -- an HGVS name such
+   as NM_000410.4(HFE):c.845G>A (p.Cys282Tyr) is 40 characters with no spaces
+   the browser will break at. Left alone it pushed the page to 916px on a
+   375px viewport. */
+.identity .name,
+.identity .meta,
+table.data .mono,
+.crit-detail .codeline,
+.src .nm {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Grid and flex children default to min-width:auto, which refuses to shrink
+   below their content. */
+.verdicts > *,
+.crit-grid > *,
+.charts > *,
+.tiles > *,
+.srcgrid > * {
+  min-width: 0;
+}
+
+/* A wide table is better scrolled than squashed to illegibility. */
+#clinvar-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+table.data { min-width: 620px; }
+
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .brand h1 { font-size: 32px; }
+  .summary { font-size: 20px; padding: 18px 18px; }
+  .hero-number { font-size: 62px; }
+  .tile-figure { font-size: 44px; }
+  .gene-rate { font-size: 44px; }
+  h2.section-title { font-size: 23px; }
+  .identity .name { font-size: 18px; }
+  .conflict h3 { font-size: 17.5px; }
+  .crit-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  /* Charts are authored at a fixed viewBox width; let them scroll rather than
+     scale the labels down to nothing. */
+  .chart-card { overflow-x: auto; }
+  .chart-card svg { min-width: 520px; }
+}
