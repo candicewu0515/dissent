@@ -1,6 +1,12 @@
 # Dissent
 
-[![tests](https://github.com/OWNER/REPO/actions/workflows/tests.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/tests.yml)
+<!-- Once this repository exists on GitHub, paste the badge here, replacing
+     OWNER/REPO with the real path:
+     [![tests](https://github.com/OWNER/REPO/actions/workflows/tests.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/tests.yml)
+     Until then the line below says the same thing without a broken image. -->
+
+Tests run on Python 3.11, 3.12 and 3.13 in CI, with networking disabled
+([the workflow](.github/workflows/tests.yml)).
 
 **A variant interpretation engine that shows you the argument, not just the answer.**
 
@@ -192,6 +198,25 @@ rather than asserted:
 ```bash
 python -m pytest --no-network
 ```
+
+### Deploying it
+
+```bash
+docker build -t dissent . && docker run -p 8000:8000 dissent
+```
+
+Nothing to configure: no API keys, no database, and the ClinVar baseline ships
+in the image. `PORT` is read from the environment, so the same image runs on a
+platform that assigns one. `DISSENT_CACHE_PATH` points the response cache at a
+writable volume; on a read-only filesystem it turns itself off instead of
+failing, and `/api/health` then says so:
+
+```json
+{"status":"ok","cache":{"enabled":false,"reason":"unable to open database file"}}
+```
+
+Verified: the image runs with `--read-only`, serves every route, and shuts
+down on SIGTERM in under a second rather than waiting to be killed.
 
 ## How it works
 
