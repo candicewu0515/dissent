@@ -18,6 +18,19 @@ _SEVERITY_MARK = {"high": "!!", "medium": "! ", "low": "  "}
 _STATUS_MARK = {"met": "[MET]", "not_met": "[ - ]", "insufficient": "[ ? ]", "manual": "[MAN]"}
 
 
+def _resolved(report) -> bool:
+    """Whether the lookup actually found the variant.
+
+    Coordinates alone are enough: a variant can legitimately be absent from
+    ClinVar and still be a real, annotatable locus.
+    """
+    q = report.query
+    if q.chrom and q.pos:
+        return True
+    bundle = report.bundle
+    return bool(bundle and (bundle.clinvar or bundle.consequence))
+
+
 def _wrap(text: str, width: int) -> list[str]:
     import textwrap
 
@@ -111,6 +124,23 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     report = asyncio.run(interpret(args.variant, assembly=args.assembly, cache=ResponseCache()))
+
+    # A variant that did not resolve must not be presented as a finished
+    # worksheet. `dissent banana` previously printed all 28 criteria reading
+    # "Uncertain significance / Pathogenic evidence: nothing" and exited 0.
+    if not _resolved(report):
+        print(
+            f"Could not resolve {args.variant!r}.\n\n"
+            "Accepted forms:\n"
+            "  rs113488022                 dbSNP identifier\n"
+            "  BRAF V600E                  gene and protein change\n"
+            "  chr7:140753336A>T           genomic coordinates\n"
+            "  NM_004333.6:c.1799T>A       transcript and coding change\n\n"
+            "Protein-notation indels such as 'CFTR F508del' are not yet parsed; "
+            "use the rsID or coordinates for those.",
+            file=sys.stderr,
+        )
+        return 3
 
     if args.json:
         print(report.model_dump_json(indent=2))

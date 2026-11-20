@@ -1,0 +1,943 @@
+{
+ "_id": "chr17:g.31334927C>T",
+ "_score": 27.356697,
+ "chrom": "17",
+ "clingen": {
+  "caid": "CA325489"
+ },
+ "clinvar": {
+  "_license": "http://bit.ly/2SQdcI0",
+  "allele_id": 15382,
+  "alt": "T",
+  "chrom": "17",
+  "cytogenic": "17q11.2",
+  "gene": {
+   "id": "4763",
+   "symbol": "NF1"
+  },
+  "hg19": {
+   "end": 29661945,
+   "start": 29661945
+  },
+  "hg38": {
+   "end": 31334927,
+   "start": 31334927
+  },
+  "hgvs": {
+   "coding": [
+    "LRG_214t1:c.5839C>T",
+    "LRG_214t2:c.5902C>T",
+    "NM_000267.3:c.5839C>T",
+    "NM_001042492.3:c.5902C>T",
+    "NM_001042492.3:c.5902C>T"
+   ],
+   "genomic": [
+    "LRG_214:g.244951C>T",
+    "NC_000017.10:g.29661945C>T",
+    "NC_000017.11:g.31334927C>T",
+    "NG_009018.1:g.244951C>T"
+   ],
+   "protein": [
+    "LRG_214p1:p.Arg1947Ter",
+    "LRG_214p2:p.Arg1968Ter",
+    "NP_000258.1:p.Arg1947Ter",
+    "NP_001035957.1:p.Arg1968Ter",
+    "NP_001035957.1:p.Arg1968Ter",
+    "p.(Arg1947*)"
+   ]
+  },
+  "omim": "613113.0012",
+  "rcv": [
+   {
+    "accession": "RCV000000371",
+    "clinical_significance": "Pathogenic",
+    "conditions": {
+     "identifiers": {
+      "medgen": "C0027831",
+      "mondo": "MONDO:0018975",
+      "omim": "162200",
+      "orphanet": "636"
+     },
+     "name": "Neurofibromatosis, type 1 (NF1)",
+     "synonyms": [
+      "NEUROFIBROMATOSIS, TYPE I",
+      "VON RECKLINGHAUSEN DISEASE",
+      "Recklinghausen's disease",
+      "NEUROFIBROMATOSIS, TYPE I, SOMATIC",
+      "Peripheral type neurofibromatosis"
+     ]
+    },
+    "last_evaluated": "2024-11-11",
+    "number_submitters": 11,
+    "origin": "germline",
+    "preferred_name": "NM_001042492.3(NF1):c.5902C>T (p.Arg1968Ter)",
+    "review_status": "criteria provided, multiple submitters, no conflicts"
+   },
+   {
+    "accession": "RCV000418287",
+    "clinical_significance": "Pathogenic",
+    "conditions": {
+     "identifiers": {
+      "medgen": "C3661900"
+     },
+     "name": "not provided",
+     "synonyms": [
+      "none provided",
+      "RECLASSIFIED - ADRA2C POLYMORPHISM",
+      "RECLASSIFIED - ADRB1 POLYMORPHISM"
+     ]
+    },
+    "last_evaluated": "2022-05-27",
+    "number_submitters": 4,
+    "origin": "germline",
+    "preferred_name": "NM_001042492.3(NF1):c.5902C>T (p.Arg1968Ter)",
+    "review_status": "criteria provided, multiple submitters, no conflicts"
+   },
+   {
+    "accession": "RCV000492774",
+    "clinical_significance": "Pathogenic",
+    "conditions": {
+     "identifiers": {
+      "medgen": "C0027672",
+      "mesh": "D009386",
+      "mondo": "MONDO:0015356"
+     },
+     "name": "Hereditary cancer-predisposing syndrome",
+     "synonyms": [
+      "Neoplastic Syndromes, Hereditary",
+      "Tumor predisposition",
+      "Cancer predisposition",
+      "Hereditary neoplastic syndrome",
+      "Hereditary Cancer Syndrome"
+     ]
+    },
+    "last_evaluated": "2014-11-04",
+    "number_submitters": 1,
+    "origin": "germline",
+    "preferred_name": "NM_001042492.3(NF1):c.5902C>T (p.Arg1968Ter)",
+    "review_status": "criteria provided, single submitter"
+   },
+   {
+    "accession": "RCV000762995",
+    "clinical_significance": "Pathogenic",
+    "conditions": [
+     {
+      "identifiers": {
+       "medgen": "C1834235",
+       "mondo": "MONDO:0008078",
+       "omim": "162210",
+       "orphanet": "636"
+      },
+      "name": "Neurofibromatosis, familial spinal (FSNF)"
+     },
+     {
+      "identifiers": {
+       "human_phenotype_ontology": "HP:0012209",
+       "medgen": "C0349639",
+       "mondo": "MONDO:0011908",
+       "omim": "607785",
+       "orphanet": "86834"
+      },
+      "name": "Juvenile myelomonocytic leukemia (JMML)",
+      "synonyms": [
+       "LEUKEMIA, JUVENILE MYELOMONOCYTIC, SOMATIC"
+      ]
+     },
+     {
+      "identifiers": {
+       "medgen": "C0027831",
+       "mondo": "MONDO:0018975",
+       "omim": "162200",
+       "orphanet": "636"
+      },
+      "name": "Neurofibromatosis, type 1 (NF1)",
+      "synonyms": [
+       "NEUROFIBROMATOSIS, TYPE I",
+       "VON RECKLINGHAUSEN DISEASE",
+       "Recklinghausen's disease",
+       "NEUROFIBROMATOSIS, TYPE I, SOMATIC",
+       "Peripheral type neurofibromatosis"
+      ]
+     },
+     {
+      "identifiers": {
+       "medgen": "C2931482",
+       "mondo": "MONDO:0011035",
+       "omim": "601321",
+       "orphanet": "638"
+      },
+      "name": "Neurofibromatosis-Noonan syndrome (NFNS)",
+      "synonyms": [
+       "NEUROFIBROMATOSIS WITH NOONAN PHENOTYPE"
+      ]
+     },
+     {
+      "identifiers": {
+       "medgen": "C0553586",
+       "mondo": "MONDO:0008672",
+       "omim": "193520"
+      },
+      "name": "Caf\u00e9-au-lait macules with pulmonary stenosis (WTSN)",
+      "synonyms": [
+       "PULMONIC STENOSIS WITH CAFE-AU-LAIT SPOTS"
+      ]
+     }
+    ],
+    "last_evaluated": "2018-10-31",
+    "number_submitters": 1,
+    "origin": "unknown",
+    "preferred_name": "NM_001042492.3(NF1):c.5902C>T (p.Arg1968Ter)",
+    "review_status": "criteria provided, single submitter"
+   },
+   {
+    "accession": "RCV001009602",
+    "clinical_significance": "Pathogenic",
+    "conditions": [
+     {
+      "identifiers": {
+       "medgen": "C0027831",
+       "mondo": "MONDO:0018975",
+       "omim": "162200",
+       "orphanet": "636"
+      },
+      "name": "Neurofibromatosis, type 1 (NF1)",
+      "synonyms": [
+       "NEUROFIBROMATOSIS, TYPE I",
+       "VON RECKLINGHAUSEN DISEASE",
+       "Recklinghausen's disease",
+       "NEUROFIBROMATOSIS, TYPE I, SOMATIC",
+       "Peripheral type neurofibromatosis"
+      ]
+     },
+     {
+      "identifiers": {
+       "human_phenotype_ontology": "HP:0009736",
+       "medgen": "C4024216"
+      },
+      "name": "Tibial pseudarthrosis"
+     }
+    ],
+    "last_evaluated": "2018-11-10",
+    "number_submitters": 1,
+    "origin": "de novo",
+    "preferred_name": "NM_001042492.3(NF1):c.5902C>T (p.Arg1968Ter)",
+    "review_status": "criteria provided, single submitter"
+   },
+   {
+    "accession": "RCV003460398",
+    "clinical_significance": "Pathogenic",
+    "conditions": {
+     "identifiers": {
+      "human_phenotype_ontology": "HP:0012209",
+      "medgen": "C0349639",
+      "mondo": "MONDO:0011908",
+      "omim": "607785",
+      "orphanet": "86834"
+     },
+     "name": "Juvenile myelomonocytic leukemia (JMML)",
+     "synonyms": [
+      "LEUKEMIA, JUVENILE MYELOMONOCYTIC, SOMATIC"
+     ]
+    },
+    "last_evaluated": "2021-09-03",
+    "number_submitters": 1,
+    "origin": "unknown",
+    "preferred_name": "NM_001042492.3(NF1):c.5902C>T (p.Arg1968Ter)",
+    "review_status": "criteria provided, single submitter"
+   },
+   {
+    "accession": "RCV004547450",
+    "clinical_significance": "Pathogenic",
+    "conditions": {
+     "identifiers": {
+      "medgen": "CN379171"
+     },
+     "name": "NF1-related disorder",
+     "synonyms": [
+      "NF1-related condition"
+     ]
+    },
+    "last_evaluated": "2022-09-28",
+    "number_submitters": 1,
+    "origin": "germline",
+    "preferred_name": "NM_001042492.3(NF1):c.5902C>T (p.Arg1968Ter)",
+    "review_status": "criteria provided, single submitter"
+   },
+   {
+    "accession": "RCV004558221",
+    "clinical_significance": "Pathogenic",
+    "conditions": [
+     {
+      "identifiers": {
+       "medgen": "C0027672",
+       "mesh": "D009386",
+       "mondo": "MONDO:0015356"
+      },
+      "name": "Hereditary cancer-predisposing syndrome",
+      "synonyms": [
+       "Neoplastic Syndromes, Hereditary",
+       "Tumor predisposition",
+       "Cancer predisposition",
+       "Hereditary neoplastic syndrome",
+       "Hereditary Cancer Syndrome"
+      ]
+     },
+     {
+      "identifiers": {
+       "medgen": "CN230736"
+      },
+      "name": "Cardiovascular phenotype"
+     }
+    ],
+    "last_evaluated": "2021-10-14",
+    "number_submitters": 1,
+    "origin": "germline",
+    "preferred_name": "NM_001042492.3(NF1):c.5902C>T (p.Arg1968Ter)",
+    "review_status": "criteria provided, single submitter"
+   },
+   {
+    "accession": "RCV004562178",
+    "clinical_significance": "Pathogenic",
+    "conditions": {
+     "identifiers": {
+      "medgen": "C2931482",
+      "mondo": "MONDO:0011035",
+      "omim": "601321",
+      "orphanet": "638"
+     },
+     "name": "Neurofibromatosis-Noonan syndrome (NFNS)",
+     "synonyms": [
+      "NEUROFIBROMATOSIS WITH NOONAN PHENOTYPE"
+     ]
+    },
+    "last_evaluated": "2023-10-23",
+    "number_submitters": 1,
+    "origin": "germline",
+    "preferred_name": "NM_001042492.3(NF1):c.5902C>T (p.Arg1968Ter)",
+    "review_status": "no assertion criteria provided"
+   }
+  ],
+  "ref": "C",
+  "rsid": "rs137854552",
+  "type": "single nucleotide variant",
+  "variant_id": 343
+ },
+ "dbnsfp": {
+  "_license": "http://bit.ly/2VLnQBz",
+  "aa": {
+   "alt": "X",
+   "codon_degeneracy": [
+    2,
+    2,
+    2,
+    2
+   ],
+   "codonpos": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "pos": [
+    1968,
+    1947,
+    1613,
+    156
+   ],
+   "ref": "R",
+   "refcodon": [
+    "CGA",
+    "CGA",
+    "CGA",
+    "CGA"
+   ]
+  },
+  "alfa": {
+   "african": {
+    "ac": 1,
+    "af": 0.00030012004801920766,
+    "an": 3332
+   },
+   "african_american": {
+    "ac": 1,
+    "af": 0.00031075201988812925,
+    "an": 3218
+   },
+   "african_others": {
+    "ac": 0,
+    "af": 0.0,
+    "an": 114
+   },
+   "asian": {
+    "ac": 0,
+    "af": 0.0,
+    "an": 146
+   },
+   "east_asian": {
+    "ac": 0,
+    "af": 0.0,
+    "an": 120
+   },
+   "european": {
+    "ac": 0,
+    "af": 0.0,
+    "an": 9768
+   },
+   "latin_american_1": {
+    "ac": 0,
+    "af": 0.0,
+    "an": 146
+   },
+   "latin_american_2": {
+    "ac": 0,
+    "af": 0.0,
+    "an": 610
+   },
+   "other": {
+    "ac": 0,
+    "af": 0.0,
+    "an": 604
+   },
+   "other_asian": {
+    "ac": 0,
+    "af": 0.0,
+    "an": 26
+   },
+   "south_asian": {
+    "ac": 0,
+    "af": 0.0,
+    "an": 104
+   },
+   "total": {
+    "ac": 1,
+    "af": 6.798096532970769e-05,
+    "an": 14710
+   }
+  },
+  "aloft": {
+   "confidence": "High",
+   "fraction_transcripts_affected": "2/5",
+   "pred": "Dominant",
+   "prob_dominant": "0.97045",
+   "prob_recessive": "0.0272",
+   "prob_tolerant": "0.00235"
+  },
+  "alt": "T",
+  "altai_neandertal": [
+   "C",
+   "C"
+  ],
+  "ancestral_allele": "C",
+  "appris": [
+   "alternative2",
+   "principal3"
+  ],
+  "bayesdel": {
+   "add_af": {
+    "pred": "D",
+    "rankscore": 0.9786,
+    "score": 0.607496
+   },
+   "no_af": {
+    "pred": "D",
+    "rankscore": 0.97827,
+    "score": 0.634849
+   }
+  },
+  "bstatistic": {
+   "converted_rankscore": 0.29131,
+   "score": 882.0
+  },
+  "cadd": {
+   "phred": 38.0,
+   "raw_rankscore": 0.97798,
+   "raw_score": 8.620759
+  },
+  "cds_strand": [
+   "+",
+   "+",
+   "+",
+   "+"
+  ],
+  "chagyrskaya_neandertal": [
+   "C",
+   "C"
+  ],
+  "chrom": "17",
+  "clinvar": {
+   "clinvar_id": "343",
+   "clnsig": "Pathogenic",
+   "hgvs": "NC_000017.11:g.31334927C>T",
+   "medgen": [
+    "C0027831",
+    "C4024216",
+    "C0027672",
+    "C3661900",
+    "C0553586",
+    "C2931482",
+    "C0349639",
+    "C1834235"
+   ],
+   "omim": [
+    "162200",
+    "193520",
+    "601321",
+    "607785",
+    "162210"
+   ],
+   "orphanet": [
+    "636",
+    "140162",
+    "3444",
+    "638",
+    "86834",
+    "636"
+   ],
+   "review": "criteria_provided,_multiple_submitters,_no_conflicts",
+   "trait": [
+    "Neurofibromatosis,_type_1",
+    "Tibial_pseudarthrosis",
+    "NF1-related_condition",
+    "Hereditary_cancer-predisposing_syndrome",
+    "not_provided",
+    "Caf\u00e9-au-lait_macules_with_pulmonary_stenosis",
+    "Neurofibromatosis-Noonan_syndrome",
+    "Juvenile_myelomonocytic_leukemia",
+    "Neurofibromatosis,_familial_spinal"
+   ],
+   "var_source": [
+    "ClinGen:CA325489",
+    "OMIM:613113.0012"
+   ]
+  },
+  "dann": {
+   "rankscore": 0.84152,
+   "score": 0.997491590585133
+  },
+  "denisova": [
+   "C",
+   "C"
+  ],
+  "eigen": {
+   "phred_coding": 6.821307,
+   "raw_coding": 0.677938313645297,
+   "raw_coding_rankscore": 0.78186
+  },
+  "eigen-pc": {
+   "phred_coding": 5.532629,
+   "raw_coding": 0.538828619074784,
+   "raw_coding_rankscore": 0.70623
+  },
+  "ensembl": {
+   "geneid": [
+    "ENSG00000196712",
+    "ENSG00000196712",
+    "ENSG00000196712",
+    "ENSG00000196712"
+   ],
+   "proteinid": [
+    "ENSP00000351015",
+    "ENSP00000348498",
+    "ENSP00000389907",
+    "ENSP00000492721"
+   ],
+   "transcriptid": [
+    "ENST00000358273",
+    "ENST00000356175",
+    "ENST00000456735",
+    "ENST00000581113"
+   ]
+  },
+  "fathmm-mkl": {
+   "coding_group": "AEFBI",
+   "coding_pred": "D",
+   "coding_rankscore": 0.56576,
+   "coding_score": 0.928
+  },
+  "fathmm-xf": {
+   "coding_pred": "N",
+   "coding_rankscore": 0.20737,
+   "coding_score": 0.103517
+  },
+  "fitcons": {
+   "gm12878": {
+    "confidence_value": 0,
+    "rankscore": 0.89359,
+    "score": 0.724815
+   },
+   "h1-hesc": {
+    "confidence_value": 0,
+    "rankscore": 0.50148,
+    "score": 0.65145
+   },
+   "huvec": {
+    "confidence_value": 0,
+    "rankscore": 0.83352,
+    "score": 0.714379
+   },
+   "integrated": {
+    "confidence_value": 0,
+    "rankscore": 0.73137,
+    "score": 0.706548
+   }
+  },
+  "gencode_basic": [
+   "Y",
+   "Y"
+  ],
+  "genename": [
+   "NF1",
+   "NF1",
+   "NF1",
+   "NF1"
+  ],
+  "genocanyon": {
+   "rankscore": 0.46732,
+   "score": 0.999931297626954
+  },
+  "gerp++": {
+   "nr": 5.48,
+   "rs": 4.42,
+   "rs_rankscore": 0.52775
+  },
+  "hg18": {
+   "end": 26686071,
+   "start": 26686071
+  },
+  "hg19": {
+   "end": 29661945,
+   "start": 29661945
+  },
+  "hg38": {
+   "end": 31334927,
+   "start": 31334927
+  },
+  "hgvsc": [
+   "c.4837C>T",
+   "c.5839C>T",
+   "n.1219C>T",
+   "c.466C>T",
+   "c.5902C>T"
+  ],
+  "hgvsp": [
+   "p.Arg1968*",
+   "p.Arg1613Ter",
+   "p.Arg156Ter",
+   "p.Arg1968Ter",
+   "p.Arg1947*",
+   "p.Arg1613*",
+   "p.R1968X",
+   "p.Arg1947Ter",
+   "p.R1947X"
+  ],
+  "lrt": {
+   "converted_rankscore": 0.8433,
+   "omega": 0.0,
+   "pred": "D",
+   "score": 0.0
+  },
+  "mutationtaster": {
+   "aae": [
+    "R1947*",
+    "R1968*"
+   ],
+   "converted_rankscore": 0.81001,
+   "model": [
+    "complex_aae",
+    "complex_aae"
+   ],
+   "pred": [
+    "A",
+    "A"
+   ],
+   "score": [
+    1.0,
+    1.0
+   ]
+  },
+  "phastcons": {
+   "100way_vertebrate": {
+    "rankscore": 0.71638,
+    "score": 1.0
+   },
+   "17way_primate": {
+    "rankscore": 0.79791,
+    "score": 0.997
+   },
+   "470way_mammalian": {
+    "rankscore": 0.68203,
+    "score": 1.0
+   }
+  },
+  "phylop": {
+   "100way_vertebrate": {
+    "rankscore": 0.4861,
+    "score": 2.929
+   },
+   "17way_primate": {
+    "rankscore": 0.4025,
+    "score": 0.599
+   },
+   "470way_mammalian": {
+    "rankscore": 0.28538,
+    "score": 1.759
+   }
+  },
+  "ref": "C",
+  "rsid": "rs137854552",
+  "siphy_29way": {
+   "logodds_rankscore": 0.70917,
+   "logodds_score": 14.975,
+   "pi": {
+    "a": 0.1858,
+    "c": 0.8142,
+    "g": 0.0,
+    "t": 0.0
+   }
+  },
+  "tsl": [
+   1,
+   1,
+   5,
+   5
+  ],
+  "uniprot": [
+   {
+    "acc": "P21359",
+    "entry": "NF1_HUMAN"
+   },
+   {
+    "acc": "P21359-2",
+    "entry": "NF1_HUMAN"
+   },
+   {
+    "acc": "H0Y465",
+    "entry": "H0Y465_HUMAN"
+   },
+   {
+    "acc": "A0A1W2PS74",
+    "entry": "A0A1W2PS74_HUMAN"
+   }
+  ],
+  "vep_canonical": "YES",
+  "vest4": {
+   "rankscore": 0.99863,
+   "score": [
+    0.993,
+    0.992
+   ]
+  },
+  "vindijia_neandertal": [
+   "C",
+   "C"
+  ]
+ },
+ "dbsnp": {
+  "_license": "http://bit.ly/2AqoLOc",
+  "alleles": [
+   {
+    "allele": "C",
+    "freq": {
+     "dbgap_popfreq": 1.0,
+     "page_study": 1.0,
+     "topmed": 1.0
+    }
+   },
+   {
+    "allele": "T",
+    "freq": {
+     "dbgap_popfreq": 0.0,
+     "page_study": 0.0,
+     "topmed": 0.0
+    }
+   }
+  ],
+  "alt": "T",
+  "chrom": "17",
+  "citations": [
+   1757093,
+   1783401,
+   7649559,
+   7874161,
+   7903661,
+   8385067,
+   10721668
+  ],
+  "dbsnp_build": 156,
+  "gene": {
+   "geneid": 4763,
+   "is_pseudo": false,
+   "name": "neurofibromin 1",
+   "rnas": [
+    {
+     "codon_aligned_transcript_change": {
+      "deleted_sequence": "CGA",
+      "inserted_sequence": "CGA",
+      "position": 6221,
+      "seq_id": "NM_000267.3"
+     },
+     "hgvs": "NM_000267.3:c.5839=",
+     "protein": {
+      "variant": {
+       "spdi": {
+        "deleted_sequence": "R",
+        "inserted_sequence": "R",
+        "position": 1946,
+        "seq_id": "NP_000258.1"
+       }
+      }
+     },
+     "protein_product": {
+      "refseq": "NP_000258.1"
+     },
+     "refseq": "NM_000267.3",
+     "so": [
+      {
+       "accession": "SO:0001580",
+       "name": "coding_sequence_variant"
+      }
+     ]
+    },
+    {
+     "codon_aligned_transcript_change": {
+      "deleted_sequence": "CGA",
+      "inserted_sequence": "CGA",
+      "position": 6234,
+      "seq_id": "NM_001042492.3"
+     },
+     "hgvs": "NM_001042492.3:c.5902=",
+     "protein": {
+      "variant": {
+       "spdi": {
+        "deleted_sequence": "R",
+        "inserted_sequence": "R",
+        "position": 1967,
+        "seq_id": "NP_001035957.1"
+       }
+      }
+     },
+     "protein_product": {
+      "refseq": "NP_001035957.1"
+     },
+     "refseq": "NM_001042492.3",
+     "so": [
+      {
+       "accession": "SO:0001580",
+       "name": "coding_sequence_variant"
+      }
+     ]
+    },
+    {
+     "protein_product": {
+      "refseq": "NP_001121619.1"
+     },
+     "refseq": "NM_001128147.3",
+     "so": [
+      {
+       "accession": "SO:0002152",
+       "name": "genic_downstream_transcript_variant"
+      }
+     ]
+    }
+   ],
+   "strand": "+",
+   "symbol": "NF1"
+  },
+  "hg38": {
+   "end": 31334927,
+   "start": 31334927
+  },
+  "ref": "C",
+  "rsid": "rs137854552",
+  "vartype": "snv"
+ },
+ "hg38": {
+  "end": 31334927,
+  "start": 31334927
+ },
+ "observed": true,
+ "snpeff": {
+  "_license": "http://bit.ly/2suyRKt",
+  "ann": [
+   {
+    "cdna": {
+     "length": "12425",
+     "position": "6285"
+    },
+    "cds": {
+     "length": "8520",
+     "position": "5902"
+    },
+    "effect": "stop_gained",
+    "feature_id": "NM_001042492.2",
+    "feature_type": "transcript",
+    "gene_id": "NF1",
+    "genename": "NF1",
+    "hgvs_c": "c.5902C>T",
+    "hgvs_p": "p.Arg1968*",
+    "protein": {
+     "length": "2839",
+     "position": "1968"
+    },
+    "putative_impact": "HIGH",
+    "rank": "40",
+    "total": "58",
+    "transcript_biotype": "protein_coding"
+   },
+   {
+    "cdna": {
+     "length": "12362",
+     "position": "6222"
+    },
+    "cds": {
+     "length": "8457",
+     "position": "5839"
+    },
+    "effect": "stop_gained",
+    "feature_id": "NM_000267.3",
+    "feature_type": "transcript",
+    "gene_id": "NF1",
+    "genename": "NF1",
+    "hgvs_c": "c.5839C>T",
+    "hgvs_p": "p.Arg1947*",
+    "protein": {
+     "length": "2818",
+     "position": "1947"
+    },
+    "putative_impact": "HIGH",
+    "rank": "39",
+    "total": "57",
+    "transcript_biotype": "protein_coding"
+   }
+  ],
+  "lof": {
+   "gene_id": "NF1",
+   "genename": "NF1",
+   "number_of_transcripts_in_gene": "3",
+   "percent_of_transcripts_affected": "0.67"
+  },
+  "nmd": {
+   "gene_id": "NF1",
+   "genename": "NF1",
+   "number_of_transcripts_in_gene": "3",
+   "percent_of_transcripts_affected": "0.67"
+  }
+ },
+ "uniprot": {
+  "phenotype_disease": [
+   "primary tissue(s): central nervous system",
+   "primary tissue(s): soft tissue"
+  ],
+  "phenotype_disease_source": [
+   "COSU:329",
+   "pubmed:19142971",
+   "pubmed:18772396"
+  ],
+  "source_db_id": "COSM30766"
+ },
+ "vcf": {
+  "alt": "T",
+  "position": "31334927",
+  "ref": "C"
+ }
+}

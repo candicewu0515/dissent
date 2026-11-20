@@ -131,12 +131,38 @@ def test_predictor_split_detected_where_tools_disagree(mthfr):
     assert "dissenting" in conflict.detail.lower()
 
 
-def test_predictor_split_needs_enough_tools_to_be_meaningful():
-    """Two tools disagreeing is not a finding."""
-    cftr = load_bundle("cftr_g542x")
-    called = [p for p in cftr.predictors if p.call in ("damaging", "benign")]
-    assert len(called) < 6, "fixture should have few predictor calls"
-    assert predictor_split(cftr) is None
+def _bundle_with_predictors(n_damaging: int, n_benign: int):
+    from dissent.models import EvidenceBundle, PredictorResult, VariantQuery
+
+    predictors = [
+        PredictorResult(name=f"D{i}", call="damaging") for i in range(n_damaging)
+    ] + [PredictorResult(name=f"B{i}", call="benign") for i in range(n_benign)]
+    return EvidenceBundle(query=VariantQuery(raw="x"), predictors=predictors)
+
+
+@pytest.mark.parametrize(
+    "damaging,benign,fires",
+    [
+        (3, 2, False),    # too few tools for a split to mean anything
+        (10, 0, False),   # unanimous
+        (0, 10, False),   # unanimous the other way
+        (10, 1, False),   # 9% minority, below the reporting floor
+        (9, 3, True),     # 25% minority, at the floor
+        (6, 6, True),     # even split
+    ],
+)
+def test_predictor_split_reporting_floor(damaging, benign, fires):
+    """A detector that fires on every variant teaches the reader to ignore it."""
+    conflict = predictor_split(_bundle_with_predictors(damaging, benign))
+    assert (conflict is not None) is fires, f"{damaging}-{benign}"
+
+
+def test_predictor_split_severity_rises_with_the_disagreement():
+    mild = predictor_split(_bundle_with_predictors(9, 3))
+    even = predictor_split(_bundle_with_predictors(6, 6))
+    assert mild is not None and even is not None
+    assert mild.severity == "medium"
+    assert even.severity == "high"
 
 
 # ---- weak evidence base ---------------------------------------------------

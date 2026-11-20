@@ -22,9 +22,15 @@ LITVAR_URL = "https://www.ncbi.nlm.nih.gov/research/litvar2/docsum?text={rsid}"
 class LitVarClient(SourceClient):
     name = "litvar"
 
-    async def fetch_pmids(self, rsid: str | None) -> tuple[list[int], SourceStatus]:
+    async def fetch_pmids(self, rsid: str | None) -> tuple[list[int], int, SourceStatus]:
+        """Return (pmids, total, status).
+
+        The payload carries its own `pmids_count`, which is the number to
+        report: the list itself is capped downstream, so counting it would
+        understate the literature for exactly the variants that have most of it.
+        """
         if not rsid:
-            return [], SourceStatus(source=self.name, ok=True, detail="no rsID to query")
+            return [], 0, SourceStatus(source=self.name, ok=True, detail="no rsID to query")
 
         # LitVar2 identifies variants as `litvar@rs113488022##`. The id must be
         # percent-encoded before it goes in the path: an unescaped `#` is read
@@ -35,7 +41,7 @@ class LitVarClient(SourceClient):
             cache_key_parts=["pubs", rsid],
         )
         if not isinstance(data, dict):
-            return [], status
+            return [], 0, status
 
         pmids: list[int] = []
         for value in data.get("pmids") or []:
@@ -43,4 +49,7 @@ class LitVarClient(SourceClient):
                 pmids.append(int(value))
             except (TypeError, ValueError):
                 continue
-        return pmids, status
+
+        reported = data.get("pmids_count")
+        total = int(reported) if isinstance(reported, int) else len(pmids)
+        return pmids, max(total, len(pmids)), status

@@ -314,14 +314,15 @@ async def collect_evidence(
                 gene_description = target.get("function")
 
         pmids: list[int] = []
+        literature_total = 0
         if isinstance(litvar_result, tuple):
-            pmids, status = litvar_result
+            pmids, literature_total, status = litvar_result
             statuses.append(status)
         if not pmids:
             # dbSNP ships its own citation list, which costs no extra request
             # because it arrives inside the MyVariant document.
             pmids = _dbsnp_citations(doc)
-        literature_total = len(pmids)
+            literature_total = len(pmids)
         pmids = pmids[:PMID_LIMIT]
 
         return EvidenceBundle(

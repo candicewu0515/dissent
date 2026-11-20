@@ -1,0 +1,2924 @@
+{
+ "_id": "chr6:g.26092913G>A",
+ "_score": 26.840317,
+ "chrom": "6",
+ "clingen": {
+  "caid": "CA113795"
+ },
+ "clinvar": {
+  "_license": "http://bit.ly/2SQdcI0",
+  "allele_id": 15048,
+  "alt": "A",
+  "chrom": "6",
+  "cytogenic": "6p22.2",
+  "gene": {
+   "id": "3077",
+   "symbol": "HFE"
+  },
+  "hg19": {
+   "end": 26093141,
+   "start": 26093141
+  },
+  "hg38": {
+   "end": 26092913,
+   "start": 26092913
+  },
+  "hgvs": {
+   "coding": [
+    "LRG_748t1:c.845G>A",
+    "NM_000410.4:c.845G>A",
+    "NM_000410.4:c.845G>A",
+    "NM_001300749.3:c.845G>A",
+    "NM_001384164.1:c.845G>A",
+    "NM_001406751.1:c.836G>A",
+    "NM_001406752.1:c.581G>A",
+    "NM_139003.3:c.527G>A",
+    "NM_139004.3:c.569G>A",
+    "NM_139006.3:c.803G>A",
+    "NM_139007.3:c.581G>A",
+    "NM_139008.3:c.539G>A",
+    "NM_139009.3:c.776G>A",
+    "NM_139010.3:c.305G>A",
+    "NM_139011.3:c.77-206G>A"
+   ],
+   "genomic": [
+    "LRG_748:g.10633G>A",
+    "NC_000006.11:g.26093141G>A",
+    "NC_000006.12:g.26092913G>A",
+    "NG_008720.2:g.10633G>A"
+   ],
+   "protein": [
+    "LRG_748p1:p.Cys282Tyr",
+    "NG_008720.1:p.Cys282Tyr",
+    "NP_000401.1:p.Cys282Tyr",
+    "NP_000401.1:p.Cys282Tyr",
+    "NP_001287678.1:p.Cys282Tyr",
+    "NP_001287678.1:p.Cys282Tyr",
+    "NP_001371093.1:p.Cys282Tyr",
+    "NP_001393680.1:p.Cys279Tyr",
+    "NP_001393681.1:p.Cys194Tyr",
+    "NP_620572.1:p.Cys176Tyr",
+    "NP_620573.1:p.Cys190Tyr",
+    "NP_620575.1:p.Cys268Tyr",
+    "NP_620576.1:p.Cys194Tyr",
+    "NP_620577.1:p.Cys180Tyr",
+    "NP_620578.1:p.Cys259Tyr",
+    "NP_620579.1:p.Cys102Tyr",
+    "Q30201:p.Cys282Tyr"
+   ]
+  },
+  "omim": "613609.0001",
+  "rcv": [
+   {
+    "accession": "RCV000000019",
+    "clinical_significance": "Pathogenic",
+    "conditions": {
+     "identifiers": {
+      "medgen": "C3469186",
+      "mondo": "MONDO:0021001",
+      "omim": "235200"
+     },
+     "name": "Hemochromatosis type 1 (HFE1)",
+     "synonyms": [
+      "HFE-Associated Hereditary Hemochromatosis"
+     ]
+    },
+    "last_evaluated": "2024-09-25",
+    "number_submitters": 30,
+    "origin": "germline",
+    "preferred_name": "NM_000410.4(HFE):c.845G>A (p.Cys282Tyr)",
+    "review_status": "criteria provided, multiple submitters, no conflicts"
+   },
+   {
+    "accession": "RCV000178096",
+    "clinical_significance": "Pathogenic; other",
+    "conditions": {
+     "identifiers": {
+      "medgen": "C3661900"
+     },
+     "name": "not provided",
+     "synonyms": [
+      "none provided",
+      "RECLASSIFIED - ADRA2C POLYMORPHISM",
+      "RECLASSIFIED - ADRB1 POLYMORPHISM"
+     ]
+    },
+    "last_evaluated": "2025-03-04",
+    "number_submitters": 10,
+    "origin": "unknown",
+    "preferred_name": "NM_000410.4(HFE):c.845G>A (p.Cys282Tyr)",
+    "review_status": "criteria provided, multiple submitters, no conflicts"
+   },
+   {
+    "accession": "RCV000210820",
+    "clinical_significance": "Pathogenic",
+    "conditions": {
+     "identifiers": {
+      "medgen": "C0027672",
+      "mesh": "D009386",
+      "mondo": "MONDO:0015356"
+     },
+     "name": "Hereditary cancer-predisposing syndrome",
+     "synonyms": [
+      "Neoplastic Syndromes, Hereditary",
+      "Tumor predisposition",
+      "Cancer predisposition",
+      "Hereditary neoplastic syndrome",
+      "Hereditary Cancer Syndrome"
+     ]
+    },
+    "last_evaluated": "2015-12-01",
+    "number_submitters": 1,
+    "origin": "germline",
+    "preferred_name": "NM_000410.4(HFE):c.845G>A (p.Cys282Tyr)",
+    "review_status": "criteria provided, single submitter"
+   },
+   {
+    "accession": "RCV000308358",
+    "clinical_significance": "Pathogenic/Pathogenic, low penetrance",
+    "conditions": {
+     "identifiers": {
+      "medgen": "C0392514",
+      "mondo": "MONDO:0006507",
+      "omim": "PS235200"
+     },
+     "name": "Hereditary hemochromatosis (HFE)"
+    },
+    "last_evaluated": "2025-02-03",
+    "number_submitters": 4,
+    "origin": "germline",
+    "preferred_name": "NM_000410.4(HFE):c.845G>A (p.Cys282Tyr)",
+    "review_status": "criteria provided, multiple submitters, no conflicts"
+   },
+   {
+    "accession": "RCV000414811",
+    "clinical_significance": "no classifications from unflagged records",
+    "conditions": [
+     {
+      "identifiers": {
+       "human_phenotype_ontology": "HP:0007538",
+       "medgen": "C0349506",
+       "mondo": "MONDO:0005434"
+      },
+      "name": "Cutaneous photosensitivity",
+      "synonyms": [
+       "Skin sensitivity to sun"
+      ]
+     },
+     {
+      "identifiers": {
+       "human_phenotype_ontology": "HP:0010473",
+       "medgen": "C0151861"
+      },
+      "name": "Porphyrinuria"
+     }
+    ],
+    "last_evaluated": "2023-11-14",
+    "number_submitters": 1,
+    "origin": "unknown",
+    "preferred_name": "NM_000410.4(HFE):c.845G>A (p.Cys282Tyr)",
+    "review_status": "no classifications from unflagged records"
+   },
+   {
+    "accession": "RCV001248830",
+    "clinical_significance": "not provided",
+    "conditions": {
+     "identifiers": {
+      "medgen": "C0018995"
+     },
+     "name": "Bronze diabetes"
+    },
+    "number_submitters": 1,
+    "origin": "unknown",
+    "preferred_name": "NM_000410.4(HFE):c.845G>A (p.Cys282Tyr)",
+    "review_status": "no assertion provided"
+   },
+   {
+    "accession": "RCV001270034",
+    "clinical_significance": "Pathogenic",
+    "conditions": [
+     {
+      "identifiers": {
+       "human_phenotype_ontology": "HP:0006987",
+       "medgen": "C0497552",
+       "mondo": "MONDO:0002320"
+      },
+      "name": "Abnormality of the nervous system",
+      "synonyms": [
+       "Congenital nervous system disorder"
+      ]
+     },
+     {
+      "identifiers": {
+       "human_phenotype_ontology": "HP:0002456",
+       "medgen": "C0004941"
+      },
+      "name": "Atypical behavior",
+      "synonyms": [
+       "Behavioral abnormality"
+      ]
+     },
+     {
+      "identifiers": {
+       "human_phenotype_ontology": "HP:0002027",
+       "medgen": "C0000737"
+      },
+      "name": "Abdominal pain"
+     },
+     {
+      "identifiers": {
+       "human_phenotype_ontology": "HP:0003483",
+       "medgen": "C4025831",
+       "mondo": "MONDO:0003620"
+      },
+      "name": "Abnormal peripheral nervous system morphology"
+     },
+     {
+      "identifiers": {
+       "human_phenotype_ontology": "HP:0010461",
+       "medgen": "C4023819"
+      },
+      "name": "Abnormality of the male genitalia"
+     },
+     {
+      "identifiers": {
+       "human_phenotype_ontology": "HP:0012531",
+       "medgen": "C0030193"
+      },
+      "name": "Pain"
+     },
+     {
+      "identifiers": {
+       "human_phenotype_ontology": "HP:0007355",
+       "medgen": "C0031117",
+       "mondo": "MONDO:0005244"
+      },
+      "name": "Peripheral neuropathy",
+      "synonyms": [
+       "Neuropathy"
+      ]
+     }
+    ],
+    "last_evaluated": "2018-05-11",
+    "number_submitters": 1,
+    "origin": "germline",
+    "preferred_name": "NM_000410.4(HFE):c.845G>A (p.Cys282Tyr)",
+    "review_status": "criteria provided, single submitter"
+   },
+   {
+    "accession": "RCV001731264",
+    "clinical_significance": "Pathogenic",
+    "conditions": {
+     "identifiers": {
+      "human_phenotype_ontology": "HP:0001638",
+      "medgen": "C0878544",
+      "mondo": "MONDO:0004994"
+     },
+     "name": "Cardiomyopathy (CMYO)",
+     "synonyms": [
+      "Cardiomyopathies"
+     ]
+    },
+    "last_evaluated": "2021-04-15",
+    "number_submitters": 1,
+    "origin": "germline",
+    "preferred_name": "NM_000410.4(HFE):c.845G>A (p.Cys282Tyr)",
+    "review_status": "criteria provided, single submitter"
+   },
+   {
+    "accession": "RCV002280089",
+    "clinical_significance": "Pathogenic",
+    "conditions": {
+     "name": "HFE-related disorder",
+     "synonyms": [
+      "HFE-related condition"
+     ]
+    },
+    "last_evaluated": "2022-06-07",
+    "number_submitters": 2,
+    "origin": "germline",
+    "preferred_name": "NM_000410.4(HFE):c.845G>A (p.Cys282Tyr)",
+    "review_status": "criteria provided, single submitter"
+   },
+   {
+    "accession": "RCV002512585",
+    "clinical_significance": "Pathogenic",
+    "conditions": {
+     "identifiers": {
+      "medgen": "C0950123",
+      "mesh": "D030342"
+     },
+     "name": "Inborn genetic diseases"
+    },
+    "last_evaluated": "2025-01-31",
+    "number_submitters": 1,
+    "origin": "germline",
+    "preferred_name": "NM_000410.4(HFE):c.845G>A (p.Cys282Tyr)",
+    "review_status": "criteria provided, single submitter"
+   },
+   {
+    "accession": "RCV003224084",
+    "clinical_significance": "Pathogenic",
+    "conditions": [
+     {
+      "identifiers": {
+       "medgen": "C0162532",
+       "mondo": "MONDO:0008297",
+       "omim": "176200",
+       "orphanet": "79473"
+      },
+      "name": "Variegate porphyria (VP)",
+      "synonyms": [
+       "PORPHYRIA, SOUTH AFRICAN TYPE",
+       "PROTOPORPHYRINOGEN OXIDASE DEFICIENCY",
+       "PPOX DEFICIENCY"
+      ]
+     },
+     {
+      "identifiers": {
+       "medgen": "C2673520",
+       "mondo": "MONDO:0012971",
+       "omim": "612635"
+      },
+      "name": "Microvascular complications of diabetes, susceptibility to, 7",
+      "synonyms": [
+       "Microvascular complications of diabetes 7"
+      ]
+     },
+     {
+      "identifiers": {
+       "medgen": "C1863052",
+       "mondo": "MONDO:0007088",
+       "omim": "104300"
+      },
+      "name": "Alzheimer disease type 1 (AD1)",
+      "synonyms": [
+       "ALZHEIMER DISEASE, FAMILIAL, 1",
+       "ALZHEIMER DISEASE, FAMILIAL, 1, AUTOSOMAL RECESSIVE"
+      ]
+     },
+     {
+      "identifiers": {
+       "medgen": "C3469186",
+       "mondo": "MONDO:0021001",
+       "omim": "235200"
+      },
+      "name": "Hemochromatosis type 1 (HFE1)",
+      "synonyms": [
+       "HFE-Associated Hereditary Hemochromatosis"
+      ]
+     },
+     {
+      "identifiers": {
+       "medgen": "C3280096",
+       "omim": "614193"
+      },
+      "name": "TRANSFERRIN SERUM LEVEL QUANTITATIVE TRAIT LOCUS 2 (TFQTL2)"
+     },
+     {
+      "identifiers": {
+       "medgen": "C0268323",
+       "mondo": "MONDO:0008296",
+       "omim": "176100",
+       "orphanet": "101330"
+      },
+      "name": "Familial porphyria cutanea tarda (PCT)",
+      "synonyms": [
+       "PCT, TYPE II",
+       "PORPHYRIA CUTANEA TARDA, TYPE II",
+       "PORPHYRIA, HEPATOCUTANEOUS TYPE",
+       "UROD DEFICIENCY",
+       "UROPORPHYRINOGEN DECARBOXYLASE DEFICIENCY",
+       "PCT, ''FAMILIAL'' TYPE"
+      ]
+     }
+    ],
+    "last_evaluated": "2021-03-30",
+    "number_submitters": 1,
+    "origin": "germline",
+    "preferred_name": "NM_000410.4(HFE):c.845G>A (p.Cys282Tyr)",
+    "review_status": "criteria provided, single submitter"
+   },
+   {
+    "accession": "RCV003493406",
+    "clinical_significance": "risk factor",
+    "conditions": {
+     "identifiers": {
+      "medgen": "C0268060",
+      "mondo": "MONDO:0019257"
+     },
+     "name": "Juvenile hemochromatosis",
+     "synonyms": [
+      "Hemochromatosis type 2"
+     ]
+    },
+    "last_evaluated": "2020-03-04",
+    "number_submitters": 1,
+    "origin": "germline",
+    "preferred_name": "NM_000410.4(HFE):c.845G>A (p.Cys282Tyr)",
+    "review_status": "criteria provided, single submitter"
+   }
+  ],
+  "ref": "G",
+  "rsid": "rs1800562",
+  "type": "single nucleotide variant",
+  "variant_id": 9
+ },
+ "dbnsfp": {
+  "1000gp3": {
+   "ac": 63,
+   "af": 0.012579872204472844,
+   "afr": {
+    "ac": 3,
+    "af": 0.0022692889561270802
+   },
+   "amr": {
+    "ac": 15,
+    "af": 0.021613832853025938
+   },
+   "eas": {
+    "ac": 0,
+    "af": 0.0
+   },
+   "eur": {
+    "ac": 43,
+    "af": 0.042743538767395624
+   },
+   "sas": {
+    "ac": 2,
+    "af": 0.002044989775051125
+   }
+  },
+  "_license": "http://bit.ly/2VLnQBz",
+  "aa": {
+   "alt": "Y",
+   "codon_degeneracy": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "codonpos": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "pos": [
+    259,
+    102,
+    194,
+    190,
+    282,
+    279,
+    176,
+    268,
+    180,
+    282
+   ],
+   "ref": "C",
+   "refcodon": [
+    "TGC",
+    "TGC",
+    "TGC",
+    "TGC",
+    "TGC",
+    "TGC",
+    "TGC",
+    "TGC",
+    "TGC",
+    "TGC"
+   ]
+  },
+  "alfa": {
+   "african": {
+    "ac": 118,
+    "af": 0.011727290797058238,
+    "an": 10062
+   },
+   "african_american": {
+    "ac": 118,
+    "af": 0.012134923899629783,
+    "an": 9724
+   },
+   "african_others": {
+    "ac": 0,
+    "af": 0.0,
+    "an": 338
+   },
+   "asian": {
+    "ac": 2,
+    "af": 0.0003061849357011635,
+    "an": 6532
+   },
+   "east_asian": {
+    "ac": 2,
+    "af": 0.0004314063848144953,
+    "an": 4636
+   },
+   "european": {
+    "ac": 14608,
+    "af": 0.05876673532440783,
+    "an": 248576
+   },
+   "latin_american_1": {
+    "ac": 20,
+    "af": 0.02032520325203252,
+    "an": 984
+   },
+   "latin_american_2": {
+    "ac": 28,
+    "af": 0.015401540154015401,
+    "an": 1818
+   },
+   "other": {
+    "ac": 717,
+    "af": 0.038857576414480816,
+    "an": 18452
+   },
+   "other_asian": {
+    "ac": 0,
+    "af": 0.0,
+    "an": 1896
+   },
+   "south_asian": {
+    "ac": 4,
+    "af": 0.0007742934572202865,
+    "an": 5166
+   },
+   "total": {
+    "ac": 15497,
+    "af": 0.05314654137659042,
+    "an": 291590
+   }
+  },
+  "alphamissense": {
+   "pred": [
+    "P",
+    "P",
+    "P",
+    "P",
+    "P",
+    "P",
+    "P",
+    "P",
+    "P",
+    "P"
+   ],
+   "rankscore": 0.9002,
+   "score": [
+    0.9427,
+    0.9738,
+    0.9686,
+    0.9403,
+    0.9585,
+    0.9477,
+    0.9632,
+    0.962,
+    0.9709,
+    0.9705
+   ]
+  },
+  "alspac": {
+   "ac": 306,
+   "af": 0.07939802802283343
+  },
+  "alt": "A",
+  "altai_neandertal": [
+   "G",
+   "G"
+  ],
+  "ancestral_allele": "G",
+  "appris": [
+   "principal3",
+   "alternative2",
+   "alternative2",
+   "alternative2"
+  ],
+  "bayesdel": {
+   "add_af": {
+    "pred": "D",
+    "rankscore": 0.70264,
+    "score": 0.160682
+   },
+   "no_af": {
+    "pred": "D",
+    "rankscore": 0.94968,
+    "score": 0.517213
+   }
+  },
+  "bstatistic": {
+   "converted_rankscore": 0.76383,
+   "score": 495.0
+  },
+  "cadd": {
+   "phred": 27.0,
+   "raw_rankscore": 0.7876,
+   "raw_score": 4.830297
+  },
+  "cds_strand": [
+   "+",
+   "+",
+   "+",
+   "+",
+   "+",
+   "+",
+   "+",
+   "+",
+   "+",
+   "+"
+  ],
+  "chagyrskaya_neandertal": [
+   "G",
+   "G"
+  ],
+  "chrom": "6",
+  "clinpred": {
+   "pred": "T",
+   "rankscore": 0.11178,
+   "score": 0.0896660882272723
+  },
+  "clinvar": {
+   "clinvar_id": "9",
+   "clnsig": [
+    "Pathogenic/Pathogenic,_low_penetrance",
+    "other",
+    "risk_factor"
+   ],
+   "hgvs": "NC_000006.12:g.26092913G>A",
+   "medgen": [
+    "C3661900",
+    "C0950123",
+    "C0268060",
+    "C3469186",
+    "C0030193",
+    "C4023819",
+    "C4025831",
+    "C0000737",
+    "C0031117",
+    "C0233514",
+    "C0497552",
+    "C0349506",
+    "C0151861",
+    "C0268323",
+    "C3280096",
+    "C2673520",
+    "C0162532",
+    "C1863052",
+    "C0018995",
+    "C0392514",
+    "C0027672",
+    "C0878544"
+   ],
+   "omim": [
+    "235200",
+    "176100",
+    "614193",
+    "612635",
+    "176200",
+    "104300",
+    "PS235200"
+   ],
+   "orphanet": [
+    "79230",
+    "139498",
+    "465508",
+    "101330",
+    "443062",
+    "79473",
+    "140162",
+    "167848"
+   ],
+   "review": "criteria_provided,_multiple_submitters,_no_conflicts",
+   "trait": [
+    "not_provided",
+    "Inborn_genetic_diseases",
+    "Juvenile_hemochromatosis",
+    "Hemochromatosis_type_1",
+    "HFE-related_condition",
+    "Pain",
+    "Abnormality_of_the_male_genitalia",
+    "Abnormal_peripheral_nervous_system_morphology",
+    "Abdominal_pain",
+    "Peripheral_neuropathy",
+    "Atypical_behavior",
+    "Abnormality_of_the_nervous_system",
+    "Cutaneous_photosensitivity",
+    "Porphyrinuria",
+    "Familial_porphyria_cutanea_tarda",
+    "Transferrin_serum_level_quantitative_trait_locus_2",
+    "Microvascular_complications_of_diabetes,_susceptibility_to,_7",
+    "Variegate_porphyria",
+    "Alzheimer_disease_type_1",
+    "HFE-related_disorder",
+    "Bronze_diabetes",
+    "Hereditary_hemochromatosis",
+    "Hereditary_cancer-predisposing_syndrome",
+    "Cardiomyopathy"
+   ],
+   "var_source": [
+    "ClinGen:CA113795",
+    "Genetic_Testing_Registry_(GTR):GTR000007768",
+    "Genetic_Testing_Registry_(GTR):GTR000019607",
+    "Genetic_Testing_Registry_(GTR):GTR000021464",
+    "Genetic_Testing_Registry_(GTR):GTR000021488",
+    "Genetic_Testing_Registry_(GTR):GTR000159973",
+    "Genetic_Testing_Registry_(GTR):GTR000219921",
+    "Genetic_Testing_Registry_(GTR):GTR000264968",
+    "Genetic_Testing_Registry_(GTR):GTR000271417",
+    "Genetic_Testing_Registry_(GTR):GTR000321635",
+    "Genetic_Testing_Registry_(GTR):GTR000323017",
+    "Genetic_Testing_Registry_(GTR):GTR000500300",
+    "Genetic_Testing_Registry_(GTR):GTR000500796",
+    "Genetic_Testing_Registry_(GTR):GTR000556562",
+    "Genetic_Testing_Registry_(GTR):GTR000558915",
+    "Genetic_Testing_Registry_(GTR):GTR000560787",
+    "Genetic_Testing_Registry_(GTR):GTR000568258",
+    "Genetic_Testing_Registry_(GTR):GTR000576400",
+    "Genetic_Testing_Registry_(GTR):GTR000607867",
+    "OMIM:613609.0001",
+    "UniProtKB:Q30201#VAR_004398"
+   ]
+  },
+  "dann": {
+   "rankscore": 0.65021,
+   "score": 0.9944618017794349
+  },
+  "denisova": [
+   "G",
+   "G"
+  ],
+  "deogen2": {
+   "pred": [
+    "T",
+    "T",
+    "T"
+   ],
+   "rankscore": 0.7871,
+   "score": [
+    0.443234,
+    0.195963,
+    0.185622
+   ]
+  },
+  "eigen": {
+   "phred_coding": 10.47997,
+   "raw_coding": 0.877295728668495,
+   "raw_coding_rankscore": 0.90603
+  },
+  "eigen-pc": {
+   "phred_coding": 8.692576,
+   "raw_coding": 0.745339606461945,
+   "raw_coding_rankscore": 0.85809
+  },
+  "ensembl": {
+   "geneid": [
+    "ENSG00000010704",
+    "ENSG00000010704",
+    "ENSG00000010704",
+    "ENSG00000010704",
+    "ENSG00000010704",
+    "ENSG00000010704",
+    "ENSG00000010704",
+    "ENSG00000010704",
+    "ENSG00000010704",
+    "ENSG00000010704"
+   ],
+   "proteinid": [
+    "ENSP00000380217",
+    "ENSP00000312342",
+    "ENSP00000259699",
+    "ENSP00000313776",
+    "ENSP00000417404",
+    "ENSP00000419725",
+    "ENSP00000337819",
+    "ENSP00000420802",
+    "ENSP00000420559",
+    "ENSP00000311698"
+   ],
+   "transcriptid": [
+    "ENST00000397022",
+    "ENST00000353147",
+    "ENST00000349999",
+    "ENST00000317896",
+    "ENST00000357618",
+    "ENST00000470149",
+    "ENST00000336625",
+    "ENST00000461397",
+    "ENST00000488199",
+    "ENST00000309234"
+   ]
+  },
+  "eqtlgen": {
+   "cis_or_trans": "cis",
+   "gene_id": "ENSG00000198518",
+   "gene_symbol": "HIST1H4E",
+   "snp_id": "rs1800562"
+  },
+  "esm1b": {
+   "pred": [
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "T",
+    "D",
+    "D"
+   ],
+   "rankscore": 0.65202,
+   "score": [
+    -7.633,
+    -8.617,
+    -8.0,
+    -7.935,
+    -7.602,
+    -7.058,
+    -7.535,
+    -7.788
+   ]
+  },
+  "esp6500": {
+   "aa": {
+    "ac": 67,
+    "af": 0.015206536541080345
+   },
+   "ea": {
+    "ac": 551,
+    "af": 0.06406976744186046
+   }
+  },
+  "eve": {
+   "class10_pred": "U",
+   "class20_pred": "U",
+   "class25_pred": "U",
+   "class30_pred": "U",
+   "class40_pred": "U",
+   "class50_pred": "U",
+   "class60_pred": "U",
+   "class70_pred": "P",
+   "class75_pred": "P",
+   "class80_pred": "P",
+   "class90_pred": "P",
+   "rankscore": 0.78267,
+   "score": 0.7034019979935641
+  },
+  "exac": {
+   "ac": 3937,
+   "adj_ac": 3937,
+   "adj_af": 0.03243,
+   "af": 0.03243,
+   "afr": {
+    "ac": 105,
+    "af": 0.01009
+   },
+   "amr": {
+    "ac": 133,
+    "af": 0.01149
+   },
+   "eas": {
+    "ac": 1,
+    "af": 0.0001156
+   },
+   "fin": {
+    "ac": 213,
+    "af": 0.03223
+   },
+   "nfe": {
+    "ac": 3427,
+    "af": 0.05135
+   },
+   "sas": {
+    "ac": 38,
+    "af": 0.002301
+   }
+  },
+  "exac_nonpsych": {
+   "ac": 2507,
+   "adj_ac": 2507,
+   "adj_af": 0.02763,
+   "af": 0.02762,
+   "afr": {
+    "ac": 105,
+    "af": 0.01011
+   },
+   "amr": {
+    "ac": 132,
+    "af": 0.01142
+   },
+   "eas": {
+    "ac": 0,
+    "af": 0.0
+   },
+   "fin": {
+    "ac": 127,
+    "af": 0.0334
+   },
+   "nfe": {
+    "ac": 2091,
+    "af": 0.04963
+   },
+   "sas": {
+    "ac": 38,
+    "af": 0.002303
+   }
+  },
+  "exac_nontcga": {
+   "ac": 3219,
+   "adj_ac": 3219,
+   "adj_af": 0.03031,
+   "af": 0.03031,
+   "afr": {
+    "ac": 89,
+    "af": 0.009817
+   },
+   "amr": {
+    "ac": 127,
+    "af": 0.01133
+   },
+   "eas": {
+    "ac": 1,
+    "af": 0.0001271
+   },
+   "fin": {
+    "ac": 213,
+    "af": 0.03223
+   },
+   "nfe": {
+    "ac": 2739,
+    "af": 0.0504
+   },
+   "sas": {
+    "ac": 36,
+    "af": 0.002194
+   }
+  },
+  "fathmm": {
+   "converted_rankscore": 0.95282,
+   "pred": [
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D"
+   ],
+   "score": [
+    -3.68,
+    -3.68,
+    -3.68,
+    -3.68,
+    -3.68,
+    -3.68,
+    -3.68,
+    -3.68,
+    -3.68,
+    -3.68
+   ]
+  },
+  "fathmm-mkl": {
+   "coding_group": "AEFDBI",
+   "coding_pred": "D",
+   "coding_rankscore": 0.62903,
+   "coding_score": 0.94952
+  },
+  "fathmm-xf": {
+   "coding_pred": "D",
+   "coding_rankscore": 0.69976,
+   "coding_score": 0.762305
+  },
+  "fitcons": {
+   "gm12878": {
+    "confidence_value": 0,
+    "rankscore": 0.53433,
+    "score": 0.624146
+   },
+   "h1-hesc": {
+    "confidence_value": 0,
+    "rankscore": 0.34648,
+    "score": 0.602189
+   },
+   "huvec": {
+    "confidence_value": 0,
+    "rankscore": 0.35079,
+    "score": 0.579976
+   },
+   "integrated": {
+    "confidence_value": 0,
+    "rankscore": 0.39893,
+    "score": 0.623552
+   }
+  },
+  "gencode_basic": [
+   "Y",
+   "Y",
+   "Y",
+   "Y",
+   "Y",
+   "Y",
+   "Y",
+   "Y",
+   "Y",
+   "Y"
+  ],
+  "genename": [
+   "HFE",
+   "HFE",
+   "HFE",
+   "HFE",
+   "HFE",
+   "HFE",
+   "HFE",
+   "HFE",
+   "HFE",
+   "HFE"
+  ],
+  "genocanyon": {
+   "rankscore": 0.74766,
+   "score": 0.999999999873201
+  },
+  "gerp++": {
+   "nr": 5.35,
+   "rs": 5.35,
+   "rs_rankscore": 0.76297
+  },
+  "gmvp": {
+   "rankscore": 0.91794,
+   "score": 0.918186793781761
+  },
+  "gtex": {
+   "eqtl": [
+    {
+     "gene": "U91328.19",
+     "tissue": [
+      "Adipose Subcutaneous",
+      "Adipose Visceral Omentum",
+      "Artery Aorta",
+      "Artery Coronary",
+      "Artery Tibial",
+      "Brain Caudate basal ganglia",
+      "Brain Cerebellar Hemisphere",
+      "Brain Cortex",
+      "Brain Frontal Cortex BA9",
+      "Brain Hippocampus",
+      "Brain Nucleus accumbens basal ganglia",
+      "Breast Mammary Tissue",
+      "Cells Cultured fibroblasts",
+      "Esophagus Gastroesophageal Junction",
+      "Esophagus Mucosa",
+      "Esophagus Muscularis",
+      "Heart Atrial Appendage",
+      "Heart Left Ventricle",
+      "Liver",
+      "Lung",
+      "Muscle Skeletal",
+      "Nerve Tibial",
+      "Ovary",
+      "Prostate",
+      "Skin Not Sun Exposed Suprapubic",
+      "Skin Sun Exposed Lower leg",
+      "Stomach",
+      "Testis",
+      "Thyroid",
+      "Uterus",
+      "Vagina"
+     ]
+    },
+    {
+     "gene": "U91328.22",
+     "tissue": [
+      "Adrenal Gland",
+      "Artery Aorta",
+      "Artery Tibial",
+      "Cells Cultured fibroblasts",
+      "Esophagus Mucosa",
+      "Lung",
+      "Nerve Tibial",
+      "Skin Not Sun Exposed Suprapubic",
+      "Skin Sun Exposed Lower leg",
+      "Whole Blood"
+     ]
+    },
+    {
+     "gene": "TRIM38",
+     "tissue": [
+      "Esophagus Muscularis",
+      "Thyroid"
+     ]
+    },
+    {
+     "gene": "BTN2A3P",
+     "tissue": [
+      "Esophagus Muscularis"
+     ]
+    },
+    {
+     "gene": "SLC17A4",
+     "tissue": [
+      "Testis"
+     ]
+    }
+   ],
+   "sqtl": {
+    "gene": "HMGN4",
+    "tissue": [
+     "Artery Tibial"
+    ]
+   }
+  },
+  "hg18": {
+   "end": 26201120,
+   "start": 26201120
+  },
+  "hg19": {
+   "end": 26093141,
+   "start": 26093141
+  },
+  "hg38": {
+   "end": 26092913,
+   "start": 26092913
+  },
+  "hgvsc": [
+   "c.776G>A",
+   "c.527G>A",
+   "c.581G>A",
+   "c.836G>A",
+   "c.539G>A",
+   "c.305G>A",
+   "c.803G>A",
+   "c.845G>A",
+   "c.569G>A"
+  ],
+  "hgvsp": [
+   "p.C176Y",
+   "p.C259Y",
+   "p.Cys279Tyr",
+   "p.C102Y",
+   "p.C279Y",
+   "p.Cys259Tyr",
+   "p.Cys190Tyr",
+   "p.C282Y",
+   "p.Cys282Tyr",
+   "p.C190Y",
+   "p.C268Y",
+   "p.Cys268Tyr",
+   "p.C194Y",
+   "p.C180Y",
+   "p.Cys180Tyr",
+   "p.Cys176Tyr",
+   "p.Cys102Tyr",
+   "p.Cys194Tyr"
+  ],
+  "interpro": {
+   "domain": [
+    "Immunoglobulin C1-set|Immunoglobulin/major histocompatibility complex, conserved site|Immunoglobulin-like domain|Immunoglobulin C1-set",
+    "Immunoglobulin C1-set|Immunoglobulin/major histocompatibility complex, conserved site|Immunoglobulin-like domain|Immunoglobulin C1-set",
+    "Immunoglobulin C1-set|Immunoglobulin/major histocompatibility complex, conserved site|Immunoglobulin-like domain|Immunoglobulin C1-set"
+   ]
+  },
+  "list-s2": {
+   "pred": [
+    "T",
+    "T",
+    "T",
+    "T",
+    "T",
+    "T",
+    "T",
+    "T",
+    "T",
+    "T"
+   ],
+   "rankscore": 0.50934,
+   "score": [
+    0.762724,
+    0.837116,
+    0.761424,
+    0.837116,
+    0.762724,
+    0.763224,
+    0.837116,
+    0.756624,
+    0.753825,
+    0.766923
+   ]
+  },
+  "lrt": {
+   "converted_rankscore": 0.62929,
+   "omega": 0.0,
+   "pred": "D",
+   "score": 3e-06
+  },
+  "metalr": {
+   "pred": "D",
+   "rankscore": 0.98433,
+   "score": 0.9518
+  },
+  "metarnn": {
+   "pred": [
+    "T",
+    "T",
+    "T",
+    "T",
+    "T",
+    "T",
+    "T",
+    "T",
+    "T",
+    "T"
+   ],
+   "rankscore": 0.00167,
+   "score": [
+    0.0073376894,
+    0.0073376894,
+    0.0073376894,
+    0.0073376894,
+    0.0073376894,
+    0.0073376894,
+    0.0073376894,
+    0.0073376894,
+    0.0073376894,
+    0.0073376894
+   ]
+  },
+  "metasvm": {
+   "pred": "D",
+   "rankscore": 0.98681,
+   "score": 1.0733
+  },
+  "mpc": {
+   "rankscore": 0.76231,
+   "score": 1.0531444316
+  },
+  "mutationassessor": {
+   "pred": "H",
+   "rankscore": 0.98631,
+   "score": 4.395
+  },
+  "mutationtaster": {
+   "aae": [
+    "C180Y",
+    "C194Y",
+    "C102Y",
+    "C268Y",
+    "C190Y",
+    "C259Y",
+    "C176Y",
+    "C282Y",
+    "C279Y",
+    "C282Y"
+   ],
+   "converted_rankscore": 0.81001,
+   "model": [
+    "simple_aae",
+    "simple_aae",
+    "simple_aae",
+    "simple_aae",
+    "simple_aae",
+    "simple_aae",
+    "simple_aae",
+    "simple_aae",
+    "simple_aae",
+    "simple_aae",
+    "without_aae"
+   ],
+   "pred": [
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A"
+   ],
+   "score": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "mutformer": {
+   "rankscore": 0.98238,
+   "score": 0.9970018
+  },
+  "phactboost": {
+   "rankscore": 0.97697,
+   "score": 0.999731154894061
+  },
+  "phastcons": {
+   "100way_vertebrate": {
+    "rankscore": 0.71638,
+    "score": 1.0
+   },
+   "17way_primate": {
+    "rankscore": 0.33659,
+    "score": 0.684
+   },
+   "470way_mammalian": {
+    "rankscore": 0.68203,
+    "score": 1.0
+   }
+  },
+  "phylop": {
+   "100way_vertebrate": {
+    "rankscore": 0.65129,
+    "score": 5.226
+   },
+   "17way_primate": {
+    "rankscore": 0.7674,
+    "score": 0.676
+   },
+   "470way_mammalian": {
+    "rankscore": 0.81288,
+    "score": 9.696
+   }
+  },
+  "polyphen2": {
+   "hdiv": {
+    "pred": [
+     "D",
+     "D",
+     "D",
+     "D",
+     "D",
+     "D",
+     "D",
+     "P",
+     "D"
+    ],
+    "rankscore": 0.90584,
+    "score": [
+     0.993,
+     1.0,
+     0.996,
+     1.0,
+     0.961,
+     0.982,
+     1.0,
+     0.951,
+     1.0
+    ]
+   },
+   "hvar": {
+    "pred": [
+     "D",
+     "D",
+     "P",
+     "D",
+     "P",
+     "P",
+     "D",
+     "P",
+     "D"
+    ],
+    "rankscore": 0.92359,
+    "score": [
+     0.917,
+     0.999,
+     0.826,
+     0.999,
+     0.667,
+     0.756,
+     0.999,
+     0.56,
+     0.999
+    ]
+   }
+  },
+  "primateai": {
+   "pred": "T",
+   "rankscore": 0.53412,
+   "score": 0.603593468666
+  },
+  "provean": {
+   "converted_rankscore": 0.99143,
+   "pred": [
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D"
+   ],
+   "score": [
+    -8.93,
+    -10.67,
+    -9.03,
+    -8.48,
+    -8.33,
+    -8.88,
+    -8.23,
+    -8.64,
+    -9.14,
+    -8.41
+   ]
+  },
+  "ref": "G",
+  "reliability_index": 9,
+  "revel": {
+   "rankscore": 0.9617,
+   "score": [
+    0.872,
+    0.872,
+    0.872,
+    0.872,
+    0.872,
+    0.872,
+    0.872,
+    0.872,
+    0.872,
+    0.872
+   ]
+  },
+  "rsid": "rs1800562",
+  "sift": {
+   "converted_rankscore": 0.91255,
+   "pred": [
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D"
+   ],
+   "score": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "sift4g": {
+   "converted_rankscore": 0.92824,
+   "pred": [
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D",
+    "D"
+   ],
+   "score": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "siphy_29way": {
+   "logodds_rankscore": 0.69141,
+   "logodds_score": 14.7506,
+   "pi": {
+    "a": 0.0,
+    "c": 0.0,
+    "g": 1.0,
+    "t": 0.0
+   }
+  },
+  "tsl": [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   2
+  ],
+  "twinsuk": {
+   "ac": 256,
+   "af": 0.06903991370010787
+  },
+  "uk10k": {
+   "ac": 562,
+   "af": 0.07431896323723883
+  },
+  "uniprot": [
+   {
+    "acc": "Q30201-5",
+    "entry": "HFE_HUMAN"
+   },
+   {
+    "acc": "Q30201-6",
+    "entry": "HFE_HUMAN"
+   },
+   {
+    "acc": "Q30201-2",
+    "entry": "HFE_HUMAN"
+   },
+   {
+    "acc": "Q30201-7",
+    "entry": "HFE_HUMAN"
+   },
+   {
+    "acc": "Q30201",
+    "entry": "HFE_HUMAN"
+   },
+   {
+    "acc": "Q6B0J5",
+    "entry": "Q6B0J5_HUMAN"
+   },
+   {
+    "acc": "Q30201-10",
+    "entry": "HFE_HUMAN"
+   },
+   {
+    "acc": "Q30201-3",
+    "entry": "HFE_HUMAN"
+   },
+   {
+    "acc": "Q30201-4",
+    "entry": "HFE_HUMAN"
+   },
+   {
+    "acc": "F8W7W8",
+    "entry": "F8W7W8_HUMAN"
+   }
+  ],
+  "varity": {
+   "er": {
+    "rankscore": 0.98693,
+    "score": 0.9549827
+   },
+   "er_loo": {
+    "rankscore": 0.98332,
+    "score": 0.9488913
+   },
+   "r": {
+    "rankscore": 0.98881,
+    "score": 0.9771064
+   },
+   "r_loo": {
+    "rankscore": 0.99091,
+    "score": 0.97975725
+   }
+  },
+  "vep_canonical": "YES",
+  "vest4": {
+   "rankscore": 0.92667,
+   "score": [
+    0.816,
+    0.762,
+    0.923,
+    0.708,
+    0.746,
+    0.356,
+    0.742,
+    0.839,
+    0.804,
+    0.918
+   ]
+  },
+  "vindijia_neandertal": [
+   "G",
+   "G"
+  ]
+ },
+ "dbsnp": {
+  "_license": "http://bit.ly/2AqoLOc",
+  "alleles": [
+   {
+    "allele": "G",
+    "freq": {
+     "1000g": 0.988,
+     "alspac": 0.921,
+     "chileans": 0.982,
+     "daghestan": 0.98,
+     "dbgap_popfreq": 0.947,
+     "estonian": 0.957,
+     "exac": 0.968,
+     "finrisk": 0.967,
+     "genome_dk": 0.975,
+     "gnomad": 0.961,
+     "gnomad_exomes": 0.967,
+     "gonl": 0.946,
+     "hapmap": 0.981,
+     "hgdp_stanford": 0.993,
+     "mgp": 0.968,
+     "northernsweden": 0.925,
+     "page_study": 0.986,
+     "prjeb36033": 1.0,
+     "prjeb37584": 0.999,
+     "qatari": 0.995,
+     "sgdp_prj": 0.5,
+     "siberian": 0.5,
+     "tommo": 1.0,
+     "topmed": 0.965,
+     "twinsuk": 0.931
+    }
+   },
+   {
+    "allele": "A",
+    "freq": {
+     "1000g": 0.012,
+     "alspac": 0.079,
+     "chileans": 0.018,
+     "daghestan": 0.02,
+     "dbgap_popfreq": 0.053,
+     "estonian": 0.043,
+     "exac": 0.032,
+     "finrisk": 0.033,
+     "genome_dk": 0.025,
+     "gnomad": 0.039,
+     "gnomad_exomes": 0.033,
+     "gonl": 0.054,
+     "hapmap": 0.019,
+     "hgdp_stanford": 0.007,
+     "mgp": 0.032,
+     "northernsweden": 0.075,
+     "page_study": 0.014,
+     "prjeb36033": 0.0,
+     "prjeb37584": 0.001,
+     "qatari": 0.005,
+     "sgdp_prj": 0.5,
+     "siberian": 0.5,
+     "tommo": 0.0,
+     "topmed": 0.035,
+     "twinsuk": 0.069
+    }
+   }
+  ],
+  "alt": "A",
+  "chrom": "6",
+  "citations": [
+   678784,
+   8696333,
+   8896549,
+   8896550,
+   8931958,
+   8943161,
+   9024376,
+   9138148,
+   9162021,
+   9211748,
+   9321765,
+   9341868,
+   9356458,
+   9439654,
+   9462220,
+   9585606,
+   9851896,
+   9851897,
+   10381492,
+   10401000
+  ],
+  "dbsnp_build": 156,
+  "dbsnp_merges": [
+   {
+    "date": "2002-11-14T08:26Z",
+    "rsid": "rs4134660",
+    "rv": 109
+   },
+   {
+    "date": "2004-10-8T04:38Z",
+    "rsid": "rs17530654",
+    "rv": 123
+   },
+   {
+    "date": "2008-05-24T09:45Z",
+    "rsid": "rs58044250",
+    "rv": 130
+   },
+   {
+    "date": "2010-10-26T08:39Z",
+    "rsid": "rs111535158",
+    "rv": 133
+   }
+  ],
+  "gene": [
+   {
+    "geneid": 3077,
+    "is_pseudo": false,
+    "name": "homeostatic iron regulator",
+    "rnas": [
+     {
+      "codon_aligned_transcript_change": {
+       "deleted_sequence": "TGC",
+       "inserted_sequence": "TGC",
+       "position": 855,
+       "seq_id": "NM_000410.4"
+      },
+      "hgvs": "NM_000410.4:c.845=",
+      "protein": {
+       "variant": {
+        "spdi": {
+         "deleted_sequence": "C",
+         "inserted_sequence": "C",
+         "position": 281,
+         "seq_id": "NP_000401.1"
+        }
+       }
+      },
+      "protein_product": {
+       "refseq": "NP_000401.1"
+      },
+      "refseq": "NM_000410.4",
+      "so": [
+       {
+        "accession": "SO:0001580",
+        "name": "coding_sequence_variant"
+       }
+      ]
+     },
+     {
+      "codon_aligned_transcript_change": {
+       "deleted_sequence": "TGC",
+       "inserted_sequence": "TGC",
+       "position": 855,
+       "seq_id": "NM_001300749.2"
+      },
+      "hgvs": "NM_001300749.2:c.845=",
+      "protein": {
+       "variant": {
+        "spdi": {
+         "deleted_sequence": "C",
+         "inserted_sequence": "C",
+         "position": 281,
+         "seq_id": "NP_001287678.1"
+        }
+       }
+      },
+      "protein_product": {
+       "refseq": "NP_001287678.1"
+      },
+      "refseq": "NM_001300749.2",
+      "so": [
+       {
+        "accession": "SO:0001580",
+        "name": "coding_sequence_variant"
+       }
+      ]
+     },
+     {
+      "codon_aligned_transcript_change": {
+       "deleted_sequence": "TGC",
+       "inserted_sequence": "TGC",
+       "position": 855,
+       "seq_id": "NM_001384164.1"
+      },
+      "hgvs": "NM_001384164.1:c.845=",
+      "protein": {
+       "variant": {
+        "spdi": {
+         "deleted_sequence": "C",
+         "inserted_sequence": "C",
+         "position": 281,
+         "seq_id": "NP_001371093.1"
+        }
+       }
+      },
+      "protein_product": {
+       "refseq": "NP_001371093.1"
+      },
+      "refseq": "NM_001384164.1",
+      "so": [
+       {
+        "accession": "SO:0001580",
+        "name": "coding_sequence_variant"
+       }
+      ]
+     },
+     {
+      "codon_aligned_transcript_change": {
+       "deleted_sequence": "TGC",
+       "inserted_sequence": "TGC",
+       "position": 537,
+       "seq_id": "NM_139003.3"
+      },
+      "hgvs": "NM_139003.3:c.527=",
+      "protein": {
+       "variant": {
+        "spdi": {
+         "deleted_sequence": "C",
+         "inserted_sequence": "C",
+         "position": 175,
+         "seq_id": "NP_620572.1"
+        }
+       }
+      },
+      "protein_product": {
+       "refseq": "NP_620572.1"
+      },
+      "refseq": "NM_139003.3",
+      "so": [
+       {
+        "accession": "SO:0001580",
+        "name": "coding_sequence_variant"
+       }
+      ]
+     },
+     {
+      "codon_aligned_transcript_change": {
+       "deleted_sequence": "TGC",
+       "inserted_sequence": "TGC",
+       "position": 579,
+       "seq_id": "NM_139004.3"
+      },
+      "hgvs": "NM_139004.3:c.569=",
+      "protein": {
+       "variant": {
+        "spdi": {
+         "deleted_sequence": "C",
+         "inserted_sequence": "C",
+         "position": 189,
+         "seq_id": "NP_620573.1"
+        }
+       }
+      },
+      "protein_product": {
+       "refseq": "NP_620573.1"
+      },
+      "refseq": "NM_139004.3",
+      "so": [
+       {
+        "accession": "SO:0001580",
+        "name": "coding_sequence_variant"
+       }
+      ]
+     },
+     {
+      "codon_aligned_transcript_change": {
+       "deleted_sequence": "TGC",
+       "inserted_sequence": "TGC",
+       "position": 813,
+       "seq_id": "NM_139006.3"
+      },
+      "hgvs": "NM_139006.3:c.803=",
+      "protein": {
+       "variant": {
+        "spdi": {
+         "deleted_sequence": "C",
+         "inserted_sequence": "C",
+         "position": 267,
+         "seq_id": "NP_620575.1"
+        }
+       }
+      },
+      "protein_product": {
+       "refseq": "NP_620575.1"
+      },
+      "refseq": "NM_139006.3",
+      "so": [
+       {
+        "accession": "SO:0001580",
+        "name": "coding_sequence_variant"
+       }
+      ]
+     },
+     {
+      "codon_aligned_transcript_change": {
+       "deleted_sequence": "TGC",
+       "inserted_sequence": "TGC",
+       "position": 591,
+       "seq_id": "NM_139007.3"
+      },
+      "hgvs": "NM_139007.3:c.581=",
+      "protein": {
+       "variant": {
+        "spdi": {
+         "deleted_sequence": "C",
+         "inserted_sequence": "C",
+         "position": 193,
+         "seq_id": "NP_620576.1"
+        }
+       }
+      },
+      "protein_product": {
+       "refseq": "NP_620576.1"
+      },
+      "refseq": "NM_139007.3",
+      "so": [
+       {
+        "accession": "SO:0001580",
+        "name": "coding_sequence_variant"
+       }
+      ]
+     },
+     {
+      "codon_aligned_transcript_change": {
+       "deleted_sequence": "TGC",
+       "inserted_sequence": "TGC",
+       "position": 549,
+       "seq_id": "NM_139008.3"
+      },
+      "hgvs": "NM_139008.3:c.539=",
+      "protein": {
+       "variant": {
+        "spdi": {
+         "deleted_sequence": "C",
+         "inserted_sequence": "C",
+         "position": 179,
+         "seq_id": "NP_620577.1"
+        }
+       }
+      },
+      "protein_product": {
+       "refseq": "NP_620577.1"
+      },
+      "refseq": "NM_139008.3",
+      "so": [
+       {
+        "accession": "SO:0001580",
+        "name": "coding_sequence_variant"
+       }
+      ]
+     },
+     {
+      "codon_aligned_transcript_change": {
+       "deleted_sequence": "TGC",
+       "inserted_sequence": "TGC",
+       "position": 786,
+       "seq_id": "NM_139009.3"
+      },
+      "hgvs": "NM_139009.3:c.776=",
+      "protein": {
+       "variant": {
+        "spdi": {
+         "deleted_sequence": "C",
+         "inserted_sequence": "C",
+         "position": 258,
+         "seq_id": "NP_620578.1"
+        }
+       }
+      },
+      "protein_product": {
+       "refseq": "NP_620578.1"
+      },
+      "refseq": "NM_139009.3",
+      "so": [
+       {
+        "accession": "SO:0001580",
+        "name": "coding_sequence_variant"
+       }
+      ]
+     },
+     {
+      "codon_aligned_transcript_change": {
+       "deleted_sequence": "TGC",
+       "inserted_sequence": "TGC",
+       "position": 315,
+       "seq_id": "NM_139010.3"
+      },
+      "hgvs": "NM_139010.3:c.305=",
+      "protein": {
+       "variant": {
+        "spdi": {
+         "deleted_sequence": "C",
+         "inserted_sequence": "C",
+         "position": 101,
+         "seq_id": "NP_620579.1"
+        }
+       }
+      },
+      "protein_product": {
+       "refseq": "NP_620579.1"
+      },
+      "refseq": "NM_139010.3",
+      "so": [
+       {
+        "accession": "SO:0001580",
+        "name": "coding_sequence_variant"
+       }
+      ]
+     },
+     {
+      "hgvs": "NM_139011.3:c.77-206=",
+      "protein_product": {
+       "refseq": "NP_620580.1"
+      },
+      "refseq": "NM_139011.3",
+      "so": [
+       {
+        "accession": "SO:0001627",
+        "name": "intron_variant"
+       }
+      ]
+     },
+     {
+      "codon_aligned_transcript_change": {
+       "deleted_sequence": "G",
+       "inserted_sequence": "G",
+       "position": 856,
+       "seq_id": "XR_241893.5"
+      },
+      "hgvs": "XR_241893.5:n.857=",
+      "refseq": "XR_241893.5",
+      "so": [
+       {
+        "accession": "SO:0001619",
+        "name": "non_coding_transcript_variant"
+       }
+      ]
+     }
+    ],
+    "strand": "+",
+    "symbol": "HFE"
+   },
+   {
+    "geneid": 108783645,
+    "is_pseudo": false,
+    "name": "HFE antisense RNA 1",
+    "rnas": [
+     {
+      "refseq": "NR_144383.1",
+      "so": [
+       {
+        "accession": "SO:0001986",
+        "name": "upstream_transcript_variant"
+       }
+      ]
+     }
+    ],
+    "so": [
+     {
+      "accession": "SO:0001636",
+      "name": "2KB_upstream_variant"
+     }
+    ],
+    "strand": "-",
+    "symbol": "HFE-AS1"
+   }
+  ],
+  "hg38": {
+   "end": 26092913,
+   "start": 26092913
+  },
+  "ref": "G",
+  "rsid": "rs1800562",
+  "vartype": "snv"
+ },
+ "emv": {
+  "_license": "http://bit.ly/2RieoY1",
+  "egl_classification": "Other Reportable",
+  "egl_classification_date": "09/08/2015",
+  "egl_protein": "p.Cys282Tyr | p.C282Y",
+  "egl_variant": "NM_000410.3:c.845G>A",
+  "exon": "Ex4",
+  "gene": "HFE",
+  "hgvs": [
+   "LRG_748t1:c.845G>A",
+   "NM_000410.3:c.845G>A",
+   "NM_139003.2:c.527G>A",
+   "NM_139004.2:c.569G>A",
+   "NM_139006.2:c.803G>A",
+   "NM_139007.2:c.581G>A",
+   "NM_139008.2:c.539G>A",
+   "NM_139009.2:c.776G>A",
+   "NM_139010.2:c.305G>A",
+   "NM_139011.2:c.77-206G>A",
+   "XR_241894.1:n.892G>A"
+  ],
+  "variant_id": 9817
+ },
+ "evs": {
+  "_license": "http://bit.ly/2QAcvkh",
+  "allele_count": {
+   "african_american": {
+    "A": 67,
+    "G": 4339
+   },
+   "all": {
+    "A": 618,
+    "G": 12388
+   },
+   "european_american": {
+    "A": 551,
+    "G": 8049
+   }
+  },
+  "alt": "A",
+  "avg_sample_read": 82,
+  "chimp_allele": "G",
+  "chrom": 6,
+  "clinical_info": "http://www.ncbi.nlm.nih.gov/sites/varvu?gene=3077&amp;rs=1800562|http://www.ncbi.nlm.nih.gov/omim/235200,235200|http://omim.org/entry/613609#0001|http://omim.org/entry/235200#0001|http://www.ncbi.nlm.nih.gov/pubmed?term=19084217,19820697,19820699,19862010,20686565,20858683,20927387,21665994,21785125,21943158,23263863",
+  "coding_dna_size": [
+   231,
+   507,
+   978,
+   741,
+   783,
+   1005,
+   771,
+   729,
+   1047
+  ],
+  "conservation": {
+   "gerp": 5.3,
+   "phast_cons": 1.0
+  },
+  "dbsnp_version": 89,
+  "filter_status": "PASS",
+  "function_gvs": [
+   "intron",
+   "missense",
+   "missense",
+   "missense",
+   "missense",
+   "missense",
+   "missense",
+   "missense",
+   "missense"
+  ],
+  "gene": [
+   {
+    "accession": "NM_139011.2",
+    "symbol": "HFE"
+   },
+   {
+    "accession": "NM_139010.2",
+    "symbol": "HFE"
+   },
+   {
+    "accession": "NM_139009.2",
+    "symbol": "HFE"
+   },
+   {
+    "accession": "NM_139008.2",
+    "symbol": "HFE"
+   },
+   {
+    "accession": "NM_139007.2",
+    "symbol": "HFE"
+   },
+   {
+    "accession": "NM_139006.2",
+    "symbol": "HFE"
+   },
+   {
+    "accession": "NM_139004.2",
+    "symbol": "HFE"
+   },
+   {
+    "accession": "NM_139003.2",
+    "symbol": "HFE"
+   },
+   {
+    "accession": "NM_000410.3",
+    "symbol": "HFE"
+   }
+  ],
+  "genotype_count": {
+   "african_american": {
+    "AA": 1,
+    "AG": 65,
+    "GG": 2137
+   },
+   "all_genotype": {
+    "AA": 19,
+    "AG": 580,
+    "GG": 5904
+   },
+   "european_american": {
+    "AA": 18,
+    "AG": 515,
+    "GG": 3767
+   }
+  },
+  "gwas_pubmed_info": "http://www.ncbi.nlm.nih.gov/pubmed?term=19084217,19820697,19820699,19862010,20686565,20858683,20927387,21483845,21665994,21785125,21943158,23263863",
+  "hg19": {
+   "end": 26093141,
+   "start": 26093141
+  },
+  "hg38": {
+   "end": 26092913,
+   "start": 26092913
+  },
+  "hgvs": [
+   {
+    "coding": "c.77-206G>A"
+   },
+   {
+    "coding": "c.305G>A",
+    "protein": "p.(C102Y)"
+   },
+   {
+    "coding": "c.776G>A",
+    "protein": "p.(C259Y)"
+   },
+   {
+    "coding": "c.539G>A",
+    "protein": "p.(C180Y)"
+   },
+   {
+    "coding": "c.581G>A",
+    "protein": "p.(C194Y)"
+   },
+   {
+    "coding": "c.803G>A",
+    "protein": "p.(C268Y)"
+   },
+   {
+    "coding": "c.569G>A",
+    "protein": "p.(C190Y)"
+   },
+   {
+    "coding": "c.527G>A",
+    "protein": "p.(C176Y)"
+   },
+   {
+    "coding": "c.845G>A",
+    "protein": "p.(C282Y)"
+   }
+  ],
+  "ma_fin_percent": {
+   "african_american": 1.5207,
+   "all": 4.7517,
+   "european_american": 6.407
+  },
+  "on_illumina_human_exome_chip": "yes",
+  "polyphen2": [
+   {
+    "class": "u",
+    "score": "n"
+   },
+   {
+    "class": "p",
+    "score": "r"
+   },
+   {
+    "class": "p",
+    "score": "r"
+   },
+   {
+    "class": "p",
+    "score": "r"
+   },
+   {
+    "class": "p",
+    "score": "r"
+   },
+   {
+    "class": "p",
+    "score": "r"
+   },
+   {
+    "class": "p",
+    "score": "r"
+   },
+   {
+    "class": "p",
+    "score": "r"
+   },
+   {
+    "class": "p",
+    "score": "r"
+   }
+  ],
+  "ref": "G",
+  "ref_base_ncbi": "G",
+  "rsid": "rs1800562"
+ },
+ "gnomad_exome": {
+  "_license": "http://bit.ly/2I1cl1I",
+  "ac": {
+   "ac": 8344,
+   "ac_afr": 174,
+   "ac_afr_female": 112,
+   "ac_afr_male": 62,
+   "ac_amr": 469,
+   "ac_amr_female": 268,
+   "ac_amr_male": 201,
+   "ac_asj": 118,
+   "ac_asj_female": 62,
+   "ac_asj_male": 56,
+   "ac_eas": 2,
+   "ac_eas_female": 1,
+   "ac_eas_jpn": 0,
+   "ac_eas_kor": 0,
+   "ac_eas_male": 1,
+   "ac_eas_oea": 2,
+   "ac_female": 3953,
+   "ac_fin": 755,
+   "ac_fin_female": 371,
+   "ac_fin_male": 384,
+   "ac_male": 4391,
+   "ac_nfe": 6518,
+   "ac_nfe_bgr": 46,
+   "ac_nfe_est": 4,
+   "ac_nfe_female": 3021,
+   "ac_nfe_male": 3497,
+   "ac_nfe_nwe": 3219,
+   "ac_nfe_onf": 1540,
+   "ac_nfe_seu": 258,
+   "ac_nfe_swe": 1451,
+   "ac_oth": 240,
+   "ac_oth_female": 106,
+   "ac_oth_male": 134,
+   "ac_sas": 68,
+   "ac_sas_female": 12,
+   "ac_sas_male": 56
+  },
+  "af": {
+   "af": 0.0332118,
+   "af_afr": 0.0107037,
+   "af_afr_female": 0.0111221,
+   "af_afr_male": 0.0100226,
+   "af_amr": 0.0135596,
+   "af_amr_female": 0.0132215,
+   "af_amr_male": 0.0140383,
+   "af_asj": 0.011711,
+   "af_asj_female": 0.0126634,
+   "af_asj_male": 0.0108108,
+   "af_eas": 0.000108731,
+   "af_eas_female": 0.000107204,
+   "af_eas_jpn": 0.0,
+   "af_eas_kor": 0.0,
+   "af_eas_male": 0.000110302,
+   "af_eas_oea": 0.000138658,
+   "af_female": 0.0342565,
+   "af_fin": 0.0348955,
+   "af_fin_female": 0.035797,
+   "af_fin_male": 0.0340667,
+   "af_male": 0.0323243,
+   "af_nfe": 0.0574101,
+   "af_nfe_bgr": 0.0172673,
+   "af_nfe_est": 0.0165289,
+   "af_nfe_female": 0.0604273,
+   "af_nfe_male": 0.0550362,
+   "af_nfe_nwe": 0.0765954,
+   "af_nfe_onf": 0.0497191,
+   "af_nfe_seu": 0.0224465,
+   "af_nfe_swe": 0.0555215,
+   "af_oth": 0.0391134,
+   "af_oth_female": 0.0362022,
+   "af_oth_male": 0.0417706,
+   "af_sas": 0.00222106,
+   "af_sas_female": 0.00159067,
+   "af_sas_male": 0.00242718
+  },
+  "alleles": "A",
+  "alt": "A",
+  "an": {
+   "an": 251236,
+   "an_afr": 16256,
+   "an_afr_female": 10070,
+   "an_afr_male": 6186,
+   "an_amr": 34588,
+   "an_amr_female": 20270,
+   "an_amr_male": 14318,
+   "an_asj": 10076,
+   "an_asj_female": 4896,
+   "an_asj_male": 5180,
+   "an_eas": 18394,
+   "an_eas_female": 9328,
+   "an_eas_jpn": 152,
+   "an_eas_kor": 3818,
+   "an_eas_male": 9066,
+   "an_eas_oea": 14424,
+   "an_female": 115394,
+   "an_fin": 21636,
+   "an_fin_female": 10364,
+   "an_fin_male": 11272,
+   "an_male": 135842,
+   "an_nfe": 113534,
+   "an_nfe_bgr": 2664,
+   "an_nfe_est": 242,
+   "an_nfe_female": 49994,
+   "an_nfe_male": 63540,
+   "an_nfe_nwe": 42026,
+   "an_nfe_onf": 30974,
+   "an_nfe_seu": 11494,
+   "an_nfe_swe": 26134,
+   "an_oth": 6136,
+   "an_oth_female": 2928,
+   "an_oth_male": 3208,
+   "an_sas": 30616,
+   "an_sas_female": 7544,
+   "an_sas_male": 23072
+  },
+  "baseqranksum": -3.018,
+  "chrom": "6",
+  "clippingranksum": 0.04,
+  "dp": 15758825,
+  "fs": 0.517,
+  "hom": {
+   "hom": 244,
+   "hom_afr": 1,
+   "hom_afr_female": 1,
+   "hom_afr_male": 0,
+   "hom_amr": 5,
+   "hom_amr_female": 2,
+   "hom_amr_male": 3,
+   "hom_asj": 2,
+   "hom_asj_female": 0,
+   "hom_asj_male": 2,
+   "hom_eas": 0,
+   "hom_eas_female": 0,
+   "hom_eas_jpn": 0,
+   "hom_eas_kor": 0,
+   "hom_eas_male": 0,
+   "hom_eas_oea": 0,
+   "hom_female": 117,
+   "hom_fin": 16,
+   "hom_fin_female": 9,
+   "hom_fin_male": 7,
+   "hom_male": 127,
+   "hom_nfe": 212,
+   "hom_nfe_bgr": 2,
+   "hom_nfe_est": 0,
+   "hom_nfe_female": 101,
+   "hom_nfe_male": 111,
+   "hom_nfe_nwe": 119,
+   "hom_nfe_onf": 31,
+   "hom_nfe_seu": 4,
+   "hom_nfe_swe": 56,
+   "hom_oth": 8,
+   "hom_oth_female": 4,
+   "hom_oth_male": 4,
+   "hom_sas": 0,
+   "hom_sas_female": 0,
+   "hom_sas_male": 0
+  },
+  "inbreedingcoeff": 0.022,
+  "mq": {
+   "mq": 59.4,
+   "mqranksum": 0.176
+  },
+  "pab_max": 1.0,
+  "pos": 26092913,
+  "qd": 14.22,
+  "readposranksum": 0.505,
+  "ref": "G",
+  "rf": 0.940327,
+  "rsid": "rs1800562",
+  "sor": 0.662,
+  "type": "snp",
+  "vqslod": 5.12,
+  "vqsr_culprit": "MQ"
+ },
+ "gnomad_genome": {
+  "_license": "http://bit.ly/2I1cl1I",
+  "ac": {
+   "ac": 5679,
+   "ac_afr": 459,
+   "ac_afr_xx": 256,
+   "ac_afr_xy": 203,
+   "ac_ami": 41,
+   "ac_ami_xx": 18,
+   "ac_ami_xy": 23,
+   "ac_amr": 284,
+   "ac_amr_xx": 128,
+   "ac_amr_xy": 156,
+   "ac_asj": 48,
+   "ac_asj_xx": 30,
+   "ac_asj_xy": 18,
+   "ac_eas": 2,
+   "ac_eas_xx": 1,
+   "ac_eas_xy": 1,
+   "ac_fin": 378,
+   "ac_fin_xx": 98,
+   "ac_fin_xy": 280,
+   "ac_mid": 0,
+   "ac_mid_xx": 0,
+   "ac_mid_xy": 0,
+   "ac_nfe": 4398,
+   "ac_nfe_xx": 2580,
+   "ac_nfe_xy": 1818,
+   "ac_oth": 58,
+   "ac_oth_xx": 28,
+   "ac_oth_xy": 30,
+   "ac_sas": 11,
+   "ac_sas_xx": 1,
+   "ac_sas_xy": 10,
+   "ac_xx": 3140,
+   "ac_xy": 2539
+  },
+  "af": {
+   "af": 0.0373216,
+   "af_afr": 0.0110768,
+   "af_afr_xx": 0.0115534,
+   "af_afr_xy": 0.010529,
+   "af_ami": 0.0449561,
+   "af_ami_xx": 0.0382979,
+   "af_ami_xy": 0.0520362,
+   "af_amr": 0.0185913,
+   "af_amr_xx": 0.0188624,
+   "af_amr_xy": 0.0183746,
+   "af_asj": 0.0138329,
+   "af_asj_xx": 0.0160772,
+   "af_asj_xy": 0.0112219,
+   "af_eas": 0.000385356,
+   "af_eas_xx": 0.000438982,
+   "af_eas_xy": 0.000343407,
+   "af_fin": 0.0355999,
+   "af_fin_xx": 0.038073,
+   "af_fin_xy": 0.0348086,
+   "af_mid": 0.0,
+   "af_mid_xx": 0.0,
+   "af_mid_xy": 0.0,
+   "af_nfe": 0.0646594,
+   "af_nfe_xx": 0.0655588,
+   "af_nfe_xy": 0.0634245,
+   "af_oth": 0.0277512,
+   "af_oth_xx": 0.0271845,
+   "af_oth_xy": 0.0283019,
+   "af_sas": 0.00227461,
+   "af_sas_xx": 0.000857633,
+   "af_sas_xy": 0.0027248,
+   "af_xx": 0.040336,
+   "af_xy": 0.034164
+  },
+  "alleles": "A",
+  "alt": "A",
+  "an": {
+   "an": 152164,
+   "an_afr": 41438,
+   "an_afr_xx": 22158,
+   "an_afr_xy": 19280,
+   "an_ami": 912,
+   "an_ami_xx": 470,
+   "an_ami_xy": 442,
+   "an_amr": 15276,
+   "an_amr_xx": 6786,
+   "an_amr_xy": 8490,
+   "an_asj": 3470,
+   "an_asj_xx": 1866,
+   "an_asj_xy": 1604,
+   "an_eas": 5190,
+   "an_eas_xx": 2278,
+   "an_eas_xy": 2912,
+   "an_fin": 10618,
+   "an_fin_xx": 2574,
+   "an_fin_xy": 8044,
+   "an_mid": 316,
+   "an_mid_xx": 164,
+   "an_mid_xy": 152,
+   "an_nfe": 68018,
+   "an_nfe_xx": 39354,
+   "an_nfe_xy": 28664,
+   "an_oth": 2090,
+   "an_oth_xx": 1030,
+   "an_oth_xy": 1060,
+   "an_sas": 4836,
+   "an_sas_xx": 1166,
+   "an_sas_xy": 3670,
+   "an_xx": 77846,
+   "an_xy": 74318
+  },
+  "as_fs": 0.0,
+  "as_mq": {
+   "as_mq": 59.9981,
+   "as_mqranksum": 0.011
+  },
+  "as_pab_max": 1.0,
+  "as_qd": 14.2048,
+  "as_readposranksum": 0.329,
+  "as_sor": 0.704402,
+  "as_vqslod": 22.4565,
+  "chrom": "6",
+  "hom": {
+   "hom": 151,
+   "hom_afr": 3,
+   "hom_afr_xx": 1,
+   "hom_afr_xy": 2,
+   "hom_ami": 3,
+   "hom_ami_xx": 0,
+   "hom_ami_xy": 3,
+   "hom_amr": 4,
+   "hom_amr_xx": 2,
+   "hom_amr_xy": 2,
+   "hom_asj": 0,
+   "hom_asj_xx": 0,
+   "hom_asj_xy": 0,
+   "hom_eas": 0,
+   "hom_eas_xx": 0,
+   "hom_eas_xy": 0,
+   "hom_fin": 3,
+   "hom_fin_xx": 0,
+   "hom_fin_xy": 3,
+   "hom_mid": 0,
+   "hom_mid_xx": 0,
+   "hom_mid_xy": 0,
+   "hom_nfe": 137,
+   "hom_nfe_xx": 82,
+   "hom_nfe_xy": 55,
+   "hom_oth": 1,
+   "hom_oth_xx": 1,
+   "hom_oth_xy": 0,
+   "hom_sas": 0,
+   "hom_sas_xx": 0,
+   "hom_sas_xy": 0,
+   "hom_xx": 86,
+   "hom_xy": 65
+  },
+  "inbreedingcoeff": 0.0164369,
+  "pos": 26092913,
+  "ref": "G",
+  "rsid": "rs1800562",
+  "type": "snp"
+ },
+ "hg38": {
+  "end": 26092913,
+  "start": 26092913
+ },
+ "observed": true,
+ "snpeff": {
+  "_license": "http://bit.ly/2suyRKt",
+  "ann": [
+   {
+    "cdna": {
+     "length": "2222",
+     "position": "1005"
+    },
+    "cds": {
+     "length": "1047",
+     "position": "845"
+    },
+    "effect": "missense_variant",
+    "feature_id": "NM_000410.3",
+    "feature_type": "transcript",
+    "gene_id": "HFE",
+    "genename": "HFE",
+    "hgvs_c": "c.845G>A",
+    "hgvs_p": "p.Cys282Tyr",
+    "protein": {
+     "length": "348",
+     "position": "282"
+    },
+    "putative_impact": "MODERATE",
+    "rank": "4",
+    "total": "6",
+    "transcript_biotype": "protein_coding"
+   },
+   {
+    "cdna": {
+     "length": "2004",
+     "position": "1005"
+    },
+    "cds": {
+     "length": "1014",
+     "position": "845"
+    },
+    "effect": "missense_variant",
+    "feature_id": "NM_001300749.1",
+    "feature_type": "transcript",
+    "gene_id": "HFE",
+    "genename": "HFE",
+    "hgvs_c": "c.845G>A",
+    "hgvs_p": "p.Cys282Tyr",
+    "protein": {
+     "length": "337",
+     "position": "282"
+    },
+    "putative_impact": "MODERATE",
+    "rank": "4",
+    "total": "6",
+    "transcript_biotype": "protein_coding"
+   },
+   {
+    "cdna": {
+     "length": "1904",
+     "position": "687"
+    },
+    "cds": {
+     "length": "729",
+     "position": "527"
+    },
+    "effect": "missense_variant",
+    "feature_id": "NM_139003.2",
+    "feature_type": "transcript",
+    "gene_id": "HFE",
+    "genename": "HFE",
+    "hgvs_c": "c.527G>A",
+    "hgvs_p": "p.Cys176Tyr",
+    "protein": {
+     "length": "242",
+     "position": "176"
+    },
+    "putative_impact": "MODERATE",
+    "rank": "3",
+    "total": "5",
+    "transcript_biotype": "protein_coding"
+   },
+   {
+    "cdna": {
+     "length": "1946",
+     "position": "729"
+    },
+    "cds": {
+     "length": "771",
+     "position": "569"
+    },
+    "effect": "missense_variant",
+    "feature_id": "NM_139004.2",
+    "feature_type": "transcript",
+    "gene_id": "HFE",
+    "genename": "HFE",
+    "hgvs_c": "c.569G>A",
+    "hgvs_p": "p.Cys190Tyr",
+    "protein": {
+     "length": "256",
+     "position": "190"
+    },
+    "putative_impact": "MODERATE",
+    "rank": "3",
+    "total": "5",
+    "transcript_biotype": "protein_coding"
+   },
+   {
+    "cdna": {
+     "length": "2180",
+     "position": "963"
+    },
+    "cds": {
+     "length": "1005",
+     "position": "803"
+    },
+    "effect": "missense_variant",
+    "feature_id": "NM_139006.2",
+    "feature_type": "transcript",
+    "gene_id": "HFE",
+    "genename": "HFE",
+    "hgvs_c": "c.803G>A",
+    "hgvs_p": "p.Cys268Tyr",
+    "protein": {
+     "length": "334",
+     "position": "268"
+    },
+    "putative_impact": "MODERATE",
+    "rank": "4",
+    "total": "6",
+    "transcript_biotype": "protein_coding"
+   },
+   {
+    "cdna": {
+     "length": "1958",
+     "position": "741"
+    },
+    "cds": {
+     "length": "783",
+     "position": "581"
+    },
+    "effect": "missense_variant",
+    "feature_id": "NM_139007.2",
+    "feature_type": "transcript",
+    "gene_id": "HFE",
+    "genename": "HFE",
+    "hgvs_c": "c.581G>A",
+    "hgvs_p": "p.Cys194Tyr",
+    "protein": {
+     "length": "260",
+     "position": "194"
+    },
+    "putative_impact": "MODERATE",
+    "rank": "3",
+    "total": "5",
+    "transcript_biotype": "protein_coding"
+   },
+   {
+    "cdna": {
+     "length": "1916",
+     "position": "699"
+    },
+    "cds": {
+     "length": "741",
+     "position": "539"
+    },
+    "effect": "missense_variant",
+    "feature_id": "NM_139008.2",
+    "feature_type": "transcript",
+    "gene_id": "HFE",
+    "genename": "HFE",
+    "hgvs_c": "c.539G>A",
+    "hgvs_p": "p.Cys180Tyr",
+    "protein": {
+     "length": "246",
+     "position": "180"
+    },
+    "putative_impact": "MODERATE",
+    "rank": "3",
+    "total": "5",
+    "transcript_biotype": "protein_coding"
+   },
+   {
+    "cdna": {
+     "length": "2153",
+     "position": "936"
+    },
+    "cds": {
+     "length": "978",
+     "position": "776"
+    },
+    "effect": "missense_variant",
+    "feature_id": "NM_139009.2",
+    "feature_type": "transcript",
+    "gene_id": "HFE",
+    "genename": "HFE",
+    "hgvs_c": "c.776G>A",
+    "hgvs_p": "p.Cys259Tyr",
+    "protein": {
+     "length": "325",
+     "position": "259"
+    },
+    "putative_impact": "MODERATE",
+    "rank": "4",
+    "total": "6",
+    "transcript_biotype": "protein_coding"
+   },
+   {
+    "cdna": {
+     "length": "1682",
+     "position": "465"
+    },
+    "cds": {
+     "length": "507",
+     "position": "305"
+    },
+    "effect": "missense_variant",
+    "feature_id": "NM_139010.2",
+    "feature_type": "transcript",
+    "gene_id": "HFE",
+    "genename": "HFE",
+    "hgvs_c": "c.305G>A",
+    "hgvs_p": "p.Cys102Tyr",
+    "protein": {
+     "length": "168",
+     "position": "102"
+    },
+    "putative_impact": "MODERATE",
+    "rank": "2",
+    "total": "4",
+    "transcript_biotype": "protein_coding"
+   },
+   {
+    "effect": "intron_variant",
+    "feature_id": "NM_139011.2",
+    "feature_type": "transcript",
+    "gene_id": "HFE",
+    "genename": "HFE",
+    "hgvs_c": "c.77-206G>A",
+    "putative_impact": "MODIFIER",
+    "rank": "1",
+    "total": "2",
+    "transcript_biotype": "protein_coding"
+   }
+  ]
+ },
+ "uniprot": {
+  "humsavar": {
+   "disease_name": "Hemochromatosis1 (HFE1) [MIM:235200]",
+   "ftid": "VAR_004398",
+   "swiss_prot_ac": "Q30201",
+   "type_of_variant": "Disease"
+  }
+ },
+ "vcf": {
+  "alt": "A",
+  "position": "26092913",
+  "ref": "G"
+ }
+}

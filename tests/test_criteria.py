@@ -90,6 +90,37 @@ def test_pvs1_low_pli_is_not_treated_as_counter_evidence():
     assert "carriers are healthy" in pvs1.rationale.lower()
 
 
+@pytest.mark.parametrize(
+    "term,strength",
+    [
+        ("stop_gained", "very_strong"),
+        ("frameshift_variant", "very_strong"),
+        ("splice_donor_variant", "very_strong"),
+        ("splice_acceptor_variant", "very_strong"),
+        # Abou Tayoun 2018: translation may reinitiate at a downstream ATG, so
+        # initiation-codon loss is not reliably a null allele.
+        ("start_lost", "moderate"),
+    ],
+)
+def test_pvs1_strength_depends_on_the_kind_of_null_variant(term, strength):
+    from dissent.models import Consequence, EvidenceBundle, GeneConstraint, VariantQuery
+
+    bundle = EvidenceBundle(
+        query=VariantQuery(raw="x"),
+        gene_symbol="TESTGENE",
+        consequence=Consequence(most_severe=term, terms=[term]),
+        constraint=GeneConstraint(pli=0.99, oe_lof_upper=0.2),
+    )
+    pvs1 = by_code(evaluate_all(bundle))["PVS1"]
+    assert pvs1.status == "met"
+    assert pvs1.strength.value == strength
+
+
+def test_pvs1_names_the_rest_of_the_decision_tree_it_did_not_run():
+    pvs1 = by_code(evaluate_all(load_bundle("nf1_r1947ter")))["PVS1"]
+    assert "nonsense-mediated decay" in pvs1.what_would_change
+
+
 def test_pvs1_not_met_for_missense():
     pvs1 = by_code(evaluate_all(load_bundle("brca1_c61g")))["PVS1"]
     assert pvs1.status == "not_met"
@@ -98,12 +129,61 @@ def test_pvs1_not_met_for_missense():
 # ---- frequency criteria ---------------------------------------------------
 
 
+def _bundle_with_frequency(af: float, an: int = 800_000, hom: int = 0):
+    """A minimal bundle carrying one population-frequency record."""
+    from dissent.models import EvidenceBundle, PopulationFrequency, VariantQuery
+
+    return EvidenceBundle(
+        query=VariantQuery(raw="x"),
+        frequencies=[
+            PopulationFrequency(
+                source="test cohort",
+                af=af,
+                an=an,
+                ac=int(af * an),
+                homozygote_count=hom,
+                popmax_af=af,
+                popmax_population="Test population",
+                per_population={"Test population": af},
+            )
+        ],
+    )
+
+
+@pytest.mark.parametrize(
+    "af,ba1,bs1,pm2",
+    [
+        (0.200, "met", "met", "not_met"),
+        (0.050, "met", "met", "not_met"),      # BA1 boundary, inclusive
+        (0.049, "not_met", "met", "not_met"),
+        (0.010, "not_met", "met", "not_met"),  # BS1 boundary, inclusive
+        (0.009, "not_met", "not_met", "not_met"),
+        (0.0001, "not_met", "not_met", "met"), # PM2 boundary, inclusive
+        (0.00009, "not_met", "not_met", "met"),
+        (0.0, "not_met", "not_met", "met"),
+    ],
+)
+def test_frequency_thresholds_at_and_around_each_boundary(af, ba1, bs1, pm2):
+    results = by_code(evaluate_all(_bundle_with_frequency(af)))
+    assert results["BA1"].status == ba1, f"BA1 at {af}"
+    assert results["BS1"].status == bs1, f"BS1 at {af}"
+    assert results["PM2"].status == pm2, f"PM2 at {af}"
+
+
+def test_frequency_criteria_refuse_an_underpowered_cohort():
+    """An 8% estimate from 50 alleles must not reach stand-alone BA1."""
+    results = by_code(evaluate_all(_bundle_with_frequency(0.08, an=50)))
+    for code in ("BA1", "BS1", "PM2"):
+        assert results[code].status == "insufficient", code
+
+
 def test_ba1_met_for_a_variant_above_five_percent():
     hfe = load_bundle("hfe_c282y")
-    assert hfe.max_af() is not None and hfe.max_af() > 0.05
     ba1 = by_code(evaluate_all(hfe))["BA1"]
     assert ba1.status == "met"
     assert ba1.strength.value == "stand_alone"
+    # The cohort the number came from must be named in the rationale.
+    assert "AN" in ba1.rationale
 
 
 def test_ba1_not_met_for_a_rare_variant():
@@ -170,20 +250,63 @@ def test_frequency_data_alone_cannot_reach_benign_via_two_strong_criteria():
 # ---- computational criteria ----------------------------------------------
 
 
-def test_pp3_strength_follows_the_calibrated_predictor():
-    """Pejaver 2022 calibration, not a tally of agreeing tools."""
-    pp3 = by_code(evaluate_all(load_bundle("brca1_c61g")))["PP3"]
-    assert pp3.status == "met"
-    assert pp3.strength.value in ("strong", "moderate", "supporting")
-    assert "revel" in pp3.rationale.lower()
+def _bundle_with_revel(score: float):
+    """A minimal missense bundle carrying one REVEL score."""
+    from dissent.models import Consequence, EvidenceBundle, PredictorResult, VariantQuery
+
+    return EvidenceBundle(
+        query=VariantQuery(raw="x"),
+        consequence=Consequence(
+            most_severe="missense_variant", terms=["missense_variant"]
+        ),
+        predictors=[PredictorResult(name="REVEL", score=score, call="damaging")],
+    )
 
 
-def test_pp3_and_bp4_are_never_both_met():
-    """They are mirror images; satisfying both would be incoherent."""
-    for name in available_bundles():
-        results = by_code(evaluate_all(load_bundle(name)))
-        both = results["PP3"].status == "met" and results["BP4"].status == "met"
-        assert not both, f"{name} met both PP3 and BP4"
+@pytest.mark.parametrize(
+    "revel,status,strength",
+    [
+        # Pejaver 2022 calibrated thresholds, tested at and either side of each step.
+        (0.999, "met", "strong"),
+        (0.932, "met", "strong"),
+        (0.931, "met", "moderate"),
+        (0.773, "met", "moderate"),
+        (0.772, "met", "supporting"),
+        (0.644, "met", "supporting"),
+        (0.643, "not_met", None),
+        (0.100, "not_met", None),
+    ],
+)
+def test_pp3_strength_steps_at_the_calibrated_thresholds(revel, status, strength):
+    """Each rung of the ladder, so inverting or shifting it fails the suite."""
+    pp3 = by_code(evaluate_all(_bundle_with_revel(revel)))["PP3"]
+    assert pp3.status == status, f"REVEL {revel}"
+    assert (pp3.strength.value if pp3.status == "met" else None) == strength
+
+
+@pytest.mark.parametrize(
+    "revel,status,strength",
+    [
+        (0.016, "met", "strong"),
+        (0.017, "met", "moderate"),
+        (0.183, "met", "moderate"),
+        (0.184, "met", "supporting"),
+        (0.290, "met", "supporting"),
+        (0.291, "not_met", None),
+        (0.900, "not_met", None),
+    ],
+)
+def test_bp4_strength_steps_at_the_calibrated_thresholds(revel, status, strength):
+    bp4 = by_code(evaluate_all(_bundle_with_revel(revel)))["BP4"]
+    assert bp4.status == status, f"REVEL {revel}"
+    assert (bp4.strength.value if bp4.status == "met" else None) == strength
+
+
+@pytest.mark.parametrize("revel", [0.0, 0.1, 0.29, 0.3, 0.5, 0.644, 0.9, 1.0])
+def test_pp3_and_bp4_are_never_both_met_across_the_whole_range(revel):
+    """Mirror criteria: satisfying both would be incoherent at any score."""
+    results = by_code(evaluate_all(_bundle_with_revel(revel)))
+    assert not (results["PP3"].status == "met" and results["BP4"].status == "met")
 
 
 def test_pp3_not_applied_to_a_nonsense_variant():

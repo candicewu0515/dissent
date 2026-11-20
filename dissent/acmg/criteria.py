@@ -148,9 +148,26 @@ def pvs1(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
         )
 
     if lof_intolerant:
+        # Not every null variant earns the full strength. Abou Tayoun 2018,
+        # the SVI's PVS1 recommendation, downgrades initiation-codon loss:
+        # translation can reinitiate at a downstream ATG, so the consequence is
+        # not reliably a null allele. The last-exon and NMD-escape rules in the
+        # same decision tree need exon structure this engine does not fetch,
+        # and are named in `what_would_change` instead of being guessed at.
+        terms = set(cons.terms or [])
+        if "start_lost" in terms:
+            strength, caveat = (
+                Strength.MODERATE,
+                " Downgraded from Very Strong to Moderate: loss of the initiation "
+                "codon may allow reinitiation at a downstream start, so it is not "
+                "reliably a null allele (Abou Tayoun 2018).",
+            )
+        else:
+            strength, caveat = Strength.VERY_STRONG, ""
+
         return CriterionResult(
             code="PVS1", name=name, direction="pathogenic", status="met",
-            strength=Strength.VERY_STRONG,
+            strength=strength,
             rationale=(
                 f"Null variant ({cons.most_severe}) in {bundle.gene_symbol}, which is "
                 f"strongly depleted of loss-of-function variation ({detail}). That "
@@ -158,13 +175,15 @@ def pvs1(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
                 "mechanism: the criterion asks whether loss of function is an "
                 "established cause of this gene's disease, which needs curated "
                 "gene-disease evidence. High constraint supports the inference; it "
-                "does not complete it."
+                "does not complete it." + caveat
             ),
             sources=_gene_provenance(bundle),
             what_would_change=(
                 "A ClinGen gene-disease validity record confirming loss of function "
-                "as the mechanism, and confirmation the variant is not in the last "
-                "exon or otherwise escaping nonsense-mediated decay."
+                "as the mechanism, and the exon structure needed for the rest of the "
+                "PVS1 decision tree: whether the variant is in the last exon or the "
+                "final 50 bases of the penultimate one (escaping nonsense-mediated "
+                "decay), and whether it removes less than 10% of the protein."
             ),
         )
 
