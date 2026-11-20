@@ -1,7 +1,7 @@
 """Panel triage: interpret a list of variants and order them by what needs a human.
 
-A single lookup saves a reader fifteen minutes of tab-switching. A panel
-changes which variants get read at all. A gene panel returns dozens of
+A single lookup replaces eight database lookups. A panel changes which
+variants get read at all. A gene panel returns dozens of
 candidates and whoever reviews them has to choose where to start; that choice
 is usually made on gut feeling, or on whatever order the sequencer's output
 happened to arrive in. This module makes it explicit.

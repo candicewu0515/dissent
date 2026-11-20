@@ -399,3 +399,28 @@ def test_no_document_claims_a_service_the_engine_never_calls():
         assert "E-utilities" not in text, (
             f"{name} discloses NCBI E-utilities, which the engine never contacts"
         )
+
+
+def test_no_document_puts_an_unsourced_figure_on_how_long_curation_takes():
+    """The copy opened with "20-60 minutes per variant" and told the reader a
+    lookup "saves fifteen minutes". Neither was measured or cited.
+
+    A project whose argument is that unsourced numbers mislead cannot lead
+    with one. The replacement -- how many databases a lookup replaces -- is
+    checkable against the source clients, so the test checks it.
+    """
+    from pathlib import Path
+
+    web = ROOT / "dissent" / "web"
+    texts = {
+        "README.md": README,
+        "docs/01-design-spec.md": SPEC,
+        "docs/02-submission.md": SUBMISSION,
+        "panel.html": (web / "panel.html").read_text(),
+        "panel.py": (ROOT / "dissent" / "panel.py").read_text(),
+    }
+    for name, text in texts.items():
+        for claim in ("fifteen minutes", "20 to 60 minutes"):
+            if name == "docs/01-design-spec.md" and "earlier draft" in text:
+                continue  # the spec records the retraction on purpose
+            assert claim not in text, f"{name} still asserts {claim!r} with no source"

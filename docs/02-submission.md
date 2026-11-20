@@ -79,10 +79,10 @@ concentrates in, and where any of 15,326 genes places against the rest.
 
 ## Why it matters
 
-Interpreting one variant means opening five databases and reconciling them by
-hand — 20 to 60 minutes. But the time is not the problem. **The reconciliation
-step is where the errors happen, and the tools that automate it hide exactly
-that step behind a single label.**
+Interpreting one variant means opening eight databases and reconciling them by
+hand. But the time is not the problem. **The reconciliation step is where the
+errors happen, and the tools that automate it hide exactly that step behind a
+single label.**
 
 The existing tools — VarSome, Franklin, OpenCRAVAT, wANNOVAR — aggregate well
 and output a verdict. None of them treats disagreement as the output.
@@ -107,7 +107,7 @@ can clone the repository and run it without signing up for a single service.
 
 The architecture point that matters: every criterion and every detector is a
 **pure function** over an evidence bundle. No I/O, no state. That is what makes
-each rule auditable by reading one function, and what lets 536 tests run with
+each rule auditable by reading one function, and what lets 537 tests run with
 the socket constructor replaced — CI enforces that the suite never touches the
 network, rather than a README asserting it.
 
@@ -282,10 +282,10 @@ will watch muted.
 | 1:08–1:32 | Scroll to Conflicts. Hold on the first card, then let the eye fall to the staleness card lower down, which *does* carry a measured base rate. | "Five conflicts, ranked by how much they should change your reading. The top one: eight laboratories call it disease-causing, but it sits above the frequency threshold where the guidelines say a variant is benign on its own. Seven per cent of Northern Europeans carry it." |
 | 1:32–1:50 | The population chart, bars crossing the dashed 5% line. Cut to the 14-damaging / 5-benign split bar. | "The measurement behind it. And nineteen prediction tools — fourteen say damaging, five say benign. Most tools show you the fourteen." |
 | 1:50–2:06 | The worksheet grid, each cell in plain English. Click one "needs a person" cell to open its detail. | "All twenty-eight criteria, in words — including the seventeen a computer can't decide. Those aren't hidden. Each says what evidence would settle it." |
-| 2:06–2:30 | `/panel`. Click the carrier-screening panel, hit Triage. **Let the tiles fill on camera** — rows land every few seconds. Settle on the Contradicted group, three rows, then scroll once past Thin evidence. | "One variant saves you fifteen minutes. A panel changes what you read at all. Ten variants, same sources, sorted by what a person still has to decide. Three are contradicted outright. One doesn't resolve — and the error tells you why." |
+| 2:06–2:30 | `/panel`. Click the carrier-screening panel, hit Triage. **Let the tiles fill on camera** — rows land every few seconds. Settle on the Contradicted group, three rows, then scroll once past Thin evidence. | "One variant replaces eight lookups. A panel changes what you read at all. Ten variants, same sources, sorted by what a person still has to decide. Three are contradicted outright. One doesn't resolve — and the error tells you why." |
 | 2:30–2:40 | `/scale`. The gene leaderboard. Pause at the top — GCK and HNF4A, then BRCA2 and TP53. | "Across the whole database: the genes where laboratories disagree most are diabetes genes and cancer genes — the ones where being wrong costs the most." |
 | 2:40–2:46 | Fast cut: BRCA1 C61G. Two conflict cards, both low-key — point at the severity labels, not at an empty panel. | "When the evidence holds together, nothing serious fires. Two notes, neither a contradiction. A tool that cries wolf on every variant teaches you to ignore it." |
-| 2:46–2:54 | Split screen: `python -m dissent --panel panel.txt` printing the same worklist, then `pytest` → **536 passed**. | "Same engine in the terminal. Six public APIs, no keys. 536 tests, none touching the network." |
+| 2:46–2:54 | Split screen: `python -m dissent --panel panel.txt` printing the same worklist, then `pytest` → **537 passed**. | "Same engine in the terminal. Six public APIs, no keys. 537 tests, none touching the network." |
 | 2:54–3:00 | Static end card: live URL (large), repository, track. "Built with Claude — disclosed per the rules." | "Dissent. The disagreement is the finding." |
 
 **Before you hit record**, run this once. It fetches everything the demo

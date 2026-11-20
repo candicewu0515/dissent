@@ -91,7 +91,8 @@ reconcile, and nothing in either database mentions the other."*
 conflict, the specific evidence that would settle it.
 
 **4. A whole panel at once, at `/panel`.** A single lookup saves a reader
-fifteen minutes of tab-switching; a panel changes which variants get read at
+a round of tab-switching across eight databases; a panel changes which
+variants get read at
 all. Paste a gene panel and every variant is interpreted against the same six
 sources, then ordered into four tiers:
 
@@ -183,7 +184,7 @@ python -m dissent --panel my_panel.txt
 python -m dissent --panel my_panel.txt --csv > worklist.csv
 ```
 
-Tests — 536 of them, none touching the network, so they run anywhere:
+Tests — 537 of them, none touching the network, so they run anywhere:
 
 ```bash
 python -m pytest
@@ -260,7 +261,7 @@ not known until the first phase answers:
 ### Decisions worth stating
 
 **Every criterion and detector is a pure function** over the evidence bundle.
-No I/O, no state. That is what lets the 536 tests run offline against recorded
+No I/O, no state. That is what lets the 537 tests run offline against recorded
 fixtures, and what lets a reviewer audit a rule by reading one function. The
 fixtures come in two layers: normalised bundles for the scoring rules, and
 verbatim API payloads for the code that produces them.

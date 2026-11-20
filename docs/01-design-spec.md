@@ -11,8 +11,13 @@ Deadline: working deadline 2026-12-24 (official close 2026-12-26 00:00 ET)
 ## 1. The problem
 
 Interpreting a single genetic variant means manually opening ClinVar, gnomAD,
-dbNSFP/predictor sites, Open Targets, and PubMed, then reconciling them by hand.
-That costs 20-60 minutes per variant.
+dbNSFP/predictor sites, Open Targets and PubMed, then reconciling them by hand.
+This engine replaces eight such lookups with one.
+
+(An earlier draft put a figure on that — "20-60 minutes per variant". It was
+not measured and not cited, and a project whose argument is that unsourced
+numbers mislead should not open with one. The count of lookups is checkable;
+the minutes were not.)
 
 But the real problem is not the time. It is that the reconciliation step is where
 errors happen, and existing tools hide it:
@@ -143,7 +148,7 @@ The original line read: *"Batch/VCF upload. Attractive but it dilutes the demo;
 the story is one variant interpreted deeply."*
 
 That reasoning was about the demo, not about the user. One variant interpreted
-deeply saves a reader fifteen minutes of tab-switching; a panel changes which
+deeply replaces eight lookups; a panel changes which
 variants get read at all, which is the larger claim and the one worth making.
 The demo does not suffer — a panel filling in tiers on camera shows the engine
 doing something a reader cannot do by hand, which a single lookup does not.

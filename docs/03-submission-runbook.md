@@ -210,7 +210,7 @@ zero.
 Nothing below needs you.
 
 - A clean git history, no secrets, nothing uncommitted
-- 536 tests, passing with the network severed at the socket layer; CI runs them
+- 537 tests, passing with the network severed at the socket layer; CI runs them
   on Python 3.11, 3.12 and 3.13
 - Verified from a fresh `git clone` into an empty directory: install, tests,
   CLI, panel CLI, and the web server all work with no configuration
