@@ -230,6 +230,19 @@ will watch muted.
 | 2:46–2:54 | Split screen: `python -m dissent --panel panel.txt` printing the same worklist, then `pytest` → **411 passed**. | "Same engine in the terminal. Six public APIs, no keys. Four hundred and eleven tests, none touching the network." |
 | 2:54–3:00 | Static end card: live URL (large), repository, track. "Built with Claude — disclosed per the rules." | "Dissent. The disagreement is the finding." |
 
+**Before you hit record**, run this once. It fetches everything the demo
+touches so nothing on camera waits on someone else's server, and exits non-zero
+if any demo query would fail live:
+
+```bash
+python analysis/warm_cache.py
+```
+
+It is not a fixture dump — the cache holds the same responses the live code
+fetches, keyed the same way — so nothing shown is a recording of something
+other than what the tool does. Run it shortly before filming; entries expire
+after a week.
+
 **The panel shot is the one to get right.** It is the only moment that shows
 the tool doing something a reader cannot do by hand, and the tiles filling in
 real time is the proof it is live rather than a mock-up. Record it with a warm

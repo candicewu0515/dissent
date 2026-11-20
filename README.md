@@ -199,6 +199,13 @@ rather than asserted:
 python -m pytest --no-network
 ```
 
+Before a live demo, fill the cache so nothing waits on a public API — it
+exits non-zero if any demo query would fail:
+
+```bash
+python analysis/warm_cache.py
+```
+
 ### Deploying it
 
 ```bash
