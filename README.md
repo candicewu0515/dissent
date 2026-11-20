@@ -99,6 +99,8 @@ sources, then ordered into four tiers:
 | **Thin evidence** | Nobody disagrees, but the agreement rests on no stated criteria, one star, or an evaluation older than five years |
 | **No disagreement found** | The records agree, state their criteria, and are current |
 
+![A triaged carrier-screening panel: five tier counts, then the contradicted group](docs/images/panel.jpg)
+
 There is no score. A single number invites trust in a precision that is not
 there; four named tiers, each row carrying the reasons that put it in one, can
 be argued with. The tier is computed from structured fields only — ClinVar's
