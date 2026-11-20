@@ -32,11 +32,13 @@ git push -u origin main
 If the push is rejected because the branch is called something else, check with
 `git branch --show-current` and push that name instead.
 
-**Before pushing, know what becomes public.** The commits are authored as
-`xia wu <xiawu@candicewus-MacBook-Pro-3.local>`. Git built that address from
-the machine's hostname, and every commit will show it. You said to leave it; it
-is changed with `git config user.email` plus a rewrite of the existing history,
-so if you change your mind, do it *before* the first push rather than after.
+**Before pushing, know what becomes public.** Git built the commit author
+address from this machine's hostname, so every commit carries it. Check what it
+is with `git log -1 --format='%an <%ae>'`. Changing it means `git config
+user.email` plus a rewrite of the existing history, so if you want it changed,
+do it *before* the first push rather than after. (It is printed here by a
+command rather than written out, so that this file does not publish it a
+second time.)
 
 Then verify what a judge will actually see:
 
