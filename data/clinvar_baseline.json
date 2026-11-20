@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-19",
+ "generated": "2026-11-20",
  "source": "ClinVar submission_summary.txt.gz",
  "submission_rows": 6895437,
  "variants": 4470690,
@@ -12,7 +12,7 @@
   "pathogenic_vs_uncertain": 0.95,
   "every_record_lacks_criteria": 3.22,
   "some_record_lacks_criteria": 7.94,
-  "stale_5y": 15.75
+  "stale_5y": 15.76
  },
  "counts": {
   "any_label_disagreement": 356400,
@@ -20,7 +20,7 @@
   "pathogenic_vs_uncertain": 42346,
   "every_record_lacks_criteria": 144092,
   "some_record_lacks_criteria": 355058,
-  "stale_5y": 696673,
+  "stale_5y": 697310,
   "variants_with_a_date": 4424585
  },
  "submitters_per_variant": {
@@ -278,6 +278,7 @@
   }
  ],
  "gene_min_variants_for_rate": 30,
+ "leaderboard_min_variants": 300,
  "gene_table": {
   "AP5Z1": [
    1230,

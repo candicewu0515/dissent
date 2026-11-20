@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import asynccontextmanager
+import json
 from pathlib import Path
 
 import httpx
@@ -11,12 +12,14 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from dissent.baseline.rates import load_baseline
 from dissent.cache.store import ResponseCache
 from dissent.models import Report
 from dissent.report import interpret
 from dissent.sources.base import USER_AGENT
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+DATA_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "clinvar_baseline.json"
 
 # Curated demo variants. Each was chosen because it exercises a different
 # failure mode, and the set doubles as the walkthrough in the README.
@@ -110,6 +113,77 @@ async def api_interpret(
             ),
         )
     return report
+
+
+@app.get("/api/baseline")
+async def api_baseline() -> JSONResponse:
+    """Database-wide conflict rates, for the scale page.
+
+    Serves the summary and the leaderboard, not the 15,326-row gene table:
+    the page looks genes up one at a time.
+    """
+    baseline = load_baseline()
+    if baseline is None:
+        raise HTTPException(status_code=503, detail="Baseline data is not installed.")
+
+    histogram = {}
+    try:
+        raw = json.loads((DATA_PATH).read_text())
+        histogram = raw.get("submitters_per_variant", {})
+    except (OSError, ValueError):
+        histogram = {}
+
+    return JSONResponse(
+        {
+            "generated": baseline.generated,
+            "variants": baseline.variants,
+            "submissions": baseline.submissions,
+            "rates_pct": baseline.rates_pct,
+            "counts": baseline.counts,
+            "genes_with_a_rate": len(baseline.gene_table),
+            "gene_min_variants": baseline.gene_min_variants,
+            "leaderboard_min_variants": baseline.leaderboard_min_variants,
+            "most_discordant_genes": baseline.most_discordant_genes,
+            "submitters_per_variant": histogram,
+        }
+    )
+
+
+@app.get("/api/baseline/gene")
+async def api_baseline_gene(symbol: str = Query(..., min_length=1, max_length=40)) -> JSONResponse:
+    baseline = load_baseline()
+    if baseline is None:
+        raise HTTPException(status_code=503, detail="Baseline data is not installed.")
+
+    rate = baseline.gene(symbol)
+    if rate is None:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"No rate for '{symbol.upper()}'. A gene needs at least "
+                f"{baseline.gene_min_variants} classified variants for the figure to "
+                "mean anything."
+            ),
+        )
+    rank = baseline.gene_rank(symbol)
+    return JSONResponse(
+        {
+            "gene": rate.gene,
+            "variants": rate.variants,
+            "discordant": rate.discordant,
+            "rate_pct": round(rate.rate_pct, 2),
+            "rank": rank[0] if rank else None,
+            "of_genes": rank[1] if rank else None,
+            "overall_rate_pct": baseline.rates_pct.get(
+                "any_label_disagreement_among_multi_submitter"
+            ),
+        }
+    )
+
+
+@app.get("/scale")
+async def scale() -> FileResponse:
+    return FileResponse(WEB_DIR / "scale.html")
 
 
 @app.get("/api/health")

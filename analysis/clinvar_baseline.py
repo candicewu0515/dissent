@@ -165,6 +165,16 @@ def main(path: str, out_path: str) -> None:
     def pct(n: int, d: int) -> float:
         return round(100.0 * n / d, 2) if d else 0.0
 
+    # Two different floors, for two different jobs, both stated in the output.
+    #
+    # A rate is quotable for any gene with a few dozen classified variants; the
+    # report needs one for whatever gene the user asked about. A *ranking*
+    # needs a stable estimate, and at 30 variants the standard error on a rate
+    # near 30% is about nine percentage points -- enough for a small gene to
+    # top the table on noise alone. The leaderboard therefore uses a higher
+    # floor, and the two numbers are never presented as the same population.
+    LEADERBOARD_MIN = 300
+
     # Genes where disagreement is most concentrated, among those with enough
     # variants for the rate to mean anything.
     gene_rates = [
@@ -175,7 +185,7 @@ def main(path: str, out_path: str) -> None:
             "rate_pct": pct(per_gene_discordant[g], per_gene_total[g]),
         }
         for g in per_gene_total
-        if per_gene_total[g] >= 300
+        if per_gene_total[g] >= LEADERBOARD_MIN
     ]
     gene_rates.sort(key=lambda r: r["rate_pct"], reverse=True)
 
@@ -218,6 +228,7 @@ def main(path: str, out_path: str) -> None:
         "submitters_per_variant": {str(k): v for k, v in sorted(submitter_counts.items())},
         "most_discordant_genes": gene_rates[:40],
         "gene_min_variants_for_rate": MIN_FOR_RATE,
+        "leaderboard_min_variants": LEADERBOARD_MIN,
         "gene_table": gene_table,
     }
 

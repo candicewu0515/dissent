@@ -546,3 +546,100 @@ footer.foot a { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
 
 .hidden { display: none !important; }
+
+/* ---------- scale page ---------- */
+
+.plain-link { color: inherit; text-decoration: none; }
+.plain-link:hover { text-decoration: underline; }
+
+.scale-lede {
+  font-size: 16.5px;
+  color: var(--text-2);
+  max-width: 76ch;
+  margin: 18px 0 0;
+}
+.scale-lede a { color: var(--accent); }
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top-width: 5px;
+  border-radius: var(--radius);
+  padding: 24px 22px;
+}
+.tile.bad { border-top-color: var(--path); }
+.tile.warn { border-top-color: var(--medium); }
+
+.tile-figure {
+  font-family: var(--serif);
+  font-size: 54px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+.tile.bad .tile-figure { color: var(--path); }
+.tile.warn .tile-figure { color: var(--medium); }
+
+.tile-label { font-size: 16.5px; line-height: 1.4; margin-top: 12px; color: var(--text); }
+.tile-sub {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text-3);
+  margin-top: 11px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.tiles-source {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text-3);
+  margin: 16px 0 0;
+}
+
+.gene-card {
+  margin-top: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--path);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 24px 26px;
+}
+.gene-name { font-family: var(--mono); font-size: 23px; font-weight: 700; }
+.gene-rate {
+  font-family: var(--serif);
+  font-size: 58px;
+  line-height: 1.05;
+  font-weight: 700;
+  color: var(--path);
+  margin: 4px 0 10px;
+  letter-spacing: -0.025em;
+}
+.gene-detail { font-size: 17px; color: var(--text); max-width: 62ch; }
+.gene-rank {
+  font-size: 16px;
+  color: var(--text-2);
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  max-width: 62ch;
+}
+
+#gene-chart svg, #submitters-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+.hero-link {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+.hero-link:hover { border-bottom-color: var(--accent); }

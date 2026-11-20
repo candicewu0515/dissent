@@ -45,6 +45,7 @@ class Baseline:
     gene_table: dict[str, list[int]]
     most_discordant_genes: list[dict]
     gene_min_variants: int
+    leaderboard_min_variants: int
 
     def gene(self, symbol: str | None) -> GeneRate | None:
         """Disagreement rate for one gene, if enough variants exist to quote one."""
@@ -57,6 +58,12 @@ class Baseline:
 
     def gene_rank(self, symbol: str | None) -> tuple[int, int] | None:
         """(rank, total) of a gene by disagreement rate, 1 = most discordant.
+
+        Ranked against every gene with a quotable rate, which is a larger and
+        noisier population than the leaderboard's. The leaderboard applies a
+        higher variant floor so its ordering is stable, so its top entry is
+        not necessarily rank 1 here -- both populations are named wherever a
+        figure from them is shown.
 
         Computed on demand rather than stored: the ranking is only ever needed
         for the one gene being looked at.
@@ -96,4 +103,5 @@ def load_baseline(path: Path | None = None) -> Baseline | None:
         gene_table=raw.get("gene_table", {}),
         most_discordant_genes=raw.get("most_discordant_genes", []),
         gene_min_variants=raw.get("gene_min_variants_for_rate", 30),
+        leaderboard_min_variants=raw.get("leaderboard_min_variants", 300),
     )

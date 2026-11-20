@@ -837,9 +837,16 @@ def _attach_baselines(conflicts: list[Conflict], gene_symbol: str | None) -> Non
 
         # Gene context, but only for the detector it actually describes.
         if conflict.kind == "record_discordance" and gene and gene_rank:
+            rank, total = gene_rank
+            top_pct = rank / total * 100
+            band = (
+                f"{top_pct:.2f}%" if top_pct < 1
+                else f"{top_pct:.1f}%" if top_pct < 10
+                else f"{round(top_pct)}%"
+            )
             note += (
                 f" In {gene.gene} specifically the rate is {gene.rate_pct:.1f}% "
-                f"({gene.discordant:,} of {gene.variants:,} variants), ranking it "
-                f"{gene_rank[0]:,} of {gene_rank[1]:,} genes."
+                f"({gene.discordant:,} of {gene.variants:,} variants), which puts the "
+                f"gene in the most discordant {band} of the {total:,} measured."
             )
         conflict.baseline = note

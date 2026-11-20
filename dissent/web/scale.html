@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dissent — the scale of it</title>
+<meta name="description" content="How often laboratories disagree about a genetic variant, measured across the whole of ClinVar.">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="brand">
+      <h1><a href="/" class="plain-link">Dissent</a></h1>
+      <span class="tag">the scale of it</span>
+      <button class="theme-toggle" id="theme-toggle" type="button">Appearance</button>
+    </div>
+    <p class="scale-lede">
+      Every figure here is counted from ClinVar's own submission release &mdash; one row per
+      submitted record &mdash; not estimated, and not sampled.
+      <a href="https://github.com/" id="method-link">The script is in the repository.</a>
+    </p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Where disagreement concentrates</h2>
+    <p class="section-note">
+      Genes ranked by the share of their variants that more than one laboratory has
+      classified differently. Only genes with enough classified variants for the figure
+      to mean anything are included.
+    </p>
+    <div class="chart-card">
+      <div id="gene-chart"></div>
+    </div>
+    <p class="section-note" id="gene-chart-note"></p>
+  </section>
+
+  <section>
+    <h2 class="section-title">Look up a gene</h2>
+    <p class="section-note">
+      How often laboratories disagree about variants in one gene, and where that places
+      it among all genes measured.
+    </p>
+    <form class="searchbar" id="gene-form" autocomplete="off">
+      <input id="gene" placeholder="BRCA1  ·  TP53  ·  CFTR  ·  LDLR"
+             aria-label="Gene symbol" spellcheck="false">
+      <button type="submit">Look up</button>
+    </form>
+    <div id="gene-result"></div>
+  </section>
+
+  <section>
+    <h2 class="section-title">How many laboratories weigh in</h2>
+    <p class="section-note">
+      Most variants carry a single record, which is why disagreement is invisible
+      until you look for it: there is usually nothing to disagree with.
+    </p>
+    <div class="chart-card">
+      <div id="submitters-chart"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="disclaimer">
+      <strong>What these numbers are and are not.</strong>
+      They count classification labels that differ between records for the same variant.
+      Some of that spread is genuine disagreement; some reflects records written for
+      different conditions, or at different times as evidence accumulated. That is
+      exactly why a per-variant report has to show the records rather than a single
+      summary &mdash; a rate alone cannot tell you which kind you are looking at.
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a href="/">&larr; Back to variant interpretation</a>
+  </div>
+</footer>
+
+<script src="/static/charts.js"></script>
+<script src="/static/scale.js"></script>
+</body>
+</html>

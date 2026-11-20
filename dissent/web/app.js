@@ -73,7 +73,14 @@ function renderIdentity(report) {
       `${q.chrom}:${q.pos}${q.ref || ""}>${q.alt || ""}  (${q.assembly})`));
   }
   if (report.gene_symbol) {
-    box.appendChild(text("span", "meta", `gene ${report.gene_symbol}`));
+    const gene = text("span", "meta");
+    gene.appendChild(document.createTextNode("gene "));
+    const a = document.createElement("a");
+    a.href = `/scale?gene=${encodeURIComponent(report.gene_symbol)}`;
+    a.textContent = report.gene_symbol;
+    a.title = `How often laboratories disagree about ${report.gene_symbol} variants`;
+    gene.appendChild(a);
+    box.appendChild(gene);
   }
 
   const links = document.createElement("span");
