@@ -18,6 +18,12 @@ _SEVERITY_MARK = {"high": "!!", "medium": "! ", "low": "  "}
 _STATUS_MARK = {"met": "[MET]", "not_met": "[ - ]", "insufficient": "[ ? ]", "manual": "[MAN]"}
 
 
+def _wrap(text: str, width: int) -> list[str]:
+    import textwrap
+
+    return textwrap.wrap(text, width=width) or [""]
+
+
 def _print_report(report, width: int = 80) -> None:
     rule = "=" * width
     thin = "-" * width
@@ -28,6 +34,11 @@ def _print_report(report, width: int = 80) -> None:
     coords = f"{q.chrom}:{q.pos}{q.ref}>{q.alt}" if q.chrom and q.pos else "(unresolved)"
     print(f"{report.gene_symbol or '?'}   {coords}   {q.rsid or ''}   [{q.assembly}]")
     print(rule)
+
+    if report.summary:
+        print()
+        for line in _wrap(report.summary, width - 2):
+            print(f" {line}")
 
     print(f"\nDRAFT CLASSIFICATION: {report.classification.call}")
     print(f"  {report.classification.reasoning}\n")
@@ -52,7 +63,7 @@ def _print_report(report, width: int = 80) -> None:
     for c in report.criteria:
         if c.status in ("met", "insufficient"):
             strength = f" ({c.strength.value})" if c.strength else ""
-            print(f"{_STATUS_MARK[c.status]} {c.code}{strength}  {c.name}")
+            print(f"{_STATUS_MARK[c.status]} {c.code}{strength}  {c.plain or c.name}")
             print(f"      {c.rationale}")
             if c.what_would_change:
                 print(f"      -> needs: {c.what_would_change}")

@@ -21,6 +21,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Callable
 
+from dissent.acmg.plain import plain_name
 from dissent.acmg.thresholds import DEFAULT, Thresholds
 from dissent.models import (
     CriterionResult,
@@ -898,4 +899,7 @@ ALL_CRITERIA: tuple[CriterionFn, ...] = (
 
 def evaluate_all(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> list[CriterionResult]:
     """Evaluate every criterion. Always returns all 28."""
-    return [fn(bundle, t) for fn in ALL_CRITERIA]
+    results = [fn(bundle, t) for fn in ALL_CRITERIA]
+    for result in results:
+        result.plain = plain_name(result.code)
+    return results

@@ -227,6 +227,63 @@ h2.section-title {
 .identity .meta { font-family: var(--mono); font-size: 16px; color: var(--text-2); }
 .identity a { color: var(--accent); }
 
+/* ---------- plain summary ---------- */
+
+/* Set large and in the serif face: this is the one line in the report that
+   assumes no background, and it has to win the reader's attention over the
+   verdict cards below it. */
+.summary {
+  font-family: var(--serif);
+  font-size: 25px;
+  line-height: 1.45;
+  margin: 0;
+  padding: 22px 26px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  max-width: 62ch;
+}
+
+/* ---------- landing hero ---------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(280px, 400px) 1fr;
+  gap: 40px;
+  align-items: center;
+  padding: 18px 0 8px;
+}
+@media (max-width: 860px) { .hero { grid-template-columns: 1fr; gap: 24px; } }
+
+.hero-figure {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  text-align: center;
+}
+.hero-number {
+  font-family: var(--serif);
+  font-size: 86px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--path);
+  letter-spacing: -0.03em;
+}
+.hero-caption { font-size: 18px; line-height: 1.45; margin-top: 14px; color: var(--text); }
+.hero-caption em { color: var(--path); font-style: italic; }
+.hero-source {
+  font-size: 14px;
+  color: var(--text-3);
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  font-family: var(--mono);
+}
+.hero-text p { font-size: 17.5px; color: var(--text-2); max-width: 60ch; margin: 0 0 14px; }
+.hero-cta { font-weight: 600; color: var(--text) !important; }
+
 /* ---------- verdict comparison ---------- */
 
 .verdicts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -251,6 +308,36 @@ h2.section-title {
 .v-uncertain .call { color: var(--uncertain); }
 .v-none { background: var(--surface-2); }
 .v-none .call { color: var(--text-3); font-size: 20px; }
+
+.verdict-banner {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 650;
+  padding: 13px 18px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  color: var(--text);
+}
+.verdict-banner.opposed {
+  background: var(--path-bg);
+  border-color: var(--path);
+  color: var(--path);
+}
+
+.crit .plain {
+  font-size: 12.5px;
+  line-height: 1.32;
+  color: var(--text-2);
+  margin-top: 6px;
+}
+.crit-detail .formal {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
 
 .reasoning {
   margin-top: 16px;
@@ -292,6 +379,15 @@ h2.section-title {
 
 .conflict h3 { font-size: 19.5px; margin: 0; font-weight: 650; line-height: 1.35; flex: 1 1 320px; }
 .conflict p { font-size: 16px; color: var(--text-2); margin: 11px 0 0; max-width: 84ch; }
+.conflict p.baseline {
+  margin-top: 12px;
+  font-size: 15.5px;
+  color: var(--text);
+  background: var(--surface-2);
+  border-left: 3px solid var(--neutral);
+  padding: 11px 14px;
+  border-radius: 0 7px 7px 0;
+}
 .conflict .srcs { margin-top: 11px; font-size: 14.5px; }
 .conflict .srcs a { color: var(--accent); margin-right: 14px; }
 
@@ -315,7 +411,8 @@ h2.section-title {
 .sw-insuf { background: var(--uncertain); }
 .sw-manual { background: var(--border-strong); }
 
-.crit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 10px; }
+/* Wider cards: each one now carries a sentence, not just a code. */
+.crit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(208px, 1fr)); gap: 10px; }
 
 .crit {
   border: 1px solid var(--border);

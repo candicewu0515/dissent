@@ -24,6 +24,7 @@ from dissent.acmg.combine import (
     PATHOGENIC,
 )
 from dissent.acmg.thresholds import DEFAULT, Thresholds
+from dissent.baseline.rates import load_baseline
 from dissent.models import (
     UNKNOWN_REVIEW_STARS,
     Classification,
@@ -318,6 +319,19 @@ def stale_assertion(
         if undated
         else ""
     )
+
+    # The authoritative record being the oldest is worth saying out loud: the
+    # reader is otherwise drawn to recent submissions that carry less weight.
+    best_stars = max((a.stars for a in dated), default=0)
+    if best_stars >= 2:
+        best_dates = [a.last_evaluated for a in dated if a.stars == best_stars]
+        newest_authoritative = max(best_dates)
+        if newest_authoritative < newest:
+            undated_note += (
+                f" Note the best-reviewed record ({best_stars} of 4 stars) is itself "
+                f"from {newest_authoritative.isoformat()}, older than the most recent "
+                "submission, which carries less review weight."
+            )
 
     return Conflict(
         kind="stale_assertion",
@@ -764,5 +778,70 @@ def detect_all(
         unreviewed_literature(bundle, t),
     ]
     conflicts = [c for c in found if c is not None]
+    _attach_baselines(conflicts, bundle.gene_symbol)
     conflicts.sort(key=lambda c: _SEVERITY_ORDER.get(c.severity, 9))
     return conflicts
+
+
+# Which measured rate answers "is this unusual?" for each detector.
+_BASELINE_FOR = {
+    "record_discordance": "any_label_disagreement_among_multi_submitter",
+    "weak_evidence_base": "every_record_lacks_criteria",
+    "stale_assertion": "stale_5y",
+    "frequency_versus_claim": "pathogenic_vs_benign",
+    "internal_contradiction": None,
+}
+
+_BASELINE_PHRASING = {
+    "any_label_disagreement_among_multi_submitter": (
+        "{rate}% of variants with more than one record show this"
+    ),
+    "every_record_lacks_criteria": (
+        "{rate}% of variants have no record stating assertion criteria"
+    ),
+    "stale_5y": "{rate}% of variants have not been re-evaluated in five years",
+    "pathogenic_vs_benign": (
+        "only {rate}% of variants carry an outright pathogenic-versus-benign conflict"
+    ),
+}
+
+
+def _attach_baselines(conflicts: list[Conflict], gene_symbol: str | None) -> None:
+    """Add the measured frequency of each conflict type, where one exists.
+
+    "Submitters disagree about this variant" is an anecdote until the reader
+    knows whether that is routine. These rates come from ClinVar's own
+    submission release, so they are a measurement rather than an impression.
+    """
+    baseline = load_baseline()
+    if baseline is None:
+        return
+
+    gene = baseline.gene(gene_symbol)
+    gene_rank = baseline.gene_rank(gene_symbol)
+
+    for conflict in conflicts:
+        key = _BASELINE_FOR.get(conflict.kind)
+        if not key:
+            continue
+        rate = baseline.rates_pct.get(key)
+        if rate is None:
+            continue
+
+        phrasing = _BASELINE_PHRASING.get(key)
+        if not phrasing:
+            continue
+        note = (
+            f"Measured across all {baseline.variants:,} ClinVar variants: "
+            + phrasing.format(rate=f"{rate:g}")
+            + "."
+        )
+
+        # Gene context, but only for the detector it actually describes.
+        if conflict.kind == "record_discordance" and gene and gene_rank:
+            note += (
+                f" In {gene.gene} specifically the rate is {gene.rate_pct:.1f}% "
+                f"({gene.discordant:,} of {gene.variants:,} variants), ranking it "
+                f"{gene_rank[0]:,} of {gene_rank[1]:,} genes."
+            )
+        conflict.baseline = note

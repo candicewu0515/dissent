@@ -179,12 +179,48 @@ def test_stale_records_are_flagged_even_under_a_recent_one(braf):
     assert "of" in conflict.headline  # "N of M records ..."
 
 
-def test_staleness_is_quiet_when_every_record_is_recent(brca1):
+def test_staleness_is_quiet_when_every_record_is_recent():
+    """Built synthetically: no real fixture has uniformly recent records.
+
+    BRCA1 C61G, the best-curated variant in the set, still carries a 2015
+    evaluation -- which is itself the 3-star expert-panel record.
+    """
+    from dissent.models import ClinVarAssertion, ClinVarEvidence, Significance
+
+    today = date(2026, 1, 1)
+    bundle = EvidenceBundle(
+        query=VariantQuery(raw="x"),
+        clinvar=ClinVarEvidence(
+            variant_id=1,
+            assertions=[
+                ClinVarAssertion(
+                    significance=Significance.PATHOGENIC,
+                    stars=2,
+                    last_evaluated=date(2025, 6, 1),
+                ),
+                ClinVarAssertion(
+                    significance=Significance.PATHOGENIC,
+                    stars=1,
+                    last_evaluated=date(2024, 3, 1),
+                ),
+            ],
+        ),
+    )
+    assert stale_assertion(bundle, today=today) is None
+
+
+def test_an_outdated_authoritative_record_is_called_out(brca1):
+    """The expert-panel review being the oldest is the point, not a detail."""
     dated = [a for a in brca1.clinvar.actionable_assertions if a.last_evaluated]
-    assert dated, "fixture should carry dates"
-    newest = max(a.last_evaluated for a in dated)
-    # One day after the newest: nothing can be five years old.
-    assert stale_assertion(brca1, today=newest + timedelta(days=1)) is None
+    best = max(a.stars for a in dated)
+    assert best >= 2
+    newest_overall = max(a.last_evaluated for a in dated)
+    newest_best = max(a.last_evaluated for a in dated if a.stars == best)
+    assert newest_best < newest_overall, "fixture premise: best review is not the newest"
+
+    conflict = stale_assertion(brca1, today=newest_overall)
+    assert conflict is not None
+    assert "best-reviewed record" in conflict.detail
 
 
 def test_all_records_stale_is_more_severe_than_some(braf):

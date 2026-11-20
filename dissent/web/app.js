@@ -123,15 +123,26 @@ function clinvarSummary(report) {
   for (const a of actionable) counts[a.significance] = (counts[a.significance] || 0) + 1;
   const ordered = Object.entries(counts).sort((x, y) => y[1] - x[1]);
   const [topSig, topN] = ordered[0];
-  const maxStars = Math.max(...cv.assertions.map((a) => a.stars || 0));
+  // -1 marks a review status this build does not recognise; it must not be
+  // read as zero stars.
+  const known = cv.assertions.filter((a) => a.stars >= 0);
+  const maxStars = known.length ? Math.max(...known.map((a) => a.stars)) : -1;
 
   return {
     label: prettySig(topSig),
-    detail: `${topN} of ${actionable.length} assertions` +
+    detail: `${topN} of ${actionable.length} records` +
             (ordered.length > 1 ? `, ${ordered.length} distinct labels` : ", unanimous") +
-            ` · best review status ${maxStars}/4 stars`,
+            (maxStars >= 0 ? ` · best review status ${maxStars}/4 stars` : ""),
     unanimous: ordered.length === 1,
   };
+}
+
+function renderSummary(report) {
+  const section = $("summary-section");
+  const box = $("summary");
+  if (!report.summary) { section.classList.add("hidden"); return; }
+  section.classList.remove("hidden");
+  box.textContent = report.summary;
 }
 
 function renderVerdicts(report) {
@@ -151,7 +162,7 @@ function renderVerdicts(report) {
   const theirs = document.createElement("div");
   if (cvs) {
     theirs.className = `verdict ${callClass(cvs.label)}`;
-    theirs.appendChild(text("div", "who", "ClinVar, majority of submitters"));
+    theirs.appendChild(text("div", "who", "ClinVar, majority of records"));
     theirs.appendChild(text("div", "call", cvs.label));
     theirs.appendChild(text("div", "sub", cvs.detail));
   } else {
@@ -162,6 +173,24 @@ function renderVerdicts(report) {
       "Nothing to compare against. The worksheet stands on its own evidence."));
   }
   box.appendChild(theirs);
+
+  // State the disagreement between the two cards rather than leaving the
+  // reader to notice it. It is the product, not a glitch.
+  const mineDir = callClass(report.classification.call);
+  const theirsDir = cvs ? callClass(cvs.label) : null;
+  const banner = $("verdict-banner");
+  if (theirsDir && mineDir !== theirsDir) {
+    const opposed =
+      (mineDir === "v-benign" && theirsDir === "v-pathogenic") ||
+      (mineDir === "v-pathogenic" && theirsDir === "v-benign");
+    banner.textContent = opposed
+      ? "These two readings point in opposite directions. That is the finding."
+      : "These two readings do not agree. The gap is what this report is about.";
+    banner.className = `verdict-banner${opposed ? " opposed" : ""}`;
+    banner.classList.remove("hidden");
+  } else {
+    banner.classList.add("hidden");
+  }
 
   $("reasoning").textContent = report.classification.reasoning;
 }
@@ -189,6 +218,13 @@ function renderConflicts(report) {
     top.appendChild(text("h3", null, c.headline));
     card.appendChild(top);
     card.appendChild(text("p", null, c.detail));
+
+    // The measured base rate, set apart so it reads as a number rather than
+    // more prose. It is the one line a reader without a genetics background
+    // can act on.
+    if (c.baseline) {
+      card.appendChild(text("p", "baseline", c.baseline));
+    }
 
     if (c.sources && c.sources.length) {
       const srcs = text("div", "srcs");
@@ -324,6 +360,10 @@ function renderCriteria(report) {
       ? c.strength.replace(/_/g, " ")
       : STATUS_LABEL[c.status];
     btn.appendChild(text("div", "st", label));
+    // The code is the field's vocabulary; the plain reading is what makes the
+    // grid legible to a reader who does not have it.
+    if (c.plain) btn.appendChild(text("div", "plain", c.plain));
+    btn.title = c.plain || c.name;
     btn.addEventListener("click", () => showCriterion(c));
     grid.appendChild(btn);
   }
@@ -336,7 +376,8 @@ function showCriterion(c) {
   const box = $("crit-detail");
   clear(box);
   const card = text("div", "crit-detail");
-  card.appendChild(text("h4", null, `${c.code} — ${c.name}`));
+  card.appendChild(text("h4", null, c.plain || c.name));
+  card.appendChild(text("div", "formal", `${c.code} · ${c.name}`));
 
   const bits = [`toward ${c.direction}`, STATUS_LABEL[c.status]];
   if (c.strength) bits.push(`${c.strength.replace(/_/g, " ")} strength`);
@@ -432,6 +473,7 @@ function showError(msg) {
 function render(report) {
   currentReport = report;
   renderIdentity(report);
+  renderSummary(report);
   renderVerdicts(report);
   renderConflicts(report);
   renderCharts(report);

@@ -44,6 +44,10 @@
       <div class="card identity" id="identity"></div>
     </section>
 
+    <section id="summary-section">
+      <p class="summary" id="summary"></p>
+    </section>
+
     <section>
       <h2 class="section-title">Draft classification, and what ClinVar says</h2>
       <p class="section-note">
@@ -53,6 +57,7 @@
         the one worth investigating.
       </p>
       <div class="verdicts" id="verdicts"></div>
+      <div class="verdict-banner hidden" id="verdict-banner"></div>
       <div class="reasoning" id="reasoning"></div>
     </section>
 
@@ -117,6 +122,34 @@
   </div>
 
   <div id="intro">
+    <section class="hero">
+      <div class="hero-figure">
+        <div class="hero-number">34.5%</div>
+        <div class="hero-caption">
+          of genetic variants that more than one laboratory has classified
+          are classified <em>differently</em> by them
+        </div>
+        <div class="hero-source" id="hero-source">
+          measured across every submission in ClinVar
+        </div>
+      </div>
+      <div class="hero-text">
+        <h2 class="section-title">Every tool merges that into one label</h2>
+        <p>
+          When laboratories disagree about what a variant means, the public databases
+          show you a single summary and throw the disagreement away. So does every
+          tool built on them.
+        </p>
+        <p>
+          Dissent keeps it. It assembles the evidence from six public databases,
+          works through the 28 criteria clinical geneticists use, and puts the
+          contradictions first &mdash; including the ones between its own conclusion
+          and the database's.
+        </p>
+        <p class="hero-cta">Pick a variant above to see it work.</p>
+      </div>
+    </section>
+
     <section>
       <h2 class="section-title">What this does</h2>
       <p class="section-note" style="max-width:76ch">

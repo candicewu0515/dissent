@@ -409,6 +409,10 @@ Direction = Literal["pathogenic", "benign"]
 class CriterionResult(BaseModel):
     code: str
     name: str
+    # A reading of the criterion that assumes no genetics background. The
+    # codes are the field's vocabulary and are kept, but a grid of 28 of them
+    # is unreadable to anyone outside it.
+    plain: str | None = None
     direction: Direction
     status: CriterionStatus
     strength: Strength | None = None
@@ -436,12 +440,19 @@ class Conflict(BaseModel):
     headline: str
     detail: str
     sources: list[Provenance] = Field(default_factory=list)
+    # How often this kind of conflict occurs across all of ClinVar, measured
+    # rather than asserted. Without it the reader has no way to tell whether a
+    # finding is routine or remarkable.
+    baseline: str | None = None
 
 
 class Report(BaseModel):
     query: VariantQuery
     gene_symbol: str | None = None
     display_name: str | None = None
+    # One sentence, no vocabulary required. Everything below it assumes a
+    # reader who already knows the field; this line does not.
+    summary: str | None = None
     criteria: list[CriterionResult] = Field(default_factory=list)
     classification: Classification | None = None
     conflicts: list[Conflict] = Field(default_factory=list)

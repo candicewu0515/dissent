@@ -14,6 +14,7 @@ from dissent.collect import collect_evidence, utc_now_iso
 from dissent.conflicts.detectors import detect_all
 from dissent.models import EvidenceBundle, Report, VariantQuery
 from dissent.normalize.query import parse_variant
+from dissent.summary import plain_summary
 
 
 def build_report(
@@ -40,6 +41,7 @@ def build_report(
         query=bundle.query,
         gene_symbol=bundle.gene_symbol,
         display_name=display,
+        summary=plain_summary(bundle, classification, conflicts),
         criteria=criteria,
         classification=classification,
         conflicts=conflicts,
