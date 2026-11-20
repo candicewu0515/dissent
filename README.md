@@ -1,12 +1,8 @@
 # Dissent
 
-<!-- Once this repository exists on GitHub, paste the badge here, replacing
-     OWNER/REPO with the real path:
-     [![tests](https://github.com/OWNER/REPO/actions/workflows/tests.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/tests.yml)
-     Until then the line below says the same thing without a broken image. -->
+[![tests](https://github.com/candicewu0515/dissent/actions/workflows/tests.yml/badge.svg)](https://github.com/candicewu0515/dissent/actions/workflows/tests.yml)
 
-Tests run on Python 3.11, 3.12 and 3.13 in CI, with networking disabled
-([the workflow](.github/workflows/tests.yml)).
+Tests run on Python 3.11, 3.12 and 3.13 in CI, with networking disabled.
 
 **A variant interpretation engine that shows you the argument, not just the answer.**
 
@@ -153,7 +149,7 @@ And two panels, at `/panel`:
 Requires Python 3.11+. **No API keys, no accounts, no configuration.**
 
 ```bash
-git clone <this repo> && cd dissent
+git clone https://github.com/candicewu0515/dissent.git && cd dissent
 python -m venv .venv && . .venv/bin/activate
 pip install -e ".[dev]"
 ```
