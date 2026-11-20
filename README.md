@@ -5,7 +5,11 @@
 **A variant interpretation engine that shows you the argument, not just the answer.**
 
 Built for [GenHacks 2026](https://genhacks-open.devpost.com/).
-Track: AI, Agentic Systems, Cybersecurity, and Dev Tools.
+
+![A variant report: the plain summary, two opposing verdicts, and the first conflict](docs/images/report.jpg)
+
+*HFE C282Y. The worksheet reaches Benign; seven laboratories call it
+pathogenic. Neither is a bug — the disagreement is the output.*
 
 ---
 
@@ -26,7 +30,7 @@ label. Observed while building this, in real records:
 - Many records carry `no assertion criteria provided` — an opinion with no
   stated method — rendered with the same visual weight as an expert review.
   144,092 variants have no record above that level.
-- Records go **stale**. 696,673 variants have not been re-evaluated in five
+- Records go **stale**. 697,310 variants have not been re-evaluated in five
   years. BRAF V600E carries one last evaluated in 2009, under a 2025 record
   that makes the whole entry look current.
 - Predictors **split**. HFE C282Y: 14 call it damaging, 5 call it benign.
@@ -36,7 +40,9 @@ label. Observed while building this, in real records:
 Those figures are measured, not estimated: see
 [`analysis/clinvar_baseline.py`](analysis/clinvar_baseline.py), which streams
 ClinVar's own submission release — 6,895,437 submissions across 4,470,690
-variants.
+variants. The whole picture is at `/scale`:
+
+![The database-wide view: headline rates and the genes where disagreement concentrates](docs/images/scale.jpg)
 
 VarSome, Franklin, OpenCRAVAT and wANNOVAR aggregate well and output a label.
 None of them treats *disagreement* as the primary output.
