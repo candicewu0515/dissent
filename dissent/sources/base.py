@@ -22,7 +22,12 @@ from dissent.cache.store import ResponseCache
 from dissent.models import SourceStatus
 
 USER_AGENT = "Dissent/0.1 (variant interpretation worksheet; research use)"
-DEFAULT_TIMEOUT = 20.0
+DEFAULT_TIMEOUT = 12.0
+# Total wall-clock a single source may consume across all its attempts.
+# Without this, `timeout` multiplied by `retries` is the real worst case: a
+# 20s timeout with two retries spent 63s on one slow gnomAD query and the
+# surrounding asyncio.gather discarded a sibling source's finished result.
+DEFAULT_BUDGET = 16.0
 
 
 class SourceClient:
@@ -36,11 +41,13 @@ class SourceClient:
         client: httpx.AsyncClient | None = None,
         cache: ResponseCache | None = None,
         timeout: float = DEFAULT_TIMEOUT,
+        budget: float = DEFAULT_BUDGET,
     ):
         self._client = client
         self._owns_client = client is None
         self.cache = cache
         self.timeout = timeout
+        self.budget = budget
 
     async def __aenter__(self) -> SourceClient:
         if self._client is None:
@@ -95,9 +102,14 @@ class SourceClient:
 
         last_error = "unknown error"
         for attempt in range(retries + 1):
+            elapsed = time.perf_counter() - started
+            # Stop before an attempt that cannot finish inside the budget.
+            if attempt > 0 and elapsed + self.timeout > self.budget:
+                last_error = f"{last_error} (budget {self.budget:.0f}s exhausted)"
+                break
             try:
                 response = await self.client.request(
-                    method, url, params=params, json=json_body
+                    method, url, params=params, json=json_body, timeout=self.timeout
                 )
                 if response.status_code == 404:
                     # Not an error: the variant genuinely is not in this source.

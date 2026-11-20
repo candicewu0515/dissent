@@ -291,11 +291,18 @@ class EvidenceBundle(BaseModel):
     predictors: list[PredictorResult] = Field(default_factory=list)
     frequencies: list[PopulationFrequency] = Field(default_factory=list)
     constraint: GeneConstraint | None = None
+    # Primary consequence, from snpEff inside the MyVariant document.
     consequence: Consequence | None = None
+    # Independent VEP call, kept separate so the two can be compared rather
+    # than one silently overwriting the other.
+    consequence_vep: Consequence | None = None
     literature_pmids: list[int] = Field(default_factory=list)
     gene_description: str | None = None
     splice_ai_max: float | None = None
     cadd_phred: float | None = None
+    # Other ALT alleles sharing this rsID. An rsID is a *position* identifier,
+    # not an allele identifier, so a multi-allelic rsID is ambiguous input.
+    alternative_alleles: list[str] = Field(default_factory=list)
     sources: list[SourceStatus] = Field(default_factory=list)
 
     def best_frequency(self) -> PopulationFrequency | None:

@@ -408,6 +408,11 @@ class MyVariantClient(SourceClient):
                 detail=f"no variant in {query.gene} matching {query.protein_change}",
                 cached=status.cached,
             )
+        # Record siblings so the report can warn that the input was ambiguous.
+        best = dict(best)
+        best["_siblings"] = [
+            str(h.get("_id")) for h in hits if h.get("_id") and h.get("_id") != best.get("_id")
+        ]
         return best, status
 
     @staticmethod
@@ -457,9 +462,15 @@ class MyVariantClient(SourceClient):
                         name_match = 1
                         break
 
-            has_clinvar = 1 if isinstance(hit.get("clinvar"), dict) else 0
+            # Number of ClinVar assertions, not merely their presence: for a
+            # multi-allelic rsID this is what distinguishes the allele people
+            # have actually interpreted from its untouched neighbours.
+            n_assertions = 0
+            cv = hit.get("clinvar")
+            if isinstance(cv, dict):
+                n_assertions = len(as_list(cv.get("rcv")))
             has_dbnsfp = 1 if isinstance(hit.get("dbnsfp"), dict) else 0
-            return (gene_match, name_match, has_clinvar, has_dbnsfp, float(hit.get("_score") or 0))
+            return (gene_match, name_match, n_assertions, has_dbnsfp, float(hit.get("_score") or 0))
 
         best = max(hits, key=score)
         # Refuse a confidently-wrong answer: if the caller named a gene and no
