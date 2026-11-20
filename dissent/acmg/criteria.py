@@ -22,6 +22,10 @@ from datetime import date
 from typing import Callable
 
 from dissent.acmg.plain import plain_name
+from dissent.provenance import clinvar as _clinvar_provenance
+from dissent.provenance import gnomad_gene as _gene_provenance
+from dissent.provenance import gnomad_variant as _gnomad_provenance
+from dissent.provenance import litvar as _litvar_provenance
 from dissent.acmg.thresholds import DEFAULT, Thresholds
 from dissent.models import (
     CriterionResult,
@@ -41,55 +45,6 @@ def _fmt_af(af: float | None) -> str:
     if af < 1e-4:
         return f"{af:.2e}"
     return f"{af * 100:.3g}%"
-
-
-def _gnomad_provenance(bundle: EvidenceBundle) -> list[Provenance]:
-    """Link to the gnomAD record, naming the build the figures came from.
-
-    The frequency may have come from the live v4 API or from the v2 copy
-    embedded in the MyVariant document. Labelling both "v4" put the wrong
-    database build on a claim, in a tool whose rule is that every claim carries
-    its provenance. An hg19 query links to no gnomAD record at all, since the
-    browser is GRCh38.
-    """
-    vid = bundle.query.gnomad_variant_id
-    if not vid or bundle.query.assembly != "hg38":
-        return []
-
-    used_v4 = any("v4" in f.source for f in bundle.frequencies)
-    label = f"gnomAD {'v4' if used_v4 else 'browser'} variant {vid}"
-    return [
-        Provenance(
-            source="gnomAD",
-            label=label,
-            url=f"https://gnomad.broadinstitute.org/variant/{vid}?dataset=gnomad_r4",
-        )
-    ]
-
-
-def _clinvar_provenance(bundle: EvidenceBundle) -> list[Provenance]:
-    cv = bundle.clinvar
-    if cv is None or cv.variant_id is None:
-        return []
-    return [
-        Provenance(
-            source="ClinVar",
-            label=f"ClinVar variation {cv.variant_id}",
-            url=f"https://www.ncbi.nlm.nih.gov/clinvar/variation/{cv.variant_id}/",
-        )
-    ]
-
-
-def _gene_provenance(bundle: EvidenceBundle) -> list[Provenance]:
-    if not bundle.gene_symbol:
-        return []
-    return [
-        Provenance(
-            source="gnomAD",
-            label=f"gnomAD gene constraint for {bundle.gene_symbol}",
-            url=f"https://gnomad.broadinstitute.org/gene/{bundle.gene_symbol}?dataset=gnomad_r4",
-        )
-    ]
 
 
 def _manual(
@@ -268,13 +223,7 @@ def ps3(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
             "whether any reports a validated functional assay cannot be determined "
             "without reading them."
         )
-        result.sources = [
-            Provenance(
-                source="LitVar",
-                label=f"{total} linked publications",
-                url=f"https://www.ncbi.nlm.nih.gov/research/litvar2/docsum?text={bundle.query.rsid}",
-            )
-        ] if bundle.query.rsid else []
+        result.sources = _litvar_provenance(bundle)
     return result
 
 

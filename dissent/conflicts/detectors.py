@@ -35,36 +35,12 @@ from dissent.models import (
     Significance,
 )
 from dissent.normalize.consequence import disagreement as consequence_disagreement
+from dissent.provenance import clinvar as _clinvar_link
+from dissent.provenance import gnomad_variant as _gnomad_link
 
 Detector = Callable[..., Conflict | None]
 
 _SEVERITY_ORDER = {"high": 0, "medium": 1, "low": 2}
-
-
-def _clinvar_link(bundle: EvidenceBundle) -> list[Provenance]:
-    cv = bundle.clinvar
-    if cv is None or cv.variant_id is None:
-        return []
-    return [
-        Provenance(
-            source="ClinVar",
-            label=f"ClinVar variation {cv.variant_id}",
-            url=f"https://www.ncbi.nlm.nih.gov/clinvar/variation/{cv.variant_id}/",
-        )
-    ]
-
-
-def _gnomad_link(bundle: EvidenceBundle) -> list[Provenance]:
-    vid = bundle.query.gnomad_variant_id
-    if not vid:
-        return []
-    return [
-        Provenance(
-            source="gnomAD",
-            label=f"gnomAD v4 variant {vid}",
-            url=f"https://gnomad.broadinstitute.org/variant/{vid}?dataset=gnomad_r4",
-        )
-    ]
 
 
 # ==========================================================================

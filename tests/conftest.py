@@ -1,8 +1,15 @@
-"""Fixture loading. No test in this suite touches the network."""
+"""Fixture loading, and the switch that proves the suite is offline.
+
+Every external response in this repository is a recorded fixture. `--no-network`
+replaces the socket constructor so any attempt to open one fails loudly: it
+turns "these tests do not need the network" from a claim into something CI
+enforces.
+"""
 
 from __future__ import annotations
 
 import json
+import socket
 from pathlib import Path
 
 import pytest
@@ -43,3 +50,27 @@ def brca1() -> EvidenceBundle:
 def tp53() -> EvidenceBundle:
     """TP53 R175H: the variant whose snpEff record includes a PDB annotation."""
     return load_bundle("tp53_r175h")
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--no-network",
+        action="store_true",
+        default=False,
+        help="Fail any test that tries to open a socket.",
+    )
+
+
+@pytest.fixture(autouse=True)
+def _forbid_network(request, monkeypatch):
+    if not request.config.getoption("--no-network"):
+        return
+
+    def refuse(*args, **kwargs):
+        raise RuntimeError(
+            "This suite runs offline. Something tried to open a network "
+            "connection; it should be reading a fixture instead."
+        )
+
+    monkeypatch.setattr(socket, "socket", refuse)
+    monkeypatch.setattr(socket, "create_connection", refuse)

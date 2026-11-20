@@ -51,21 +51,21 @@ class Thresholds:
     pp2_mis_z: float = 3.09
 
     # ---- REVEL, calibrated (Pejaver 2022) --------------------------------
-    revel_pp3_strong: float = 0.932
-    revel_pp3_moderate: float = 0.773
-    revel_pp3_supporting: float = 0.644
+    # The pathogenic side is a ladder, because PP3's strength depends on where
+    # the score falls. Defined once, below, and read through
+    # `revel_pp3_supporting` rather than being restated as separate fields --
+    # two copies of the same three numbers can drift apart silently, in a file
+    # whose whole purpose is that each number has one home.
     revel_bp4_supporting: float = 0.290
     revel_bp4_moderate: float = 0.183
     revel_bp4_strong: float = 0.016
 
     # ---- AlphaMissense, used only as corroboration -----------------------
     alphamissense_pathogenic: float = 0.564
-    alphamissense_benign: float = 0.340
 
     # ---- splicing ---------------------------------------------------------
     # SpliceAI delta below this is treated as no predicted splice effect.
     spliceai_no_effect: float = 0.10
-    spliceai_effect: float = 0.50
 
     # ---- BS2 --------------------------------------------------------------
     # One homozygote can be a genotyping artefact; two is harder to dismiss.
@@ -79,6 +79,8 @@ class Thresholds:
     # ---- staleness --------------------------------------------------------
     stale_assertion_years: int = 5
 
+    # (cutoff, strength), most severe first. PP3 takes the first rung a score
+    # reaches; a score below the last one does not meet the criterion.
     revel_strength_ladder: tuple[tuple[float, Strength], ...] = field(
         default=(
             (0.932, Strength.STRONG),
@@ -86,6 +88,11 @@ class Thresholds:
             (0.644, Strength.SUPPORTING),
         )
     )
+
+    @property
+    def revel_pp3_supporting(self) -> float:
+        """The lowest rung of the ladder: below this, PP3 does not apply."""
+        return min(cutoff for cutoff, _ in self.revel_strength_ladder)
 
 
 DEFAULT = Thresholds()

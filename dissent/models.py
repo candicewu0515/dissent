@@ -28,7 +28,6 @@ class Provenance(BaseModel):
     source: str
     label: str
     url: str | None = None
-    retrieved_at: str | None = None
 
 
 # --------------------------------------------------------------------------
@@ -185,10 +184,6 @@ class ClinVarAssertion(BaseModel):
     origin: str | None = None
 
     @property
-    def has_assertion_criteria(self) -> bool:
-        return self.stars >= 1
-
-    @property
     def review_status_known(self) -> bool:
         return self.stars != UNKNOWN_REVIEW_STARS
 
@@ -204,10 +199,6 @@ class ClinVarEvidence(BaseModel):
     @property
     def actionable_assertions(self) -> list[ClinVarAssertion]:
         return [a for a in self.assertions if a.significance.is_actionable]
-
-    @property
-    def distinct_significances(self) -> set[Significance]:
-        return {a.significance for a in self.actionable_assertions}
 
     @property
     def origins(self) -> set[str]:
@@ -356,7 +347,6 @@ class EvidenceBundle(BaseModel):
     literature_total: int = 0
     gene_description: str | None = None
     splice_ai_max: float | None = None
-    cadd_phred: float | None = None
     # Other ALT alleles sharing this rsID. An rsID is a *position* identifier,
     # not an allele identifier, so a multi-allelic rsID is ambiguous input.
     alternative_alleles: list[str] = Field(default_factory=list)

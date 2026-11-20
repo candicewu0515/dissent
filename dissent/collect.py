@@ -351,7 +351,6 @@ async def collect_evidence(
             gene_description=gene_description,
             alternative_alleles=[str(x) for x in (doc.get("_siblings") or [])],
             splice_ai_max=_spliceai_max(doc),
-            cadd_phred=to_float(dig(doc, "cadd", "phred")),
             sources=_dedupe_statuses(statuses),
         )
     finally:

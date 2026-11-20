@@ -101,25 +101,3 @@ class ResponseCache:
                 "SELECT source, COUNT(*) FROM responses GROUP BY source"
             ).fetchall()
         return {src: n for src, n in rows}
-
-
-class NullCache(ResponseCache):
-    """Used in tests so no sqlite file is created."""
-
-    def __init__(self) -> None:  # noqa: D107
-        self.ttl = 0
-
-    def _init_db(self) -> None:
-        return None
-
-    def get(self, key: str) -> Any | None:
-        return None
-
-    def set(self, key: str, source: str, value: Any) -> None:
-        return None
-
-    def clear(self, source: str | None = None) -> int:
-        return 0
-
-    def stats(self) -> dict[str, int]:
-        return {}

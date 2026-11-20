@@ -1,5 +1,7 @@
 # Dissent
 
+[![tests](https://github.com/OWNER/REPO/actions/workflows/tests.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/tests.yml)
+
 **A variant interpretation engine that shows you the argument, not just the answer.**
 
 Built for [GenHacks 2026](https://genhacks-open.devpost.com/).
@@ -118,10 +120,17 @@ JSON, for piping into something else:
 python -m dissent "rs1800562" --json
 ```
 
-Tests — these never touch the network, so they run anywhere:
+Tests — 308 of them, none touching the network, so they run anywhere:
 
 ```bash
 python -m pytest
+```
+
+CI runs them with the socket constructor replaced, so "offline" is enforced
+rather than asserted:
+
+```bash
+python -m pytest --no-network
 ```
 
 ## How it works
@@ -152,7 +161,7 @@ not known until the first phase answers:
 ### Decisions worth stating
 
 **Every criterion and detector is a pure function** over the evidence bundle.
-No I/O, no state. That is what lets the 278 tests run offline against recorded
+No I/O, no state. That is what lets the 308 tests run offline against recorded
 fixtures, and what lets a reviewer audit a rule by reading one function. The
 fixtures come in two layers: normalised bundles for the scoring rules, and
 verbatim API payloads for the code that produces them.

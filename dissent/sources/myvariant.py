@@ -20,7 +20,6 @@ from dissent.models import (
     PopulationFrequency,
     PredictorCall,
     PredictorResult,
-    Provenance,
     SourceStatus,
     VariantQuery,
     normalize_significance,
@@ -547,15 +546,3 @@ class MyVariantClient(SourceClient):
         if want_gene and want_gene not in _hit_genes(best):
             return None
         return best
-
-
-def provenance_for(clinvar: ClinVarEvidence | None) -> list[Provenance]:
-    if clinvar is None or clinvar.variant_id is None:
-        return []
-    return [
-        Provenance(
-            source="ClinVar",
-            label=f"ClinVar variation {clinvar.variant_id}",
-            url=CLINVAR_URL.format(vid=clinvar.variant_id),
-        )
-    ]
