@@ -46,11 +46,28 @@ Then verify what a judge will actually see:
 gh repo view --web
 ```
 
-## 2. Deploy it (20 minutes, and worth a prize)
+## 2. Deploy it — optional (20 minutes)
 
-There is a separate prize — "Best Use of Deployxa" — and the project page is
-much stronger with a URL a judge can click than with a `git clone`
-instruction.
+**This is not a submission requirement.** The rules list five things to
+submit: a project page, the video, a code link, a track, and the team members.
+A live URL is not among them, and the only "does it run" requirement is the
+video's — *"Show the project working."*
+
+Deploying buys exactly two things:
+
+1. **The "Best Use of Deployxa" prize.** It is specific to that platform —
+   *"Opt in when you submit if you deployed your project on Deployxa"* — so
+   deploying somewhere else does not qualify.
+2. A judge being able to click and try it, which may help Presentation and
+   Technical execution. May, not must.
+
+It costs one free account. There is no way around that: every host needs an
+account, and the one that is already signed in here, Google Cloud, needs
+billing enabled on it before Cloud Run will accept anything — a bigger
+commitment than a free signup, not a smaller one.
+
+If you skip this, nothing else in the submission changes. Delete this section
+from your plan and go to the video.
 
 Deployxa's free plan fits this project with room to spare: **no credit card,
 no time limit, 3 projects, 512 MB RAM** and a free `*.deployxa.online`
@@ -73,7 +90,7 @@ limits.
 
 So the free tier is not a squeeze; it is 13% used.
 
-### The three steps that need you
+### If you do deploy: the three steps that need you
 
 **1.** Create the account at <https://deployxa.com> — "Deploy free", no card.
 

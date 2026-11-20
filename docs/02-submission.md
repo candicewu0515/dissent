@@ -252,8 +252,8 @@ is staff or research-employee rather than student, confirm with the organisers
 - [ ] Demo video, **3:00 maximum**, on YouTube or Vimeo, **embedding enabled**
 - [ ] Public repository link, with a real author identity on the commits
 - [ ] All team members added on Devpost
-- [ ] Live URL in the project page
-- [ ] Opt in to the Deployxa prize if deployed there
+- [ ] Live URL in the project page — *optional, not a submission requirement*
+- [ ] Opt in to the Deployxa prize, but only if you deployed on Deployxa itself
 - [ ] Submitted before **24 December** (official close is 00:00 ET on 26
       December, which is the end of 25 December — do not use that as the plan)
 
