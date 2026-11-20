@@ -75,15 +75,6 @@ def _merge_frequencies(
     return secondary
 
 
-async def _noop() -> None:
-    """Placeholder so both retry slots can be gathered together.
-
-    Keeps the two conditional retries concurrent instead of sequential without
-    branching on which of them is present.
-    """
-    return None
-
-
 def _resolve_coordinates(
     query: VariantQuery, doc: dict[str, Any], clinvar: Any
 ) -> VariantQuery:
@@ -275,25 +266,31 @@ async def collect_evidence(
         # so it is worth fetching even when snpEff already gave a consequence.
         retry_vep = vep_consequence is None and (has_coords or bool(resolved.rsid))
 
-        gnomad_retry = gnomad.fetch_variant(resolved) if retry_gnomad else _noop()
-        vep_retry = ensembl.fetch(resolved) if retry_vep else _noop()
+        # Build only the coroutines that will actually be awaited. Creating one
+        # unconditionally and dropping it raises "coroutine was never awaited",
+        # which printed a Python warning above the CLI's own output.
+        retries: list[tuple[str, Any]] = []
+        if retry_gnomad:
+            retries.append(("gnomad", gnomad.fetch_variant(resolved)))
+        if retry_vep:
+            retries.append(("vep", ensembl.fetch(resolved)))
 
-        if retry_gnomad or retry_vep:
-            gnomad_again, vep_again = await asyncio.gather(
-                gnomad_retry, vep_retry, return_exceptions=True
+        if retries:
+            outcomes = await asyncio.gather(
+                *(coro for _, coro in retries), return_exceptions=True
             )
-            if retry_gnomad and isinstance(gnomad_again, tuple):
-                freqs, status = gnomad_again
-                if freqs:
-                    gnomad_freqs = freqs
-                statuses.append(status)
-            if retry_vep and isinstance(vep_again, tuple):
-                cons, status = vep_again
-                if cons is not None:
-                    vep_consequence = cons
+            for (kind, _), outcome in zip(retries, outcomes):
+                if not isinstance(outcome, tuple):
+                    continue
+                value, status = outcome
+                if kind == "gnomad":
+                    if value:
+                        gnomad_freqs = value
+                elif value is not None:
+                    vep_consequence = value
                     # snpEff may have had nothing to say (non-coding, say).
                     if consequence is None:
-                        consequence = cons
+                        consequence = value
                 statuses.append(status)
 
         # ---- phase 2 -----------------------------------------------------

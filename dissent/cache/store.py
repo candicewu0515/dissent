@@ -10,6 +10,7 @@ Two reasons this exists rather than being an optimisation:
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import sqlite3
@@ -27,10 +28,21 @@ class ResponseCache:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
-    def _connect(self) -> sqlite3.Connection:
+    @contextlib.contextmanager
+    def _connect(self):
+        """Yield a connection and always close it.
+
+        `with sqlite3.connect(...)` commits but does not close. Each cache read
+        and write opened a fresh connection, so a long-running server leaked a
+        file descriptor per operation -- around ten per interpretation.
+        """
         conn = sqlite3.connect(self.path, timeout=10)
-        conn.execute("PRAGMA journal_mode=WAL")
-        return conn
+        try:
+            conn.execute("PRAGMA journal_mode=WAL")
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     def _init_db(self) -> None:
         with self._connect() as conn:

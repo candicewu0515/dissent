@@ -408,30 +408,42 @@ class MyVariantClient(SourceClient):
             if not status.ok:
                 return None, status
 
-        term = self._search_term(query)
-        if not term:
+        terms = self._search_terms(query)
+        if not terms:
             return None, SourceStatus(source=self.name, ok=True, detail="nothing to query")
 
-        params = {"q": term, "fields": fields, "size": 25}
-        if assembly == "hg38":
-            params["assembly"] = "hg38"
-        data, status = await self.fetch_json(
-            f"{API}/query", params=params, cache_key_parts=["query", term, assembly]
-        )
-        if not isinstance(data, dict):
-            return None, status
+        best: dict[str, Any] | None = None
+        hits: list[dict[str, Any]] = []
+        status = SourceStatus(source=self.name, ok=True, detail="no matching variant")
 
-        hits = [h for h in data.get("hits", []) if isinstance(h, dict)]
-        if not hits:
-            return None, SourceStatus(
-                source=self.name, ok=True, detail="no matching variant", cached=status.cached
+        # Candidate queries are tried in order of precision. The first is
+        # constrained to the gene; only if that finds nothing do we fall back to
+        # a free-text phrase, which ranks by relevance across the whole index.
+        for term in terms:
+            params = {"q": term, "fields": fields, "size": 25}
+            if assembly == "hg38":
+                params["assembly"] = "hg38"
+            data, status = await self.fetch_json(
+                f"{API}/query", params=params, cache_key_parts=["query", term, assembly]
             )
-        best = self._best_hit(hits, query)
+            if not isinstance(data, dict):
+                continue
+            hits = [h for h in data.get("hits", []) if isinstance(h, dict)]
+            if not hits:
+                continue
+            best = self._best_hit(hits, query)
+            if best is not None:
+                break
+
         if best is None:
             return None, SourceStatus(
                 source=self.name,
                 ok=True,
-                detail=f"no variant in {query.gene} matching {query.protein_change}",
+                detail=(
+                    f"no variant in {query.gene} matching {query.protein_change}"
+                    if query.gene and query.protein_change
+                    else "no matching variant"
+                ),
                 cached=status.cached,
             )
         # Record siblings so the report can warn that the input was ambiguous.
@@ -443,23 +455,38 @@ class MyVariantClient(SourceClient):
         return best, status
 
     @staticmethod
-    def _search_term(query: VariantQuery) -> str | None:
+    def _search_terms(query: VariantQuery) -> list[str]:
+        """Candidate queries, most precise first.
+
+        For a gene-plus-protein query the gene-constrained form must come
+        first. A bare phrase search for `"p.Arg273His"` returns 88 hits ranked
+        by relevance across every gene that has that residue change, and TP53
+        -- the gene actually asked for -- is not among the top matches. The
+        most common TP53 hotspot in human cancer failed to resolve this way.
+
+        The phrase search is kept as a fallback because it reaches ClinVar's
+        `preferred_name`, which is MANE-numbered, whereas dbNSFP's `hgvsp`
+        lists every transcript's numbering. Hits from either are verified
+        against the requested gene and protein change by `_best_hit`.
+        """
         if query.rsid:
-            return f"dbsnp.rsid:{query.rsid}"
+            return [f"dbsnp.rsid:{query.rsid}"]
+
         if query.gene and query.protein_change:
-            # Phrase-search the three-letter protein change. `preferred_name` is
-            # not a searchable field, but the free-text index covers it, and a
-            # quoted phrase finds the MANE-numbered record. The phrase alone
-            # also matches the same residue in *other* genes, so `_best_hit`
-            # disambiguates by gene symbol afterwards.
+            terms: list[str] = []
             three = three_letter_protein(query.protein_change)
-            if three:
-                return f'"{three}"'
             aa = query.protein_change.removeprefix("p.")
-            return f'dbnsfp.genename:{query.gene} AND dbnsfp.hgvsp:"p.{aa}"'
+            if three:
+                terms.append(f'dbnsfp.genename:{query.gene} AND dbnsfp.hgvsp:"{three}"')
+            terms.append(f'dbnsfp.genename:{query.gene} AND dbnsfp.hgvsp:"p.{aa}"')
+            if three:
+                terms.append(f'"{three}"')
+            return terms
+
         if query.transcript and query.hgvs_c:
-            return f'clinvar.hgvs.coding:"{query.transcript}:{query.hgvs_c}"'
-        return query.raw or None
+            return [f'clinvar.hgvs.coding:"{query.transcript}:{query.hgvs_c}"']
+
+        return [query.raw] if query.raw else []
 
     @staticmethod
     def _best_hit(hits: list[dict[str, Any]], query: VariantQuery) -> dict[str, Any] | None:

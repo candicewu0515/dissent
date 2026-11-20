@@ -38,6 +38,29 @@ query Target($id: String!) {
 """
 
 
+def _graphql_errors(data: object) -> str | None:
+    """Return a joined error string if a GraphQL payload carries one.
+
+    GraphQL reports schema and validation failures with HTTP 200 and an
+    `errors` array. Without this check a renamed field -- exactly the kind of
+    change gnomAD made moving to v4 -- reads as "this variant is not in the
+    database": every common variant would silently satisfy PM2, the frequency
+    criteria would go unresolved, and the sources panel would still say `ok`.
+    """
+    if not isinstance(data, dict):
+        return None
+    errors = data.get("errors")
+    if not errors:
+        return None
+    messages = []
+    for err in errors if isinstance(errors, list) else [errors]:
+        if isinstance(err, dict) and err.get("message"):
+            messages.append(str(err["message"]))
+        elif err:
+            messages.append(str(err))
+    return "; ".join(messages)[:300] if messages else "GraphQL error"
+
+
 class OpenTargetsClient(SourceClient):
     name = "opentargets"
 
@@ -54,6 +77,10 @@ class OpenTargetsClient(SourceClient):
         if not isinstance(found, dict):
             return None, status
 
+        error = _graphql_errors(found)
+        if error:
+            return None, SourceStatus(source=self.name, ok=False, detail=error)
+
         hits = (((found.get("data") or {}).get("search") or {}).get("hits")) or []
         ensembl_id = first([h.get("id") for h in hits if isinstance(h, dict)])
         if not ensembl_id:
@@ -69,6 +96,10 @@ class OpenTargetsClient(SourceClient):
         )
         if not isinstance(data, dict):
             return None, status2
+
+        error = _graphql_errors(data)
+        if error:
+            return None, SourceStatus(source=self.name, ok=False, detail=error)
 
         target = (data.get("data") or {}).get("target")
         if not isinstance(target, dict):

@@ -95,6 +95,29 @@ def _frequency_from(node: dict[str, Any] | None, label: str) -> PopulationFreque
     )
 
 
+def _graphql_errors(data: object) -> str | None:
+    """Return a joined error string if a GraphQL payload carries one.
+
+    GraphQL reports schema and validation failures with HTTP 200 and an
+    `errors` array. Without this check a renamed field -- exactly the kind of
+    change gnomAD made moving to v4 -- reads as "this variant is not in the
+    database": every common variant would silently satisfy PM2, the frequency
+    criteria would go unresolved, and the sources panel would still say `ok`.
+    """
+    if not isinstance(data, dict):
+        return None
+    errors = data.get("errors")
+    if not errors:
+        return None
+    messages = []
+    for err in errors if isinstance(errors, list) else [errors]:
+        if isinstance(err, dict) and err.get("message"):
+            messages.append(str(err["message"]))
+        elif err:
+            messages.append(str(err))
+    return "; ".join(messages)[:300] if messages else "GraphQL error"
+
+
 class GnomadClient(SourceClient):
     name = "gnomad"
 
@@ -121,6 +144,10 @@ class GnomadClient(SourceClient):
         )
         if not isinstance(data, dict):
             return [], status
+
+        error = _graphql_errors(data)
+        if error:
+            return [], SourceStatus(source=self.name, ok=False, detail=error)
 
         variant = (data.get("data") or {}).get("variant")
         if not isinstance(variant, dict):
@@ -149,6 +176,10 @@ class GnomadClient(SourceClient):
         )
         if not isinstance(data, dict):
             return None, status
+
+        error = _graphql_errors(data)
+        if error:
+            return None, SourceStatus(source=self.name, ok=False, detail=error)
 
         gene = (data.get("data") or {}).get("gene")
         if not isinstance(gene, dict):

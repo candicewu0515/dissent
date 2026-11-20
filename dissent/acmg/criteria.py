@@ -271,8 +271,10 @@ def pm1(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
 
 def pm2(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
     name = "Absent, or at extremely low frequency, in population databases"
-    freq = bundle.best_frequency()
-    af = bundle.max_af()
+    record = bundle.max_af_record()
+    af = record[0] if record else None
+    freq = record[1] if record else bundle.best_frequency()
+    where = (record[2] if record else None) or (freq.source if freq else "the population")
 
     # ClinGen SVI recommends PM2 at Supporting strength rather than Moderate.
     strength = Strength.SUPPORTING
@@ -303,9 +305,13 @@ def pm2(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
             code="PM2", name=name, direction="pathogenic", status="met",
             strength=strength,
             rationale=(
-                f"Highest population frequency is {_fmt_af(af)} in {freq.source} "
-                f"(AN {freq.an:,}), at or below the {_fmt_af(t.pm2_af)} threshold. "
-                "Applied at Supporting per ClinGen SVI rather than Moderate."
+                f"Highest population frequency is {_fmt_af(af)} in {where} "
+                f"({freq.source}, AN {freq.an:,}), at or below the "
+                f"{_fmt_af(t.pm2_af)} threshold. Applied at Supporting per ClinGen "
+                "SVI rather than Moderate. Note this single threshold is not "
+                "appropriate for recessive conditions, where carrier frequencies "
+                "are far higher and expert panels set PM2 one to two orders of "
+                "magnitude above this."
             ),
             sources=_gnomad_provenance(bundle),
         )
@@ -314,8 +320,10 @@ def pm2(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
         code="PM2", name=name, direction="pathogenic", status="not_met",
         strength=strength,
         rationale=(
-            f"Population frequency {_fmt_af(af)} exceeds the {_fmt_af(t.pm2_af)} "
-            f"threshold ({freq.popmax_population or freq.source})."
+            f"Population frequency {_fmt_af(af)} in {where} ({freq.source}, "
+            f"AN {freq.an:,}) exceeds the {_fmt_af(t.pm2_af)} threshold. For a "
+            "recessive condition this threshold is too strict and a gene-specific "
+            "one should be used."
         ),
         sources=_gnomad_provenance(bundle),
     )
@@ -555,7 +563,10 @@ def pp5(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
 
 def ba1(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
     name = "Allele frequency above 5% in a population database"
-    freq, af = bundle.best_frequency(), bundle.max_af()
+    record = bundle.max_af_record()
+    af = record[0] if record else None
+    freq = record[1] if record else None
+    where = (record[2] if record else None) or (freq.source if freq else "the population")
 
     if freq is None or af is None:
         return CriterionResult(
@@ -579,9 +590,11 @@ def ba1(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
             code="BA1", name=name, direction="benign", status="met",
             strength=Strength.STAND_ALONE,
             rationale=(
-                f"Frequency {_fmt_af(af)} in {freq.popmax_population or freq.source} "
-                f"is at or above {_fmt_af(t.ba1_af)}. BA1 is stand-alone: on its own "
-                "it classifies the variant benign."
+                f"Frequency {_fmt_af(af)} in {where} ({freq.source}, AN "
+                f"{freq.an:,}) is at or above {_fmt_af(t.ba1_af)}. BA1 is "
+                "stand-alone: on its own it classifies the variant benign. "
+                "ClinGen publishes a short list of variants exempt from BA1 "
+                "despite high frequency, which is not checked here."
             ),
             sources=_gnomad_provenance(bundle),
         )
@@ -595,9 +608,12 @@ def ba1(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
 
 def bs1(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
     name = "Allele frequency greater than expected for the disorder"
-    freq, af = bundle.best_frequency(), bundle.max_af()
+    record = bundle.max_af_record()
+    af = record[0] if record else None
+    freq = record[1] if record else None
+    where = (record[2] if record else None) or (freq.source if freq else "the population")
 
-    if af is None:
+    if af is None or freq is None:
         return CriterionResult(
             code="BS1", name=name, direction="benign", status="insufficient",
             strength=Strength.STRONG,
@@ -607,16 +623,32 @@ def bs1(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
             "and penetrance to set a gene-specific threshold.",
         )
 
+    # BA1 and PM2 both refuse to speak from an underpowered cohort; BS1 must
+    # too. Without this guard a handful of alleles could satisfy a Strong
+    # benign criterion.
+    if freq.an is not None and freq.an < t.min_allele_number:
+        return CriterionResult(
+            code="BS1", name=name, direction="benign", status="insufficient",
+            strength=Strength.STRONG,
+            rationale=(
+                f"Only {freq.an:,} alleles were genotyped in {freq.source}, below "
+                f"the {t.min_allele_number:,} needed for a frequency statement."
+            ),
+            sources=_gnomad_provenance(bundle),
+            what_would_change="Frequency from a better-powered cohort.",
+        )
+
     if af >= t.bs1_af:
         return CriterionResult(
             code="BS1", name=name, direction="benign", status="met",
             strength=Strength.STRONG,
             rationale=(
-                f"Frequency {_fmt_af(af)} exceeds the {_fmt_af(t.bs1_af)} working "
-                f"threshold in {freq.popmax_population if freq else 'the population'}. "
+                f"Frequency {_fmt_af(af)} in {where} ({freq.source}, AN "
+                f"{freq.an:,}) exceeds the {_fmt_af(t.bs1_af)} working threshold. "
                 "This threshold is a default, not a gene-specific one: the criterion "
                 "asks what is expected for the particular disorder, which depends on "
-                "its prevalence, penetrance and inheritance."
+                "its prevalence, penetrance and inheritance. A founder variant in "
+                "one population can exceed 1% and still be pathogenic."
             ),
             sources=_gnomad_provenance(bundle),
             what_would_change="A disorder-specific threshold from ClinGen's "
@@ -625,45 +657,70 @@ def bs1(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
     return CriterionResult(
         code="BS1", name=name, direction="benign", status="not_met",
         strength=Strength.STRONG,
-        rationale=f"Frequency {_fmt_af(af)} is below the {_fmt_af(t.bs1_af)} working threshold.",
+        rationale=(
+            f"Frequency {_fmt_af(af)} in {where} is below the "
+            f"{_fmt_af(t.bs1_af)} working threshold."
+        ),
         sources=_gnomad_provenance(bundle),
     )
 
 
 def bs2(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> CriterionResult:
+    """BS2 is reported, never scored.
+
+    The criterion asks whether the variant is seen in a *healthy adult* in the
+    genotype state the disorder requires. Three things are needed to answer
+    that, and public data supplies none of them: the inheritance mode (which
+    decides whether the relevant state is homozygous or heterozygous), the age
+    of onset, and the phenotype of the people counted.
+
+    Scoring it from a gnomAD homozygote count alone inverts the answer on the
+    clearest case. HFE c.845G>A has 3,248 homozygotes in gnomAD, and this
+    engine previously read that as Strong evidence of benignity -- but
+    homozygosity for that variant *is* the genotype that causes hereditary
+    haemochromatosis. Those homozygotes are the affected genotype, not healthy
+    controls.
+
+    It was also, as written, a second frequency criterion wearing a genotype
+    criterion's name: anything above 1% allele frequency has homozygotes, so
+    BS1 and BS2 fired together and two Strong benign criteria reached the
+    terminal "Benign" call from one row of frequency data.
+    """
     name = "Observed in a healthy individual in the expected genotype state"
     freqs = [f for f in bundle.frequencies if f.homozygote_count is not None]
+
     if not freqs:
         return CriterionResult(
-            code="BS2", name=name, direction="benign", status="insufficient",
+            code="BS2", name=name, direction="benign", status="manual",
             strength=Strength.STRONG,
-            rationale="No homozygote counts were returned.",
+            rationale="No homozygote counts were returned, and this criterion needs a human in any case.",
             sources=_gnomad_provenance(bundle),
-            what_would_change="Homozygote counts, and the disorder's inheritance mode.",
+            what_would_change=(
+                "Homozygote counts, plus the disorder's inheritance mode, age of "
+                "onset, and confirmation that the individuals counted are unaffected."
+            ),
         )
 
     best = max(freqs, key=lambda f: f.homozygote_count or 0)
     hom = best.homozygote_count or 0
 
-    if hom >= t.bs2_min_homozygotes:
-        return CriterionResult(
-            code="BS2", name=name, direction="benign", status="met",
-            strength=Strength.STRONG,
-            rationale=(
-                f"{hom:,} homozygotes in {best.source}. For a recessive disorder with "
-                "full penetrance this argues benign. Whether it applies depends on the "
-                "inheritance mode, which is not encoded here, and gnomAD is not a "
-                "fully healthy cohort."
-            ),
-            sources=_gnomad_provenance(bundle),
-            what_would_change="The disorder's inheritance mode and age of onset, to "
-            "confirm homozygotes in gnomAD would be expected to be affected.",
-        )
     return CriterionResult(
-        code="BS2", name=name, direction="benign", status="not_met",
+        code="BS2", name=name, direction="benign", status="manual",
         strength=Strength.STRONG,
-        rationale=f"Only {hom} homozygotes in {best.source}.",
+        rationale=(
+            f"{hom:,} homozygotes reported in {best.source}. This is shown as "
+            "context, not scored. The criterion requires healthy individuals in "
+            "the genotype state the disorder needs, and gnomAD gives neither "
+            "phenotype nor age: for a late-onset or low-penetrance condition its "
+            "homozygotes may be exactly the affected genotype. HFE c.845G>A has "
+            "3,248 homozygotes and homozygosity for it is what causes hereditary "
+            "haemochromatosis."
+        ),
         sources=_gnomad_provenance(bundle),
+        what_would_change=(
+            "The disorder's inheritance mode and age of onset, and evidence that "
+            "the homozygotes observed are unaffected adults past the age of onset."
+        ),
     )
 
 

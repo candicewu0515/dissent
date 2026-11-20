@@ -128,12 +128,43 @@ def test_bs1_threshold_is_declared_as_a_default_not_gene_specific():
     assert bs1.what_would_change
 
 
-def test_bs2_met_where_homozygotes_are_abundant():
+def test_bs2_is_never_scored_only_reported():
+    """BS2 needs inheritance mode, age of onset and phenotype; gnomAD has none.
+
+    Scoring it from a homozygote count alone inverts the answer on HFE C282Y,
+    whose gnomAD homozygotes are the genotype that causes haemochromatosis.
+    """
+    for name in available_bundles():
+        bs2 = by_code(evaluate_all(load_bundle(name)))["BS2"]
+        assert bs2.status == "manual", f"{name}: BS2 must not be scored"
+        assert bs2.what_would_change
+
+
+def test_bs2_still_reports_the_homozygote_count_as_context():
     mthfr = load_bundle("mthfr_a222v")
+    assert any(f.homozygote_count for f in mthfr.frequencies)
     bs2 = by_code(evaluate_all(mthfr))["BS2"]
-    assert bs2.status == "met"
-    # The caveat matters: gnomAD is not a healthy cohort and inheritance is unknown.
-    assert "inheritance" in bs2.rationale.lower()
+    assert "homozygotes" in bs2.rationale
+
+
+def test_frequency_data_alone_cannot_reach_benign_via_two_strong_criteria():
+    """BS1 and BS2 both read gnomAD, so scoring both double-counted one row.
+
+    Anything above 1% allele frequency has homozygotes, so the pair fired
+    together and '>=2 strong' reached the terminal Benign call from a single
+    frequency observation.
+    """
+    from dissent.acmg.combine import classify
+
+    hfe = load_bundle("hfe_c282y")
+    criteria = evaluate_all(hfe)
+    strong_benign = [
+        c for c in criteria
+        if c.status == "met" and c.direction == "benign" and c.strength.value == "strong"
+    ]
+    assert len(strong_benign) <= 1, [c.code for c in strong_benign]
+    # BA1 is stand-alone and still carries the call on its own.
+    assert classify(criteria).call == "Benign"
 
 
 # ---- computational criteria ----------------------------------------------

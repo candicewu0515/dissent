@@ -72,12 +72,29 @@ class Significance(str, Enum):
     LIKELY_BENIGN = "likely_benign"
     BENIGN = "benign"
     CONFLICTING = "conflicting"
+    # A distinct ClinVar label, not a flavour of Pathogenic. Collapsing it was
+    # self-serving: low penetrance is precisely a submitter's answer to "why is
+    # a pathogenic variant at 7% allele frequency", so flattening it
+    # manufactured the frequency-versus-claim conflict this tool then reported
+    # as a finding.
+    PATHOGENIC_LOW_PENETRANCE = "pathogenic_low_penetrance"
+    RISK_FACTOR = "risk_factor"
+    DRUG_RESPONSE = "drug_response"
     NOT_PROVIDED = "not_provided"
     OTHER = "other"
 
     @property
     def is_pathogenic_side(self) -> bool:
+        # Low-penetrance and risk-factor labels are deliberately excluded: they
+        # are not claims that the variant causes disease in a carrier.
         return self in (Significance.PATHOGENIC, Significance.LIKELY_PATHOGENIC)
+
+    @property
+    def is_reduced_penetrance(self) -> bool:
+        return self in (
+            Significance.PATHOGENIC_LOW_PENETRANCE,
+            Significance.RISK_FACTOR,
+        )
 
     @property
     def is_benign_side(self) -> bool:
@@ -98,6 +115,13 @@ _SIGNIFICANCE_MAP: dict[str, Significance] = {
     "likely benign": Significance.LIKELY_BENIGN,
     "benign": Significance.BENIGN,
     "benign/likely benign": Significance.BENIGN,
+    "pathogenic, low penetrance": Significance.PATHOGENIC_LOW_PENETRANCE,
+    "likely pathogenic, low penetrance": Significance.PATHOGENIC_LOW_PENETRANCE,
+    "established risk allele": Significance.RISK_FACTOR,
+    "likely risk allele": Significance.RISK_FACTOR,
+    "risk factor": Significance.RISK_FACTOR,
+    "association": Significance.RISK_FACTOR,
+    "drug response": Significance.DRUG_RESPONSE,
     "conflicting interpretations of pathogenicity": Significance.CONFLICTING,
     "conflicting data from submitters": Significance.CONFLICTING,
     "not provided": Significance.NOT_PROVIDED,
@@ -116,6 +140,9 @@ def normalize_significance(raw: str | None) -> Significance:
     return _SIGNIFICANCE_MAP.get(head, Significance.OTHER)
 
 
+# Sentinel for a review status this table does not recognise.
+UNKNOWN_REVIEW_STARS = -1
+
 # ClinVar review status -> star rating. Mirrors ClinVar's own documented scale.
 _REVIEW_STARS: dict[str, int] = {
     "practice guideline": 4,
@@ -132,9 +159,18 @@ _REVIEW_STARS: dict[str, int] = {
 
 
 def review_stars(review_status: str | None) -> int:
+    """Map a ClinVar review status to its star rating.
+
+    Returns -1 for a status not in the table, which callers must treat as
+    "unknown", not "zero". ClinVar has reworded these labels before -- the
+    table already carries two spellings of one of them -- and defaulting an
+    unrecognised string to zero stars would silently convert every
+    well-curated record into "no assertion criteria provided", firing the
+    weak-evidence conflict at high severity on every variant in the database.
+    """
     if not review_status:
         return 0
-    return _REVIEW_STARS.get(review_status.strip().lower(), 0)
+    return _REVIEW_STARS.get(review_status.strip().lower(), UNKNOWN_REVIEW_STARS)
 
 
 class ClinVarAssertion(BaseModel):
@@ -151,6 +187,10 @@ class ClinVarAssertion(BaseModel):
     @property
     def has_assertion_criteria(self) -> bool:
         return self.stars >= 1
+
+    @property
+    def review_status_known(self) -> bool:
+        return self.stars != UNKNOWN_REVIEW_STARS
 
 
 class ClinVarEvidence(BaseModel):
@@ -320,18 +360,33 @@ class EvidenceBundle(BaseModel):
             return self.frequencies[0] if self.frequencies else None
         return max(with_an, key=lambda f: f.an or 0)
 
-    def max_af(self) -> float | None:
-        """Highest credible AF across sources, preferring popmax.
+    def max_af_record(self) -> tuple[float, PopulationFrequency, str | None] | None:
+        """Highest credible AF, with the record it came from and its population.
 
-        BA1/BS1 are about the *most common* population, not the global mean.
+        The frequency, the cohort it was measured in and the allele number that
+        powers it must travel together. Reading the AF from one record and the
+        allele-number guard from another let an 8% estimate from a 50-allele
+        cohort satisfy BA1 while the rationale credited it to a 800,000-allele
+        one. Callers that need a bare number use `max_af`.
+
+        BA1/BS1 are about the *most common* population, not the global mean, so
+        popmax is preferred where a record carries one.
         """
-        candidates: list[float] = []
+        best: tuple[float, PopulationFrequency, str | None] | None = None
         for f in self.frequencies:
             if f.popmax_af is not None:
-                candidates.append(f.popmax_af)
+                candidate = (f.popmax_af, f, f.popmax_population)
             elif f.af is not None:
-                candidates.append(f.af)
-        return max(candidates) if candidates else None
+                candidate = (f.af, f, None)
+            else:
+                continue
+            if best is None or candidate[0] > best[0]:
+                best = candidate
+        return best
+
+    def max_af(self) -> float | None:
+        record = self.max_af_record()
+        return record[0] if record else None
 
 
 # --------------------------------------------------------------------------

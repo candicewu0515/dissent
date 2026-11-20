@@ -17,6 +17,15 @@ from dissent.models import Consequence, SourceStatus, VariantQuery
 from dissent.sources.base import SourceClient, to_int
 
 API = "https://rest.ensembl.org"
+# rest.ensembl.org serves GRCh38 only; GRCh37 has its own host. Querying the
+# wrong one returns annotation for a different locus, and the resulting
+# mismatch against snpEff then fired the annotator-disagreement conflict at
+# high severity -- a wrong answer presented as a finding.
+API_GRCH37 = "https://grch37.rest.ensembl.org"
+
+
+def _api_for(assembly: str) -> str:
+    return API_GRCH37 if assembly == "hg19" else API
 
 # VEP's own severity ordering, most severe first. Used to choose between
 # transcripts when none is flagged canonical.
@@ -62,13 +71,14 @@ class EnsemblClient(SourceClient):
         # every allele colocated at that position, and reading the first gives
         # the wrong amino acid change on a multi-allelic site: rs113488022
         # yielded p.Val600Gly rather than BRAF p.Val600Glu this way.
+        base = _api_for(query.assembly)
         if query.chrom and query.pos and query.ref and query.alt:
             region = f"{query.chrom}:{query.pos}-{query.pos + len(query.ref) - 1}"
-            url = f"{API}/vep/human/region/{region}/{query.alt}"
-            key = ["region", region, query.alt]
+            url = f"{base}/vep/human/region/{region}/{query.alt}"
+            key = ["region", region, query.alt, query.assembly]
         elif query.rsid:
-            url = f"{API}/vep/human/id/{query.rsid}"
-            key = ["id", query.rsid]
+            url = f"{base}/vep/human/id/{query.rsid}"
+            key = ["id", query.rsid, query.assembly]
         else:
             return None, SourceStatus(
                 source=self.name, ok=True, detail="no rsID or coordinates to query"

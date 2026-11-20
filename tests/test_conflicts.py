@@ -4,7 +4,7 @@ Detectors must be conservative. One that fires on every variant trains the
 reader to ignore the panel, which defeats the point of having one.
 """
 
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 
@@ -159,16 +159,42 @@ def test_expert_panel_review_suppresses_the_weak_evidence_flag():
 # ---- staleness ------------------------------------------------------------
 
 
-def test_stale_assertion_uses_the_most_recent_evaluation(braf):
-    """A variant with one fresh record has been re-evaluated, old ones aside."""
-    newest = max(
-        a.last_evaluated for a in braf.clinvar.actionable_assertions if a.last_evaluated
-    )
-    # Just after the newest evaluation: not stale.
-    assert stale_assertion(braf, today=date(newest.year, newest.month, newest.day)) is None
-    # Ten years later: stale.
-    conflict = stale_assertion(braf, today=date(newest.year + 10, newest.month, newest.day))
-    assert conflict is not None and "re-evaluated" in conflict.headline
+def test_stale_records_are_flagged_even_under_a_recent_one(braf):
+    """A fresh submission must not mark decade-old records current.
+
+    This previously compared only the newest evaluation date across the whole
+    variant, so one recent record made everything beneath it look current --
+    the opposite of useful, since the risk is an assertion predating gnomAD
+    still contributing to the aggregate label. BRAF V600E carries a record
+    last evaluated in 2009 and was reported as fresh.
+    """
+    dated = [a for a in braf.clinvar.actionable_assertions if a.last_evaluated]
+    newest = max(a.last_evaluated for a in dated)
+    oldest = min(a.last_evaluated for a in dated)
+    assert (newest - oldest).days > 365 * 10, "fixture should span over a decade"
+
+    conflict = stale_assertion(braf, today=newest)
+    assert conflict is not None, "old records under a recent one must still be flagged"
+    assert oldest.isoformat() in conflict.detail
+    assert "of" in conflict.headline  # "N of M records ..."
+
+
+def test_staleness_is_quiet_when_every_record_is_recent(brca1):
+    dated = [a for a in brca1.clinvar.actionable_assertions if a.last_evaluated]
+    assert dated, "fixture should carry dates"
+    newest = max(a.last_evaluated for a in dated)
+    # One day after the newest: nothing can be five years old.
+    assert stale_assertion(brca1, today=newest + timedelta(days=1)) is None
+
+
+def test_all_records_stale_is_more_severe_than_some(braf):
+    dated = [a for a in braf.clinvar.actionable_assertions if a.last_evaluated]
+    newest = max(a.last_evaluated for a in dated)
+    some = stale_assertion(braf, today=newest)
+    everything = stale_assertion(braf, today=date(newest.year + 20, 1, 1))
+    assert some is not None and everything is not None
+    assert some.severity == "low"
+    assert everything.severity == "medium"
 
 
 # ---- internal contradiction ----------------------------------------------

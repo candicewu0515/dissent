@@ -25,6 +25,7 @@ from dissent.acmg.combine import (
 )
 from dissent.acmg.thresholds import DEFAULT, Thresholds
 from dissent.models import (
+    UNKNOWN_REVIEW_STARS,
     Classification,
     Conflict,
     CriterionResult,
@@ -70,59 +71,111 @@ def _gnomad_link(bundle: EvidenceBundle) -> list[Provenance]:
 # ==========================================================================
 
 
-def submitter_discordance(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> Conflict | None:
+def record_discordance(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> Conflict | None:
+    """Disagreement between ClinVar records for one variant.
+
+    The unit here is the RCV, which is a variant-plus-condition aggregate, not
+    a submission. That distinction matters and an earlier version of this
+    detector got it wrong, reporting "16 submitters disagree" for BRAF V600E
+    when the records were:
+
+        RCV000014992  Pathogenic           somatic   Carcinoma of colon
+        RCV000067669  Pathogenic           somatic   Melanoma
+        RCV004018627  Likely pathogenic    germline  Cardiovascular phenotype
+        RCV005089260  Uncertain            germline  RASopathy
+
+    Those are four different questions, not four answers to one. Genuine
+    submitter-level discordance lives in SCV records, which are not carried in
+    this payload. So the detector now says what it can see: records differ, and
+    whether they differ *across conditions* or *within one*. Disagreement
+    inside a single condition is the serious kind.
+    """
     cv = bundle.clinvar
     if cv is None:
         return None
-    assertions = cv.actionable_assertions
-    if len(assertions) < 2:
+    records = cv.actionable_assertions
+    if len(records) < 2:
         return None
 
-    counts = Counter(a.significance for a in assertions)
+    counts = Counter(a.significance for a in records)
     has_path = any(s.is_pathogenic_side for s in counts)
     has_benign = any(s.is_benign_side for s in counts)
     has_vus = Significance.UNCERTAIN in counts
-    flagged_conflicting = Significance.CONFLICTING in counts
+    flagged = Significance.CONFLICTING in counts
 
-    if not (flagged_conflicting or (has_path and has_benign) or (has_path and has_vus)):
+    if not (flagged or (has_path and has_benign) or (has_path and has_vus)):
         return None
+
+    # Group by condition. Disagreement within one condition cannot be explained
+    # away as two different clinical questions.
+    by_condition: dict[str, set[Significance]] = {}
+    for a in records:
+        key = (a.condition or "unspecified condition").strip().lower()
+        by_condition.setdefault(key, set()).add(a.significance)
+    within = {c: sigs for c, sigs in by_condition.items() if len(sigs) > 1}
 
     spread = ", ".join(
         f"{n}x {sig.value.replace('_', ' ')}" for sig, n in counts.most_common()
     )
+    n_submitters = sum(a.number_submitters for a in records) or None
+    submitter_note = (
+        f" across {n_submitters} submissions" if n_submitters and n_submitters > len(records) else ""
+    )
 
-    if has_path and has_benign:
+    if within:
         severity = "high"
-        headline = "Submitters disagree across the pathogenic/benign divide"
-    elif flagged_conflicting:
+        condition = next(iter(within))
+        headline = "ClinVar records disagree about the same condition"
+        context = (
+            f"For '{condition}' alone the records carry "
+            f"{', '.join(sorted(s.value.replace('_', ' ') for s in within[condition]))}. "
+            "That is a real disagreement, not two different clinical questions."
+        )
+    elif has_path and has_benign:
         severity = "high"
-        headline = "ClinVar itself flags conflicting interpretations"
+        headline = "ClinVar records span the pathogenic/benign divide"
+        context = (
+            f"The records cover {len(by_condition)} distinct conditions, so part of "
+            "the spread may reflect different clinical questions rather than "
+            "disagreement. Check which condition applies to your case."
+        )
+    elif flagged:
+        severity = "high"
+        headline = "ClinVar itself flags conflicting classifications"
+        context = "ClinVar's own aggregation could not reconcile the submitted records."
     else:
         severity = "medium"
-        headline = "Submitters disagree between pathogenic and uncertain"
+        headline = "ClinVar records range from pathogenic to uncertain"
+        context = (
+            f"Spread across {len(by_condition)} distinct condition(s)."
+            if len(by_condition) > 1
+            else "All for the same condition."
+        )
 
-    # A majority label is not a consensus when the dissenters carry equal or
-    # better review status, so report the dissenters' star ratings too.
     majority = counts.most_common(1)[0][0]
     dissent_stars = sorted(
-        {a.stars for a in assertions if a.significance != majority}, reverse=True
+        {a.stars for a in records if a.significance != majority}, reverse=True
     )
     star_note = (
-        f" Dissenting records carry up to {dissent_stars[0]} review star(s)."
+        f" Dissenting records carry up to {dissent_stars[0]} of 4 review stars."
         if dissent_stars
         else ""
     )
 
     return Conflict(
-        kind="submitter_discordance",
+        kind="record_discordance",
         severity=severity,  # type: ignore[arg-type]
         headline=headline,
         detail=(
-            f"{len(assertions)} ClinVar assertions: {spread}.{star_note} "
-            "An aggregate label hides this; the disagreement is the finding."
+            f"{len(records)} ClinVar records{submitter_note}: {spread}.{star_note} "
+            f"{context} An aggregate label hides this; the disagreement is the finding."
         ),
         sources=_clinvar_link(bundle),
     )
+
+
+# Kept so existing imports and tests continue to resolve.
+submitter_discordance = record_discordance
 
 
 # ==========================================================================
@@ -135,13 +188,17 @@ def weak_evidence_base(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> Confl
     if cv is None or not cv.assertions:
         return None
 
-    total = len(cv.assertions)
-    no_criteria = [a for a in cv.assertions if a.stars == 0]
+    known = [a for a in cv.assertions if a.stars != UNKNOWN_REVIEW_STARS]
+    if not known:
+        return None
+
+    total = len(known)
+    no_criteria = [a for a in known if a.stars == 0]
     if not no_criteria:
         return None
 
     share = len(no_criteria) / total
-    best_stars = max((a.stars for a in cv.assertions), default=0)
+    best_stars = max(a.stars for a in known)
 
     if best_stars >= 3:
         # An expert panel or practice guideline record outweighs the noise.
@@ -149,20 +206,57 @@ def weak_evidence_base(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> Confl
     if share < 0.5 and best_stars >= 2:
         return None
 
-    severity = "high" if best_stars == 0 else "medium"
+    # The headline must match the data: "most" is only true above half.
+    if best_stars == 0:
+        severity, headline = "high", "No ClinVar record states assertion criteria"
+    elif share > 0.5:
+        severity, headline = "medium", "Most ClinVar records state no assertion criteria"
+    else:
+        severity, headline = "medium", "Some ClinVar records state no assertion criteria"
+
     return Conflict(
         kind="weak_evidence_base",
         severity=severity,  # type: ignore[arg-type]
-        headline=(
-            "No ClinVar record states assertion criteria"
-            if best_stars == 0
-            else "Most ClinVar records state no assertion criteria"
-        ),
+        headline=headline,
         detail=(
-            f"{len(no_criteria)} of {total} assertions are 'no assertion criteria "
-            f"provided' (0 review stars); the best available is {best_stars} star(s). "
+            f"{len(no_criteria)} of {total} records are 'no assertion criteria "
+            f"provided' (0 review stars); the best available is {best_stars} of 4. "
             "Such records are opinions without a stated method, and interfaces "
             "usually render them with the same weight as curated ones."
+        ),
+        sources=_clinvar_link(bundle),
+    )
+
+
+def unrecognised_review_status(
+    bundle: EvidenceBundle, t: Thresholds = DEFAULT
+) -> Conflict | None:
+    """ClinVar used a review status this build does not know.
+
+    Surfaced rather than scored as zero. ClinVar has reworded these labels
+    before; silently treating an unknown one as "no assertion criteria" would
+    turn every well-curated record in the database into a high-severity
+    evidence-quality warning, and the warning would look entirely plausible.
+    """
+    cv = bundle.clinvar
+    if cv is None:
+        return None
+    unknown = {
+        a.review_status for a in cv.assertions if a.stars == UNKNOWN_REVIEW_STARS
+    }
+    unknown.discard(None)
+    if not unknown:
+        return None
+
+    return Conflict(
+        kind="unrecognised_review_status",
+        severity="low",
+        headline="ClinVar used a review status this build does not recognise",
+        detail=(
+            f"Unmapped: {', '.join(sorted(str(u) for u in unknown))}. Those records "
+            "are excluded from the evidence-quality assessment rather than scored "
+            "as unreviewed. ClinVar renames these labels periodically; the star "
+            "ratings shown may understate the curation behind this variant."
         ),
         sources=_clinvar_link(bundle),
     )
@@ -176,6 +270,15 @@ def weak_evidence_base(bundle: EvidenceBundle, t: Thresholds = DEFAULT) -> Confl
 def stale_assertion(
     bundle: EvidenceBundle, t: Thresholds = DEFAULT, today: date | None = None
 ) -> Conflict | None:
+    """Old classifications sitting underneath a recent one.
+
+    An earlier version compared only the *newest* evaluation date, so a single
+    fresh submission marked the whole variant current. That is the opposite of
+    useful: the risk is precisely an assertion from before gnomAD existed,
+    still contributing to the aggregate label, with a recent record above it
+    drawing the eye. BRAF V600E carries a record last evaluated in 2009 and was
+    reported as fresh.
+    """
     cv = bundle.clinvar
     if cv is None:
         return None
@@ -184,21 +287,49 @@ def stale_assertion(
         return None
 
     today = today or date.today()
-    newest = max(a.last_evaluated for a in dated)  # type: ignore[type-var]
-    age_years = (today - newest).days / 365.25
-    if age_years < t.stale_assertion_years:
+
+    def years(d: date) -> float:
+        return (today - d).days / 365.25
+
+    stale = [a for a in dated if years(a.last_evaluated) >= t.stale_assertion_years]
+    if not stale:
         return None
 
-    oldest = min(a.last_evaluated for a in dated)  # type: ignore[type-var]
+    newest = max(a.last_evaluated for a in dated)
+    oldest = min(a.last_evaluated for a in stale)
+    undated = len(cv.actionable_assertions) - len(dated)
+
+    everything_old = len(stale) == len(dated)
+    severity = "medium" if everything_old else "low"
+
+    if everything_old:
+        headline = (
+            f"No ClinVar record has been re-evaluated in "
+            f"{years(newest):.1f} years"
+        )
+    else:
+        headline = (
+            f"{len(stale)} of {len(dated)} ClinVar records have not been "
+            f"re-evaluated in {t.stale_assertion_years}+ years"
+        )
+
+    undated_note = (
+        f" A further {undated} record(s) carry no evaluation date at all."
+        if undated
+        else ""
+    )
+
     return Conflict(
         kind="stale_assertion",
-        severity="medium",
-        headline=f"No ClinVar assertion has been re-evaluated in {age_years:.0f} years",
+        severity=severity,  # type: ignore[arg-type]
+        headline=headline,
         detail=(
-            f"Most recent evaluation {newest.isoformat()}, oldest "
-            f"{oldest.isoformat()}. Population databases and predictors have changed "
-            "substantially since; an assertion from before gnomAD may rest on "
-            "frequency data that no longer holds."
+            f"Oldest stale evaluation {oldest.isoformat()} "
+            f"({years(oldest):.1f} years ago); most recent across all records "
+            f"{newest.isoformat()}.{undated_note} Population databases and "
+            "predictors have changed substantially since: an assertion made "
+            "before gnomAD may rest on frequency data that no longer holds, and "
+            "it still contributes to the aggregate label."
         ),
         sources=_clinvar_link(bundle),
     )
@@ -301,42 +432,99 @@ def computed_versus_reported(
     bundle: EvidenceBundle,
     classification: Classification | None = None,
     t: Thresholds = DEFAULT,
+    t_criteria: list[CriterionResult] | None = None,
 ) -> Conflict | None:
+    """Compare this worksheet's call with ClinVar's.
+
+    Two cases matter, and an earlier version reported only the first.
+
+    *Opposite directions* -- one side says pathogenic, the other benign -- is
+    rare and alarming.
+
+    *This worksheet says uncertain while a well-reviewed ClinVar record is
+    confident* is far more common and was previously silent, because the call
+    had no direction to compare. That silence hid the most useful case there
+    is: BRCA1 c.181T>G is classified Pathogenic by an expert panel at three
+    review stars, this engine reaches Uncertain significance from public data
+    alone, and the conflict panel said "no conflicts detected". The gap is not
+    an error in either party -- it is the measure of how much of the evidence
+    lives outside public databases, which is exactly what a reader needs to
+    know before trusting a worksheet.
+    """
     cv = bundle.clinvar
     if cv is None or classification is None:
         return None
 
-    assertions = cv.actionable_assertions
-    if not assertions:
+    records = cv.actionable_assertions
+    if not records:
         return None
 
-    reported = Counter(a.significance for a in assertions).most_common(1)[0][0]
+    reported = Counter(a.significance for a in records).most_common(1)[0][0]
     reported_direction = (
         "pathogenic" if reported.is_pathogenic_side
         else "benign" if reported.is_benign_side
         else None
     )
     computed_direction = _DIRECTION.get(classification.call)
+    best_stars = max((a.stars for a in cv.assertions), default=0)
+    reported_text = reported.value.replace("_", " ")
 
-    if reported_direction is None or computed_direction is None:
-        return None
-    if reported_direction == computed_direction:
+    if reported_direction is None:
         return None
 
-    return Conflict(
-        kind="computed_versus_reported",
-        severity="high",
-        headline=f"This worksheet reaches {classification.call}; ClinVar's majority is "
-        f"{reported.value.replace('_', ' ')}",
-        detail=(
-            f"{classification.reasoning} The difference is expected in one direction: "
-            "this worksheet sees only public data and cannot apply the family, "
-            "functional and case-level criteria a submitting lab had. Where it lands "
-            "on the *opposite* side, one of the two is using evidence the other lacks, "
-            "and that is worth finding out which."
-        ),
-        sources=_clinvar_link(bundle),
-    )
+    # Case 1: the two land on opposite sides.
+    if computed_direction and computed_direction != reported_direction:
+        return Conflict(
+            kind="computed_versus_reported",
+            severity="high",
+            headline=(
+                f"This worksheet reaches {classification.call}; ClinVar's majority "
+                f"is {reported_text}"
+            ),
+            detail=(
+                f"{classification.reasoning} The difference is expected in one "
+                "direction: this worksheet sees only public data and cannot apply "
+                "the family, functional and case-level criteria a submitting lab "
+                "had. Where it lands on the *opposite* side, one of the two is "
+                "using evidence the other lacks, and that is worth finding out which."
+            ),
+            sources=_clinvar_link(bundle),
+        )
+
+    # Case 2: we are uncertain and ClinVar is not.
+    if computed_direction is None:
+        manual = [c.code for c in (t_criteria or []) if c.status == "manual"]
+        confident = best_stars >= 2
+        return Conflict(
+            kind="computed_versus_reported",
+            severity="medium" if confident else "low",
+            headline=(
+                f"ClinVar reports {reported_text}; this worksheet cannot get there "
+                "from public data"
+            ),
+            detail=(
+                f"The strongest ClinVar record carries {best_stars} of 4 review "
+                f"stars. {classification.reasoning} "
+                + (
+                    "A review at this level rests on evidence that is not public: "
+                    "segregation in families, functional assays, case series and "
+                    "phenotype. "
+                    if confident
+                    else "The supporting records are weakly reviewed, so the gap may "
+                    "be in their evidence rather than in this one's. "
+                )
+                + (
+                    f"The criteria that would close the gap are the ones marked for "
+                    f"human review: {', '.join(manual[:8])}"
+                    + (f" and {len(manual) - 8} more." if len(manual) > 8 else ".")
+                    if manual
+                    else ""
+                )
+            ),
+            sources=_clinvar_link(bundle),
+        )
+
+    return None
 
 
 # ==========================================================================
@@ -563,11 +751,12 @@ def detect_all(
     """Run every detector and return the conflicts, most severe first."""
     found: list[Conflict | None] = [
         somatic_germline_misuse(bundle, t),
-        submitter_discordance(bundle, t),
+        record_discordance(bundle, t),
         frequency_versus_claim(bundle, t),
-        computed_versus_reported(bundle, classification, t),
+        computed_versus_reported(bundle, classification, t, criteria),
         annotator_disagreement(bundle, t),
         weak_evidence_base(bundle, t),
+        unrecognised_review_status(bundle, t),
         stale_assertion(bundle, t, today=today),
         internal_contradiction(bundle, criteria, t),
         predictor_split(bundle, t),
