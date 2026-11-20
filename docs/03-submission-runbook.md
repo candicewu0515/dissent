@@ -46,33 +46,69 @@ Then verify what a judge will actually see:
 gh repo view --web
 ```
 
-## 2. Deploy it (30 minutes, optional but worth a prize)
+## 2. Deploy it (20 minutes, and worth a prize)
 
 There is a separate prize — "Best Use of Deployxa" — and the project page is
-much stronger with a URL a judge can click than with a `git clone` instruction.
+much stronger with a URL a judge can click than with a `git clone`
+instruction.
 
-The container needs no configuration: no API keys, no database, and the ClinVar
-baseline ships inside the image.
+Deployxa's free plan fits this project with room to spare: **no credit card,
+no time limit, 3 projects, 512 MB RAM** and a free `*.deployxa.online`
+address.
 
-```bash
-docker build -t dissent . && docker run -p 8000:8000 dissent
+### Rehearsed, so you are not debugging on their servers
+
+Everything below except the account has been run end to end: the public
+repository was cloned the way the platform clones it, built from the
+Dockerfile alone, and run capped at **512 MB and one CPU** — the free plan's
+limits.
+
+| Check | Result |
+|---|---|
+| Builds from the Dockerfile with no configuration | yes |
+| All routes serve (`/`, `/panel`, `/scale`, the APIs) | 200 |
+| A live variant query end to end | HFE C282Y → Benign, 5 conflicts |
+| Peak memory under load (panel + 40 concurrent page loads) | **66 MB of 512** |
+| Killed for memory at any point | no |
+
+So the free tier is not a squeeze; it is 13% used.
+
+### The three steps that need you
+
+**1.** Create the account at <https://deployxa.com> — "Deploy free", no card.
+
+**2.** Dashboard → **New project** → **Git URL**, and paste:
+
+```text
+https://github.com/candicewu0515/dissent.git
 ```
 
-That is verified to work, including under a read-only filesystem. For Deployxa
-or any similar platform, point it at the repository; it will find the
-`Dockerfile`. The only setting worth adding is a writable volume for the cache:
+Branch `main`. Use **Git URL** rather than the CLI: the CLI uploads the whole
+working folder and has no ignore file, which would send the virtual
+environment and the local cache. The repository is public, so no GitHub
+connection is needed either.
 
-```bash
-DISSENT_CACHE_PATH=/var/cache/dissent/dissent.sqlite
-```
+**3.** Deploy. Deployxa detects the Dockerfile and builds from it — their own
+documentation says *"Projects with a Dockerfile build from it and skip those
+fields"* — so leave the build command and output directory alone.
 
-Without it the server still runs — the cache turns itself off and
-`/api/health` says so — it is just slower.
+**There are no environment variables to set.** The image already points the
+cache at a writable volume it owns, and the app reads `PORT` from the
+environment. If the platform gives it a read-only filesystem anyway, the cache
+turns itself off and the server keeps serving; `/api/health` reports it.
 
-After deploying, check these four by hand: `/`, `/panel`, `/scale`, and one
-real variant typed into the box.
+### After it is live
 
-Then tick "Best Use of Deployxa" on the Devpost form.
+Check these four by hand, because a build that succeeds is not the same as an
+app that works:
+
+- [ ] `/` — type `HFE C282Y` and get a report
+- [ ] `/panel` — load the carrier panel and let it finish
+- [ ] `/scale` — the four figures and the gene chart render
+- [ ] `/api/health` — says `"status":"ok"`
+
+Then tick **"Best Use of Deployxa"** on the Devpost form, and put the URL in
+the project page's "Try it out" links.
 
 ## 3. Record the video (half a day, including retakes)
 
