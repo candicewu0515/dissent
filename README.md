@@ -6,11 +6,12 @@ Tests run on Python 3.11, 3.12 and 3.13 in CI, with networking disabled.
 
 **A variant interpretation engine that shows you the argument, not just the answer.**
 
-Built for [GenHacks 2026](https://genhacks-open.devpost.com/).
+**[Try it →](https://dissent.deployxa.online)** · Built for
+[GenHacks 2026](https://genhacks-open.devpost.com/).
 
 ![A variant report: the plain summary, two opposing verdicts, and the first conflict](docs/images/report.jpg)
 
-*HFE C282Y. The worksheet reaches Benign; seven laboratories call it
+*HFE C282Y. The worksheet reaches Benign; eight laboratories call it
 pathogenic. Neither is a bug — the disagreement is the output.*
 
 ---
@@ -128,7 +129,7 @@ pathogenic records, 15 likely pathogenic, and one benign.
 
 | Variant | Why it is interesting |
 |---|---|
-| `41815` | A ClinVar variation id. 37 laboratories call it benign and one calls it pathogenic. |
+| `41815` | A ClinVar variation id. On `/scale` it is one of the 3,349 outright contradictions — 37 submissions call it benign, one calls it pathogenic. The worksheet shows ten records, all benign, because the per-variant API serves RCV aggregates (one per condition) while the contradiction is between the submissions underneath them. Two true counts of different things, which is the distinction in **Limits** made concrete. |
 | `HFE C282Y` | Asserted pathogenic at ~7% allele frequency — above the stand-alone benign threshold. Hereditary haemochromatosis has very low penetrance, and the framework has no clean answer. |
 | `MTHFR A222V` | 49% allele frequency in one population, yet 12 of 19 predictors call it damaging. BA1 and PP3 are met at once. |
 | `BRAF V600E` | Somatic and germline assertions mixed in one record; 13 of 17 state no assertion criteria. |
@@ -182,7 +183,7 @@ python -m dissent --panel my_panel.txt
 python -m dissent --panel my_panel.txt --csv > worklist.csv
 ```
 
-Tests — 519 of them, none touching the network, so they run anywhere:
+Tests — 521 of them, none touching the network, so they run anywhere:
 
 ```bash
 python -m pytest
@@ -259,7 +260,7 @@ not known until the first phase answers:
 ### Decisions worth stating
 
 **Every criterion and detector is a pure function** over the evidence bundle.
-No I/O, no state. That is what lets the 519 tests run offline against recorded
+No I/O, no state. That is what lets the 521 tests run offline against recorded
 fixtures, and what lets a reviewer audit a rule by reading one function. The
 fixtures come in two layers: normalised bundles for the scoring rules, and
 verbatim API payloads for the code that produces them.

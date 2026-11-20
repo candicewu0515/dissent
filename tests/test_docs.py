@@ -187,3 +187,55 @@ def test_the_documentation_does_not_promise_a_speed_the_cap_rules_out():
         assert not re.search(r"in about (one|two|three) seconds", text), (
             f"{name} still claims a cold lookup time the VEP cap rules out"
         )
+
+
+def test_the_narration_counts_are_the_ones_the_code_produces():
+    """The video script is read aloud on camera, so a stale number there is
+    spoken rather than merely printed.
+
+    Two were: "seven laboratories" and "Four conflicts" for HFE C282Y, both
+    left behind when the ClinVar vocabulary fix recovered two dropped records.
+    A caption under the README screenshot said "seven" too -- the earlier test
+    only checked the quoted sentence, not the prose around it.
+    """
+    from datetime import date
+
+    from dissent.report import build_report
+    from tests.conftest import load_bundle
+
+    report = build_report(load_bundle("hfe_c282y"), today=date(2026, 11, 20))
+    labs = report.summary.split()[0]
+    conflicts = len(report.conflicts)
+
+    words = {4: "Four", 5: "Five", 6: "Six", 7: "Seven", 8: "Eight"}
+    spoken_labs = {7: "seven", 8: "eight", 9: "nine", 10: "ten"}
+
+    assert f"{words[conflicts]} conflicts" in SUBMISSION, (
+        f"the narration should say {words[conflicts]!r} conflicts for HFE"
+    )
+    assert f"{spoken_labs[int(labs)]} laboratories" in SUBMISSION, (
+        f"the narration should say {spoken_labs[int(labs)]!r} laboratories for HFE"
+    )
+    # And nothing anywhere should still carry the superseded figure.
+    for name, text in (("README.md", README), ("docs/02-submission.md", SUBMISSION)):
+        for stale in ("seven laboratories", "7 laboratories"):
+            if spoken_labs[int(labs)] != "seven":
+                assert stale not in text, f"{name} still says {stale!r}"
+
+
+def test_the_predictor_split_in_the_narration_matches_the_fixture():
+    from tests.conftest import load_bundle
+
+    bundle = load_bundle("hfe_c282y")
+    damaging = sum(1 for p in bundle.predictors if p.call == "damaging")
+    benign = sum(1 for p in bundle.predictors if p.call == "benign")
+
+    # The shot description uses digits; the spoken line spells the number out,
+    # because it is read aloud.
+    assert f"{damaging}-damaging / {benign}-benign" in SUBMISSION
+
+    spoken = {17: "seventeen", 18: "eighteen", 19: "nineteen", 20: "twenty"}
+    total = damaging + benign
+    assert f"{spoken[total]} prediction tools" in SUBMISSION, (
+        f"the narration should say {spoken[total]!r} prediction tools"
+    )
