@@ -10,9 +10,16 @@ Status: **registered**
 
 ## Dates (Eastern Time)
 - Build window opens: Nov 1, 2026
-- **Submission closes: Dec 26, 2026 at 12:00 AM ET**
+- **Submission closes: Dec 26, 2026 at 12:00 AM ET** (the written rules)
   - NOTE: 12:00 AM on Dec 26 = the *start* of Dec 26, i.e. **end of Dec 25**.
-  - Treat the real working deadline as **Dec 24, 2026** to leave a safety buffer.
+- **The Devpost timer disagrees.** The submission manager shows
+  `Dec 26, 2026 @ 4:00pm CST`, which is 17 hours *later* than the rules text
+  (05:00 UTC against 22:00 UTC on the 26th). Checked 21 Nov 2026.
+  - The written rules are the ones that say "We won't judge late submissions",
+    so the earlier time is the one to respect. The platform staying open is
+    not permission.
+  - Treat the real working deadline as **Dec 24, 2026** and the discrepancy as
+    irrelevant.
 - Late submissions are not judged.
 
 ## Tracks (pick exactly one at submission)

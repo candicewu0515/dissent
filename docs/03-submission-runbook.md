@@ -7,6 +7,11 @@ could be done without you is done; the text to paste is in
 Official close: **26 December 2026, 00:00 Eastern Time**, which is the *end of
 25 December*. Aim for 24 December.
 
+Devpost's own submission manager shows a later cutoff — `Dec 26 @ 4:00pm CST`,
+about 17 hours after the rules text. Ignore it. The rules are what carry "We
+won't judge late submissions", and a form that is still open is not permission
+to use it.
+
 ---
 
 ## 1. Push the code (15 minutes)
