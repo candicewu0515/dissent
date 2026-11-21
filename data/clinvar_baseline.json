@@ -1,6 +1,7 @@
 {
  "generated": "2026-11-20",
  "source": "ClinVar submission_summary.txt.gz",
+ "source_url": "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/submission_summary.txt.gz",
  "submission_rows": 6895437,
  "variants": 4470690,
  "variants_with_multiple_submitters": 1033454,

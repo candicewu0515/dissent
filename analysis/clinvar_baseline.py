@@ -7,6 +7,16 @@ makes it a measurement.
 Input is ClinVar's own submission_summary.txt.gz, which has one row per
 submitted record (SCV) rather than per variant, so submitter-level disagreement
 is directly observable. Streamed from the gzip; never fully decompressed.
+
+Reproducing it, which took about a minute of CPU on the 2026-11-15 release:
+
+    curl -O https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/submission_summary.txt.gz
+    python analysis/clinvar_baseline.py submission_summary.txt.gz data/clinvar_baseline.json
+
+NCBI replaces that file in place, so a later run reads a later release and the
+figures will move. The output records the release date it was built from, and
+every number the interface quotes is read from that file rather than written
+into the copy.
 """
 
 from __future__ import annotations
@@ -16,6 +26,10 @@ import json
 import sys
 from collections import Counter, defaultdict
 from datetime import date, datetime
+
+SOURCE_URL = (
+    "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/submission_summary.txt.gz"
+)
 
 # Column names in the header line (which begins with '#').
 WANT = [
@@ -233,6 +247,7 @@ def main(path: str, out_path: str) -> None:
     result = {
         "generated": TODAY.isoformat(),
         "source": "ClinVar submission_summary.txt.gz",
+        "source_url": SOURCE_URL,
         "submission_rows": rows,
         "variants": total,
         "variants_with_multiple_submitters": multi_submitter,

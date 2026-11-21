@@ -424,3 +424,27 @@ def test_no_document_puts_an_unsourced_figure_on_how_long_curation_takes():
             if name == "docs/01-design-spec.md" and "earlier draft" in text:
                 continue  # the spec records the retraction on purpose
             assert claim not in text, f"{name} still asserts {claim!r} with no source"
+
+
+def test_the_baseline_records_where_it_came_from():
+    """The measurement is the project's central claim, and the file it was
+    computed from was named nowhere a reader could act on -- not in the script,
+    not in the data file, not on the page that quotes the figures. A number
+    nobody can re-derive is an assertion wearing a measurement's clothes.
+    """
+    import json
+
+    data = json.loads((ROOT / "data" / "clinvar_baseline.json").read_text())
+    assert data.get("source_url", "").startswith("https://ftp.ncbi.nlm.nih.gov/"), (
+        "the shipped baseline should name the file it was built from"
+    )
+    assert data.get("generated"), "and the date it was built"
+
+    script = (ROOT / "analysis" / "clinvar_baseline.py").read_text()
+    assert data["source_url"] in script, "the script should name the same URL"
+
+    scale = (ROOT / "dissent" / "web" / "scale.html").read_text()
+    assert "submission_summary.txt.gz" in scale, (
+        "the page quoting the figures should name the file they come from"
+    )
+    assert data["source_url"] in README

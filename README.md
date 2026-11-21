@@ -40,10 +40,24 @@ label. Observed while building this, in real records:
 - **Germline criteria get applied to somatic variants**, which is a category
   error, and nothing warns you.
 
-Those figures are measured, not estimated: see
-[`analysis/clinvar_baseline.py`](analysis/clinvar_baseline.py), which streams
-ClinVar's own submission release — 6,895,437 submissions across 4,470,690
-variants. The whole picture is at `/scale`:
+Those figures are measured, not estimated, and you can re-measure them:
+[`analysis/clinvar_baseline.py`](analysis/clinvar_baseline.py) streams
+[ClinVar's own submission release](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/submission_summary.txt.gz)
+— 6,895,437 submissions across 4,470,690 variants, the 2026-11-15 file —
+in about a minute:
+
+```bash
+curl -O https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/submission_summary.txt.gz
+```
+
+```bash
+python analysis/clinvar_baseline.py submission_summary.txt.gz data/clinvar_baseline.json
+```
+
+NCBI replaces that file in place, so a later run reads a later release and the
+numbers will move. Nothing in the interface is hard-coded: every figure is read
+from the generated file, which records the release it came from. The whole
+picture is at `/scale`:
 
 ![The database-wide view: headline rates and the genes where disagreement concentrates](docs/images/scale.jpg)
 
@@ -184,7 +198,7 @@ python -m dissent --panel my_panel.txt
 python -m dissent --panel my_panel.txt --csv > worklist.csv
 ```
 
-Tests — 537 of them, none touching the network, so they run anywhere:
+Tests — 538 of them, none touching the network, so they run anywhere:
 
 ```bash
 python -m pytest
@@ -261,7 +275,7 @@ not known until the first phase answers:
 ### Decisions worth stating
 
 **Every criterion and detector is a pure function** over the evidence bundle.
-No I/O, no state. That is what lets the 537 tests run offline against recorded
+No I/O, no state. That is what lets the 538 tests run offline against recorded
 fixtures, and what lets a reviewer audit a rule by reading one function. The
 fixtures come in two layers: normalised bundles for the scoring rules, and
 verbatim API payloads for the code that produces them.
